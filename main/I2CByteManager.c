@@ -1,4 +1,5 @@
 #include "I2CByteManager.h"
+#include "esp_log.h"
 
 //Display
 void	displayerBuffer(uint8_t *buf, int len)
