@@ -8,7 +8,7 @@ esp_err_t	initPressureTempSensor(i2c_port_t port)
 	uint8_t data;
 	int ret;
 
-	ESP_LOGI(TAG, "Asking WHOIAM to captor Pressure/Temperature...");
+	ESP_LOGI(TAG, "Asking WHOIAM for sensor Pressure/Temperature...");
 	ret = writeByte(port, I2C_SLAVE_PRESSURETEMP, PRESSURETEMP_WHOIAM, NULL);
 	if (ret != ESP_OK)
 		return ESP_FAIL;

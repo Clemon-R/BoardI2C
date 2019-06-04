@@ -45,13 +45,16 @@ static main_data_t setupAllSensors()
 
 	ESP_ERROR_CHECK(initHumidityTempSensor(I2C_MASTER_NUM));
 	ESP_ERROR_CHECK(initPressureTempSensor(I2C_MASTER_NUM));
+	ESP_ERROR_CHECK(initColorSensor(I2C_MASTER_NUM));
 	result.pressureData = setupPressureTempSensor(I2C_MASTER_NUM);
 	result.humidityData = setupHumidityTempSensor(I2C_MASTER_NUM);
+	setupColorSensor(I2C_MASTER_NUM);
 	return result;
 }
 
 void	app_main(){
 	main_data_t	data;
+	color_rgb_t	tmp;
 	
 	ESP_ERROR_CHECK(nordicI2CInit());
 
@@ -60,6 +63,9 @@ void	app_main(){
 		ESP_LOGI(TAG, "Result Temperature: %d°C", getTemperature(I2C_MASTER_NUM, &data.humidityData));
 		ESP_LOGI(TAG, "Result Humidity: %d%c", getHumidity(I2C_MASTER_NUM, &data.humidityData), '%');
 		ESP_LOGI(TAG, "Result Pressure: %dhPa", getPressure(I2C_MASTER_NUM));
+
+		tmp = getColorRGB(I2C_MASTER_NUM);
+		ESP_LOGI(TAG, "Result RGB R: 0x%2x, G: 0x%2x, B: 0x%2x", tmp.r, tmp.g, tmp.r);
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }

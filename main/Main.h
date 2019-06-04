@@ -5,6 +5,7 @@
 #include "esp_log.h"
 #include "HumidityTemperatureSensor.h"
 #include "PressureTemperatureSensor.h"
+#include "ColorSensor.h"
 
 typedef struct main_data_s
 {

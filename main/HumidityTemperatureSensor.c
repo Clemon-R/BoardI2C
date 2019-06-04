@@ -109,7 +109,7 @@ esp_err_t	initHumidityTempSensor(i2c_port_t port)
 	uint8_t data;
 	int ret;
 
-	ESP_LOGI(TAG, "Asking WHOIAM to captor Humidity/Temperature...");
+	ESP_LOGI(TAG, "Asking WHOIAM for sensor Humidity/Temperature...");
 	ret = writeByte(port, I2C_SLAVE_HUMIDITYTEMP, HUMIDITYTEMP_WHOIAM, NULL);
 	if (ret != ESP_OK)
 		return ESP_FAIL;
