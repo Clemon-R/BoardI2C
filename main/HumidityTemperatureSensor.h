@@ -1,3 +1,9 @@
+/**
+ * Based on Sensor HTS221
+ * 
+ * Author: Raphaël-G
+ **/
+
 #ifndef HUMIDITYTEMP_H_
 #define HUMIDITYTEMP_H_
 

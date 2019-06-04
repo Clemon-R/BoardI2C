@@ -17,7 +17,7 @@
 
 static char	TAG[] = "Main";
 
-esp_err_t nordicI2CInit()
+static esp_err_t nordicI2CInit()
 {
 	i2c_port_t i2c_master_port = I2C_MASTER_NUM;
 	i2c_config_t conf;
