@@ -57,8 +57,9 @@ void	app_main(){
 
 	data = setupAllSensors();
 	while (1){
-		ESP_LOGI(TAG, "Result Temperature: %d", getTemperature(I2C_MASTER_NUM, &data.humidityData));
-		ESP_LOGI(TAG, "Result Humidity: %d", getHumidity(I2C_MASTER_NUM, &data.humidityData));
+		ESP_LOGI(TAG, "Result Temperature: %d°C", getTemperature(I2C_MASTER_NUM, &data.humidityData));
+		ESP_LOGI(TAG, "Result Humidity: %d%c", getHumidity(I2C_MASTER_NUM, &data.humidityData), '%');
+		ESP_LOGI(TAG, "Result Pressure: %dhPa", getPressure(I2C_MASTER_NUM));
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }

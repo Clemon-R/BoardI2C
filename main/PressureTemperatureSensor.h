@@ -15,6 +15,11 @@
 #define I2C_SLAVE_PRESSURETEMP	0x5C
 
 #define PRESSURETEMP_CTRL_REG1	0x10
+#define PRESSURETEP_RPDSL	0x18
+#define PRESSURETEP_RPDSH	0x19
+#define PRESSURETEP_PRESS_OUTXL	0x28
+#define PRESSURETEP_PRESS_OUTL	0x29
+#define PRESSURETEP_PRESS_OUTH	0x2A
 #define PRESSURETEMP_WHOIAM	0x0F
 #define PRESSURETEMP_WHOIAM_ANS	0xB1
 
@@ -31,7 +36,6 @@ typedef struct pressure_temp_sensor_s
 esp_err_t	initPressureTempSensor(i2c_port_t port);
 pressure_temp_sensor_t	setupPressureTempSensor(i2c_port_t port);
 
-
-
+int32_t	getPressure(i2c_port_t port);
 
 #endif // !PRESSURETEMP_H_
