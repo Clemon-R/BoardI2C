@@ -7,7 +7,7 @@
 #include "driver/i2c.h"
 #include "freertos/task.h"
 
-#include "HumidityTemperatureSensor.h"
+#include "Main.h"
 
 //Sensor
 #define	I2C_MASTER_NUM	(i2c_port_t)0
@@ -39,21 +39,26 @@ static esp_err_t nordicI2CInit()
 	return ESP_OK;
 }
 
-static humidity_temp_sensor_t setupAllSensors()
+static main_data_t setupAllSensors()
 {
+	main_data_t	result;
+
 	ESP_ERROR_CHECK(initHumidityTempSensor(I2C_MASTER_NUM));
-	return setupHumidityTempSensor(I2C_MASTER_NUM);
+	ESP_ERROR_CHECK(initPressureTempSensor(I2C_MASTER_NUM));
+	result.pressureData = setupPressureTempSensor(I2C_MASTER_NUM);
+	result.humidityData = setupHumidityTempSensor(I2C_MASTER_NUM);
+	return result;
 }
 
 void	app_main(){
-	humidity_temp_sensor_t	data;
+	main_data_t	data;
 	
 	ESP_ERROR_CHECK(nordicI2CInit());
 
 	data = setupAllSensors();
 	while (1){
-		ESP_LOGI(TAG, "Result Temperature: %d", getTemperature(I2C_MASTER_NUM, &data));
-		ESP_LOGI(TAG, "Result Humidity: %d", getHumidity(I2C_MASTER_NUM, &data));
+		ESP_LOGI(TAG, "Result Temperature: %d", getTemperature(I2C_MASTER_NUM, &data.humidityData));
+		ESP_LOGI(TAG, "Result Humidity: %d", getHumidity(I2C_MASTER_NUM, &data.humidityData));
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }

@@ -15,7 +15,6 @@ void	displayerBuffer(uint8_t *buf, int len)
     printf("\n");
 }
 
-
 //Readers
 esp_err_t	readBytes(i2c_port_t i2c_num, uint8_t address, uint8_t *data, size_t size)
 {
@@ -49,7 +48,6 @@ esp_err_t	readByte(i2c_port_t i2c_num, uint8_t address, uint8_t *data)
     i2c_cmd_link_delete(cmd);
     return ret;
 }
-
 
 //Writers
 esp_err_t	writeByte(i2c_port_t i2c_num, uint8_t address, uint8_t registerId, uint8_t *data)
