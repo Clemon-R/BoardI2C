@@ -1,7 +1,7 @@
 #include "ColorSensor.h"
 #include "I2CByteManager.h"
 
-static char	TAG[] = "ColorSensor";
+static const char	TAG[] = "ColorSensor";
 
 esp_err_t	initColorSensor(i2c_port_t port)
 {
