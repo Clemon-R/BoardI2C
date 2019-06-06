@@ -9,14 +9,16 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
 {
     switch (event->event_id) {
         case SYSTEM_EVENT_STA_START:
+            ESP_LOGI(TAG, "Waiting for wifi");
             esp_wifi_connect();
             break;
         case SYSTEM_EVENT_STA_GOT_IP:
             xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
             break;
         case SYSTEM_EVENT_STA_DISCONNECTED:
-            esp_wifi_connect();
             xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
+            ESP_LOGI(TAG, "Waiting for wifi");
+            esp_wifi_connect();
             break;
         default:
             break;
@@ -44,12 +46,12 @@ static void wifi_init(const char *ssid, const char *password)
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
     ESP_LOGI(TAG, "start the WIFI SSID:[%s]", ssid);
     ESP_ERROR_CHECK(esp_wifi_start());
-    ESP_LOGI(TAG, "Waiting for wifi");
-    ESP_ERROR_CHECK(xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY) != CONNECTED_BIT);
 }
 
-void launchWifi(char *ssid, char *password)
+void launchWifi(EventGroupHandle_t eventGroup, char *ssid, char *password)
 {
+    wifi_event_group = eventGroup;
+    
     esp_log_level_set("*", ESP_LOG_INFO);
     esp_log_level_set("MQTT_CLIENT", ESP_LOG_VERBOSE);
     esp_log_level_set("TRANSPORT_TCP", ESP_LOG_VERBOSE);
@@ -58,6 +60,5 @@ void launchWifi(char *ssid, char *password)
     esp_log_level_set("OUTBOX", ESP_LOG_VERBOSE);
 
     ESP_LOGI(TAG, "Launching Wifi Client for ssid: %s, password: %s...", ssid, password);
-    nvs_flash_init();
     wifi_init(ssid, password);
 }

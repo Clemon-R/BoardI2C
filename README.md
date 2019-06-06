@@ -2,6 +2,8 @@
 
 A project that connect an Nordic Thingy:52 with an ESP32 mcu with BUS I2C
 
+and sending some data on a broker MQTT, by using Wifi.
+
 ##
 
 ### What sensor are we handling ?

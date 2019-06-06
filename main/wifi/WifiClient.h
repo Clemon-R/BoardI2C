@@ -22,6 +22,6 @@
 
 #include "esp_log.h"
 
-void launchWifi(char *ssid, char *password);
+void launchWifi(EventGroupHandle_t eventGroup, char *ssid, char *password);
 
 #endif // !WIFICLIENT_H_
