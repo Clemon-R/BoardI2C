@@ -8,7 +8,8 @@
 #include "freertos/task.h"
 
 #include "Main.h"
-#include "WifiClient.h"
+#include "wifi/WifiClient.h"
+#include "mqtt/MqttClient.h"
 
 //Sensor
 #define	I2C_MASTER_NUM	(i2c_port_t)0
@@ -61,6 +62,7 @@ void	app_main(){
 
 	data = setupAllSensors();
 	launchWifi("Honor Raphael", "clemon69");
+	launchMqtt("tcp://test.mosquitto.org:1883");
 	while (1){
 		ESP_LOGI(TAG, "Result Temperature: %d°C", getTemperature(I2C_MASTER_NUM, &data.humidityData));
 		ESP_LOGI(TAG, "Result Humidity: %d%c", getHumidity(I2C_MASTER_NUM, &data.humidityData), '%');

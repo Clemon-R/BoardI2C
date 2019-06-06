@@ -13,7 +13,6 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
             break;
         case SYSTEM_EVENT_STA_GOT_IP:
             xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
-
             break;
         case SYSTEM_EVENT_STA_DISCONNECTED:
             esp_wifi_connect();
@@ -46,7 +45,7 @@ static void wifi_init(const char *ssid, const char *password)
     ESP_LOGI(TAG, "start the WIFI SSID:[%s]", ssid);
     ESP_ERROR_CHECK(esp_wifi_start());
     ESP_LOGI(TAG, "Waiting for wifi");
-    xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY);
+    ESP_ERROR_CHECK(xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY) != CONNECTED_BIT);
 }
 
 void launchWifi(char *ssid, char *password)
@@ -58,6 +57,7 @@ void launchWifi(char *ssid, char *password)
     esp_log_level_set("TRANSPORT", ESP_LOG_VERBOSE);
     esp_log_level_set("OUTBOX", ESP_LOG_VERBOSE);
 
+    ESP_LOGI(TAG, "Launching Wifi Client for ssid: %s, password: %s...", ssid, password);
     nvs_flash_init();
     wifi_init(ssid, password);
 }

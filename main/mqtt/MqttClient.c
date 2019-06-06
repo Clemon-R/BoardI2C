@@ -1,11 +1,4 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
-#include "esp_system.h"
-#include "mqtt_client.h"
-
-#include "esp_log.h"
+#include "MqttClient.h"
 
 static const char *TAG = "MqttClient";
 
@@ -59,14 +52,16 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
     return ESP_OK;
 }
 
-static void mqtt_app_start(void)
+esp_err_t    launchMqtt(const char *url)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
-        .uri = "",
+        .uri = url,
         .event_handle = mqtt_event_handler,
+        .transport = MQTT_TRANSPORT_OVER_TCP
         // .user_context = (void *)your_context
     };
 
+    ESP_LOGI(TAG, "Launching Mqtt Client...");
     esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
-    esp_mqtt_client_start(client);
+    return esp_mqtt_client_start(client);
 }

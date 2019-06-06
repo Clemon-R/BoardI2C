@@ -3,9 +3,9 @@
 
 #include "sdkconfig.h"
 #include "esp_log.h"
-#include "HumidityTemperatureSensor.h"
-#include "PressureTemperatureSensor.h"
-#include "ColorSensor.h"
+#include "sensors/HumidityTemperatureSensor.h"
+#include "sensors/PressureTemperatureSensor.h"
+#include "sensors/ColorSensor.h"
 
 typedef struct main_data_s
 {

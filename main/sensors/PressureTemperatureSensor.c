@@ -1,5 +1,5 @@
 #include "PressureTemperatureSensor.h"
-#include "I2CByteManager.h"
+#include "../I2CByteManager.h"
 
 static const char TAG[] = "PressureTemperatureSensor";
 
