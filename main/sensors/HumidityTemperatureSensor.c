@@ -93,15 +93,17 @@ static esp_err_t initHumidityCalibration(i2c_port_t port, humidity_temp_sensor_t
 	return ret;
 }
 
-humidity_temp_sensor_t	setupHumidityTempSensor(i2c_port_t port)
+esp_err_t	setupHumidityTempSensor(i2c_port_t port, humidity_temp_sensor_t *data)
 {
-	humidity_temp_sensor_t	data;
+	esp_err_t	ret;
 
-	data.T0_deg = 0;
-	data.T1_deg = 0;
-	ESP_ERROR_CHECK(initTemperatureCalibration(port, &data));
-	ESP_ERROR_CHECK(initHumidityCalibration(port, &data));
-	return data;
+	if (!data)
+		return ESP_FAIL;
+	data->T0_deg = 0;
+	data->T1_deg = 0;
+	ret = initTemperatureCalibration(port, data);
+	ret = initHumidityCalibration(port, data);
+	return ESP_OK;
 }
 
 esp_err_t	initHumidityTempSensor(i2c_port_t port)

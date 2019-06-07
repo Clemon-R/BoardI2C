@@ -18,18 +18,19 @@ esp_err_t	initColorSensor(i2c_port_t port)
 	return ret;
 }
 
-void	setupColorSensor(i2c_port_t port)
+esp_err_t	setupColorSensor(i2c_port_t port)
 {
 	int	ret;
 	uint8_t	data;
 	
 	data = 0;
 	ret = writeByte(port, I2C_SLAVE_COLOR, COLOR_MODE_CONTROL1, &data);
-	ESP_ERROR_CHECK(ret);
+	if (ret != ESP_OK)
+		return ret;
 
 	data = 0x90;
 	ret = writeByte(port, I2C_SLAVE_COLOR, COLOR_MODE_CONTROL2, &data);
-	ESP_ERROR_CHECK(ret);
+	return ret;
 }
 
 color_rgb_t	getColorRGB(i2c_port_t port)

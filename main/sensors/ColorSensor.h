@@ -33,7 +33,7 @@ typedef struct	color_rgb_s
 }				color_rgb_t;
 
 esp_err_t	initColorSensor(i2c_port_t port);
-void	setupColorSensor(i2c_port_t port);
+esp_err_t	setupColorSensor(i2c_port_t port);
 
 color_rgb_t	getColorRGB(i2c_port_t port);
 
