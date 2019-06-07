@@ -22,14 +22,23 @@
 
 #include "esp_log.h"
 
-typedef struct wifi_client_s
+typedef enum	WifiState_e
+{
+	NONE = 0,
+	DEINITIATIED,
+	INITIATING,
+	INITIATIED
+}				WifiState_t;
+
+typedef struct WifiConfig_s
 {
 	char	*ssid;
 	char	*password;
-	EventGroupHandle_t	eventGroup;
-}				wifi_client_t;
+}				WifiConfig_t;
 
+esp_err_t	startWifiClient(WifiConfig_t   *config);
+esp_err_t	stopWifiClient();
 
-void taskWifi(void *arg);
+EventGroupHandle_t  getWifiEventGroup();
 
 #endif // !WIFICLIENT_H_

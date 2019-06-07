@@ -1,8 +1,14 @@
 #include "MqttClient.h"
+#include "../wifi/WifiClient.h"
 
 static const char *TAG = "MqttClient";
-static EventGroupHandle_t   wifiEventGroup;
-static EventGroupHandle_t   mqttEventGroup;
+static TaskHandle_t	mqttTask = NULL;
+
+static EventGroupHandle_t   wifiEventGroup = NULL;
+static EventGroupHandle_t   mqttEventGroup = NULL;
+
+static WifiState_t	_state = 0;
+static char	running = 0;
 
 static const int WIFI_CONNECTED_BIT = BIT0;
 static const int CONNECTED_BIT = BIT0;
@@ -12,8 +18,10 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 	esp_mqtt_client_handle_t client = event->client;
 	//int msg_id;
 	// your_context_t *context = event->context;
+
 	switch (event->event_id) {
 		case MQTT_EVENT_CONNECTED:
+			_state = INITIATIED;
 			ESP_LOGI(TAG, "Connected");
 			xEventGroupSetBits(mqttEventGroup, CONNECTED_BIT);
 			//msg_id = esp_mqtt_client_publish(client, "/topic/qos1", "data_3", 0, 1, 0);
@@ -23,8 +31,11 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 			ESP_LOGI(TAG, "Subscribed to /demo/rtone/esp32/status");
 			break;
 		case MQTT_EVENT_DISCONNECTED:
-			ESP_LOGI(TAG, "Disconnected");
-			xEventGroupClearBits(mqttEventGroup, CONNECTED_BIT);
+			_state = INITIATIED;
+			if ((xEventGroupWaitBits(mqttEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) != CONNECTED_BIT){
+				ESP_LOGI(TAG, "Disconnected");
+				xEventGroupClearBits(mqttEventGroup, CONNECTED_BIT);
+			}
 			break;
 		case MQTT_EVENT_PUBLISHED:
 			ESP_LOGI(TAG, "Data successfully published - msg_id=%d", event->msg_id);
@@ -43,37 +54,99 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 	return ESP_OK;
 }
 
-void	taskMqtt(void *arg)
+static esp_mqtt_client_handle_t	initMqttClient(const char *url)
 {
-	esp_mqtt_client_handle_t client = NULL;
-
-	ESP_ERROR_CHECK(arg == NULL);
-	mqtt_client_t	data = *(mqtt_client_t *)arg;
 	esp_mqtt_client_config_t mqtt_cfg = {
-		.uri = data.url,
+		.uri = url,
 		.event_handle = mqtt_event_handler,
 		//.transport = MQTT_TRANSPORT_OVER_TCP
 	};
 
-	wifiEventGroup = data.eventGroup;
-	mqttEventGroup = xEventGroupCreate();
-	while (1){
-		if ((xEventGroupWaitBits(wifiEventGroup, WIFI_CONNECTED_BIT, false, true, portMAX_DELAY) & WIFI_CONNECTED_BIT) == WIFI_CONNECTED_BIT
-		&& (xEventGroupWaitBits(mqttEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) != CONNECTED_BIT){
-			if (client != NULL){
-				ESP_LOGI(TAG, "Destroying old instance...");
-				esp_mqtt_client_destroy(client);
+    ESP_LOGI(TAG, "Initiating the mqtt...");
+	return esp_mqtt_client_init(&mqtt_cfg);
+}
+
+static esp_err_t	deinitMqttClient(esp_mqtt_client_handle_t client)
+{
+    ESP_LOGI(TAG, "Deinitiating the mqtt...");
+	if (!client)
+		return ESP_FAIL;
+	return esp_mqtt_client_destroy(client);
+}
+
+static esp_err_t	startMqtt(esp_mqtt_client_handle_t client)
+{
+	ESP_LOGI(TAG, "Starting the mqtt...");
+	if (!client)
+		return ESP_FAIL;
+	return esp_mqtt_client_start(client);
+}
+
+static esp_err_t	stopMqtt(esp_mqtt_client_handle_t client)
+{
+	ESP_LOGI(TAG, "Stopping the mqtt...");
+	if (!client)
+		return ESP_FAIL;
+	return esp_mqtt_client_stop(client);
+}
+
+static char	isConnected()
+{
+	return (xEventGroupWaitBits(mqttEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT;
+}
+
+static void	taskMqtt(void *arg)
+{
+	esp_mqtt_client_handle_t client = NULL;
+	MqttConfig_t	*data = NULL;
+
+    ESP_LOGI(TAG, "Initiating the task...");
+	ESP_ERROR_CHECK(arg == NULL);
+	data = (MqttConfig_t *)arg;
+
+	_state = NONE;
+	while (running){
+		if (!isConnected()){
+			if (_state <= DEINITIATIED && (xEventGroupWaitBits(wifiEventGroup, WIFI_CONNECTED_BIT, false, true, pdMS_TO_TICKS(1000)) & WIFI_CONNECTED_BIT) == WIFI_CONNECTED_BIT){
+				ESP_ERROR_CHECK((client = initMqttClient(data->url)) == NULL);
+				ESP_ERROR_CHECK(startMqtt(client));
+				_state = INITIATING;
+			} else if(client && _state == INITIATIED && !isConnected()) {
+				ESP_ERROR_CHECK(stopMqtt(client));
+				ESP_ERROR_CHECK(deinitMqttClient(client));
+				_state = DEINITIATIED;
 			}
-			ESP_LOGI(TAG, "Launching Mqtt Client...");
-			ESP_LOGI(TAG, "Initiating Mqtt Client for url %s ...", data.url);
-			client = esp_mqtt_client_init(&mqtt_cfg);
-			ESP_ERROR_CHECK(client == NULL);
-			ESP_ERROR_CHECK(esp_mqtt_client_start(client));
 		}
-		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
-	if (client != NULL)
-		esp_mqtt_client_destroy(client);
-	mqttEventGroup = NULL;
+	stopMqtt(client);
+	deinitMqttClient(client);
 	vTaskDelete(NULL);
+}
+
+esp_err_t	startMqttClient(MqttConfig_t *config)
+{
+    MqttConfig_t    *tmp;
+
+    ESP_LOGI(TAG, "Starting the %s task...", TAG);
+	if (running)
+		return ESP_FAIL;
+    tmp = malloc(sizeof(MqttConfig_t));
+    if (!tmp)
+        return ESP_FAIL;
+    memcpy(tmp, config, sizeof(MqttConfig_t));
+    if (!mqttEventGroup)
+        mqttEventGroup = xEventGroupCreate();
+	if (!wifiEventGroup)
+		wifiEventGroup = getWifiEventGroup();
+	running = 1;
+    return xTaskCreate(taskMqtt, "mqttTask", 4098, tmp, tskIDLE_PRIORITY, &mqttTask);
+}
+
+esp_err_t	stopMqttClient()
+{
+    ESP_LOGI(TAG, "Stopping the %s task...", TAG);
+	if (!running)
+		return ESP_FAIL;
+	running = 0;
+	return ESP_OK;
 }

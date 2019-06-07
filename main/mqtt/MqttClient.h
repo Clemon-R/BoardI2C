@@ -12,12 +12,12 @@
 
 #include "esp_log.h"
 
-typedef struct mqtt_client_s
+typedef struct MqttConfig_s
 {
 	char	*url;
-	EventGroupHandle_t	eventGroup;
-}				mqtt_client_t;
+}				MqttConfig_t;
 
-void	taskMqtt(void *arg);
+esp_err_t	startMqttClient(MqttConfig_t *config);
+esp_err_t	stopMqttClient();
 
 #endif // !MQTTCLIENT_H_

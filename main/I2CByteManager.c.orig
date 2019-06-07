@@ -56,7 +56,7 @@ esp_err_t	writeByte(i2c_port_t i2c_num, uint8_t address, uint8_t registerId, uin
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (address << 1) | WRITE_BIT, ACK_CHECK_EN);
     i2c_master_write_byte(cmd, registerId, ACK_CHECK_EN);
-    if (data != NULL) {
+    if (data != NULL){
         i2c_master_write_byte(cmd, *data, ACK_CHECK_EN);
     }
     i2c_master_stop(cmd);
@@ -71,7 +71,7 @@ esp_err_t	writeBytes(i2c_port_t i2c_num, uint8_t address, uint8_t registerId, ui
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (address << 1) | WRITE_BIT, ACK_CHECK_EN);
     i2c_master_write_byte(cmd, registerId, ACK_CHECK_EN);
-    if (size != 0 && data != NULL) {
+    if (size != 0 && data != NULL){
         i2c_master_write(cmd, data, size, ACK_CHECK_EN);
     }
     i2c_master_stop(cmd);

@@ -20,18 +20,29 @@
 
 static const char	TAG[] = "Main";
 
-void	app_main() {
-    WifiConfig_t	dataWifi = {
-        .ssid = "Honor Raphael",
-        .password = "clemon69"
-    };
-    MqttConfig_t	dataMqtt = {
-        .url = "mqtt://iot.eclipse.org"
-    };
+void	app_main(){
+	EventGroupHandle_t	eventGroup = xEventGroupCreate();
 
-    nvs_flash_init();
-	startWifiClient(&dataWifi);
-	startMqttClient(&dataMqtt);
+	TaskHandle_t	wifiTask = NULL;
+	TaskHandle_t	mqttTask = NULL;
+	TaskHandle_t	sensorsTask = NULL;
+
+	wifi_client_t	dataWifi = {
+		.ssid = "Honor Raphael",
+		.password = "clemon69",
+		.eventGroup = eventGroup
+	};
+	mqtt_client_t	dataMqtt = {
+		.url = "mqtt://iot.eclipse.org",
+		.eventGroup = eventGroup
+	};
+
+	nvs_flash_init();
+	ESP_ERROR_CHECK(xTaskCreate(taskWifi, "wifiTask", 4098, &dataWifi, tskIDLE_PRIORITY, &wifiTask) == ESP_OK);
+	ESP_ERROR_CHECK(xTaskCreate(taskMqtt, "mqttTask", 4098, &dataMqtt, tskIDLE_PRIORITY, &mqttTask) == ESP_OK);
+	while (1){
+		vTaskDelay(portMAX_DELAY);
+	}
 }
 
 /*
@@ -78,7 +89,7 @@ void	app_main(){
 	main_data_t	data;
 	color_rgb_t	tmp;
 	EventGroupHandle_t	eventGroup;
-
+	
     nvs_flash_init();
 	ESP_ERROR_CHECK(nordicI2CInit());
 	data = setupAllSensors();
