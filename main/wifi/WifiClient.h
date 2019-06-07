@@ -22,6 +22,14 @@
 
 #include "esp_log.h"
 
-void launchWifi(EventGroupHandle_t eventGroup, char *ssid, char *password);
+typedef struct wifi_client_s
+{
+	char	*ssid;
+	char	*password;
+	EventGroupHandle_t	eventGroup;
+}				wifi_client_t;
+
+
+void taskWifi(void *arg);
 
 #endif // !WIFICLIENT_H_

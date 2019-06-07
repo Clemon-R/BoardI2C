@@ -7,10 +7,17 @@
 #include <string.h>
 #include "esp_system.h"
 #include "mqtt_client.h"
+#include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 
 #include "esp_log.h"
 
-esp_err_t    launchMqtt(EventGroupHandle_t eventGroup, const char *url);
+typedef struct mqtt_client_s
+{
+	char	*url;
+	EventGroupHandle_t	eventGroup;
+}				mqtt_client_t;
+
+void	taskMqtt(void *arg);
 
 #endif // !MQTTCLIENT_H_

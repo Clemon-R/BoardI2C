@@ -18,10 +18,37 @@
 #define I2C_MASTER_SCL_IO	(gpio_num_t)0
 #define I2C_MASTER_FREQ_HZ	10000
 
-static char	TAG[] = "Main";
+static const char	TAG[] = "Main";
 
+void	app_main(){
+	EventGroupHandle_t	eventGroup = xEventGroupCreate();
+
+	TaskHandle_t	wifiTask = NULL;
+	TaskHandle_t	mqttTask = NULL;
+	TaskHandle_t	sensorsTask = NULL;
+
+	wifi_client_t	dataWifi = {
+		.ssid = "Honor Raphael",
+		.password = "clemon69",
+		.eventGroup = eventGroup
+	};
+	mqtt_client_t	dataMqtt = {
+		.url = "mqtt://iot.eclipse.org",
+		.eventGroup = eventGroup
+	};
+
+	nvs_flash_init();
+	ESP_ERROR_CHECK(xTaskCreate(taskWifi, "wifiTask", 4098, &dataWifi, tskIDLE_PRIORITY, &wifiTask) == ESP_OK);
+	ESP_ERROR_CHECK(xTaskCreate(taskMqtt, "mqttTask", 4098, &dataMqtt, tskIDLE_PRIORITY, &mqttTask) == ESP_OK);
+	while (1){
+		vTaskDelay(portMAX_DELAY);
+	}
+}
+
+/*
 const static int WIFI_CONNECTED = BIT0;
 const static int MQTT_CONNECTED = BIT1;
+
 
 static esp_err_t nordicI2CInit()
 {
@@ -85,3 +112,4 @@ void	app_main(){
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
+*/
