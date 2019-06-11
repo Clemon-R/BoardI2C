@@ -9,8 +9,11 @@
 #include "mqtt_client.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
+#include "freertos/queue.h"
 
 #include "esp_log.h"
+
+#define	BUFF_SIZE 1024
 
 typedef struct MqttConfig_s
 {
@@ -19,5 +22,7 @@ typedef struct MqttConfig_s
 
 esp_err_t	startMqttClient(MqttConfig_t *config);
 esp_err_t	stopMqttClient();
+
+QueueHandle_t	getQueueDatas();
 
 #endif // !MQTTCLIENT_H_
