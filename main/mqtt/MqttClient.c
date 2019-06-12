@@ -1,7 +1,9 @@
 #include "MqttClient.h"
 #include "../wifi/WifiClient.h"
+#include "MqttClientCommandHandler.h"
+#include "cJSON.h"
 
-static const char *TAG = "MqttClient";
+static const char *TAG = "\033[1;36mMqttClient\033[0m";
 static TaskHandle_t	mqttTask = NULL;
 
 static EventGroupHandle_t   _wifiEventGroup = NULL;
@@ -18,13 +20,12 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
 	esp_mqtt_client_handle_t client = event->client;
 	char	*pos;
-	//int msg_id;
-	// your_context_t *context = event->context;
+	MqttClientCommand_t	command;
 
 	switch (event->event_id) {
 		case MQTT_EVENT_CONNECTED:
 			_state = INITIATIED;
-			ESP_LOGI(TAG, "Connected");
+			ESP_LOGI(TAG, "\033[4mClient is connected\033[0m");
 			
 			xEventGroupSetBits(_mqttEventGroup, CONNECTED_BIT);
 
@@ -32,24 +33,31 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 			ESP_LOGI(TAG, "Subscribed to /demo/rtone/esp32/status");
 			esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/commands", 0);
 			ESP_LOGI(TAG, "Subscribed to /demo/rtone/esp32/commands");
-			esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/data", 0);
-			ESP_LOGI(TAG, "Subscribed to /demo/rtone/esp32/data");
+			esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/datas", 0);
+			ESP_LOGI(TAG, "Subscribed to /demo/rtone/esp32/datas");
 			break;
 		case MQTT_EVENT_DISCONNECTED:
 			_state = INITIATIED;
-			if ((xEventGroupWaitBits(_mqttEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) != CONNECTED_BIT){
-				ESP_LOGI(TAG, "Disconnected");
-				xEventGroupClearBits(_mqttEventGroup, CONNECTED_BIT);
-			}
+			ESP_LOGE(TAG, "\033[5mClient was disconnected\033[0m");
+			xEventGroupClearBits(_mqttEventGroup, CONNECTED_BIT);
 			break;
 		case MQTT_EVENT_DATA:
 			pos = strrchr(event->topic, '/');
 			if (pos == NULL)
-				break;
-			if (strcmp(pos + 1, "commands") == 0){
+				break;			
+			if (strncmp(pos + 1, "commands", event->topic_len - ((pos + 1) - event->topic)) == 0){
 				ESP_LOGI(TAG, "Command received");
-				printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
-				printf("DATA=%.*s\r\n", event->data_len, event->data);
+				event->data[event->data_len] = 0;
+
+				cJSON	*monitor = cJSON_Parse(event->data);
+				if (!monitor)
+					break;
+				cJSON	*type = cJSON_GetObjectItem(monitor, "type");
+				if (!monitor || !cJSON_IsNumber(type))
+					break;
+				command.type = (MqttClientCommandType)type->valueint;
+				command.data = monitor;
+				launchCommand(&command);
 			}
 			break;
 		case MQTT_EVENT_ERROR:
@@ -106,7 +114,7 @@ static void	taskMqtt(void *arg)
 {
 	esp_mqtt_client_handle_t client = NULL;
 	MqttConfig_t	*data = NULL;
-	char	*buff = NULL;
+	cJSON	*monitor = NULL;
 
     ESP_LOGI(TAG, "Initiating the task...");
 	ESP_ERROR_CHECK(arg == NULL);
@@ -125,10 +133,12 @@ static void	taskMqtt(void *arg)
 				_state = DEINITIATIED;
 			}
 		} else {
-			if (xQueueReceive(_datas, (void *)&buff, (TickType_t)pdMS_TO_TICKS(500)) == pdTRUE && buff){
-				esp_mqtt_client_publish(client, "/demo/rtone/esp32/data", buff, strlen(buff), 0, 0);
-				free(buff);
-				buff = NULL;
+			if (xQueueReceive(_datas, (void *)&monitor, (TickType_t)pdMS_TO_TICKS(500)) == pdTRUE && monitor){
+				char	*buff = cJSON_Print(monitor);
+				if (!buff)
+					continue;
+				esp_mqtt_client_publish(client, "/demo/rtone/esp32/datas", buff, strlen(buff), 0, 0);
+				cJSON_Delete(monitor);
 			}
 		}
 		vTaskDelay(pdMS_TO_TICKS(500));
@@ -154,7 +164,7 @@ esp_err_t	startMqttClient(MqttConfig_t *config)
 	if (!_wifiEventGroup)
 		_wifiEventGroup = getWifiEventGroup();
 	if (!_datas)
-		_datas = xQueueCreate(10, sizeof(char *));
+		_datas = xQueueCreate(10, sizeof(cJSON *));
 	_running = true;
     return xTaskCreate(taskMqtt, "mqttTask", 4098, tmp, tskIDLE_PRIORITY, &mqttTask);
 }

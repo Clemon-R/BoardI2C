@@ -1,7 +1,7 @@
 #include "PressureTemperatureSensor.h"
 #include "../I2CByteManager.h"
 
-static const char TAG[] = "PressureTemperatureSensor";
+static const char TAG[] = "\033[1;94mPressureTemperatureSensor\033[0m";
 
 esp_err_t	initPressureTempSensor(i2c_port_t port)
 {

@@ -1,7 +1,8 @@
 #include "SensorClient.h"
 #include "../mqtt/MqttClient.h"
+#include "cJSON.h"
 
-static const char	*TAG = "SensorClient";
+static const char	*TAG = "\033[1;94mSensorClient\033[0m";
 static TaskHandle_t	sensorTask = NULL;
 
 static char	_running = false;
@@ -67,27 +68,42 @@ static esp_err_t	setupAllSensors(SensorData_t *data)
 static void	taskSensor(void *args)
 {
 	SensorData_t	data;
-	char	buff[BUFF_SIZE];
+	char	buffer[BUFF_SIZE];
 	TickType_t	waitingTicks = pdMS_TO_TICKS(1000);
 
     ESP_LOGI(TAG, "Initiating the task...");
 	ESP_ERROR_CHECK(nordicI2CInit());
 	ESP_ERROR_CHECK(setupAllSensors(&data));
 	while (_running){
-		sprintf(buff, "Result Temperature: %d°C", getTemperature(I2C_MASTER_NUM, &data.humidityData));
+		cJSON	*monitor = cJSON_CreateObject();
+		if (!monitor)
+			continue;
+
+		//Température
+		cJSON	*sensors = cJSON_CreateObject();
+
+		cJSON	*raw = cJSON_CreateNumber(getTemperature(I2C_MASTER_NUM, &data.humidityData));
+		cJSON_AddItemReferenceToObject(sensors, "temperature", raw);
+
+		//Humidité
+		raw = cJSON_CreateNumber(getHumidity(I2C_MASTER_NUM, &data.humidityData));
+		cJSON_AddItemReferenceToObject(sensors, "humidity", raw);
+
+		//Pression
+		raw = cJSON_CreateNumber(getPressure(I2C_MASTER_NUM));
+		cJSON_AddItemReferenceToObject(sensors, "pressure", raw);
+
+		color_rgb_t tmp = getColorRGB(I2C_MASTER_NUM);
+		sprintf(buffer, "0x%04x%04x%04x", tmp.r, tmp.g, tmp.b);
+		raw = cJSON_CreateString(buffer);
+		cJSON_AddItemReferenceToObject(sensors, "color", raw);
+
+		cJSON_AddItemReferenceToObject(monitor, "sensors", sensors);
 		while (xQueueIsQueueFullFromISR(_datas) == pdTRUE){
 			vTaskDelay(waitingTicks);
 		}
-		char *tmp = strdup(buff);
-		xQueueSend(_datas, &tmp, waitingTicks);
+		xQueueSend(_datas, &monitor, waitingTicks);
 		vTaskDelay(waitingTicks);
-		/*ESP_LOGI(TAG, "Result Temperature: %d°C", getTemperature(I2C_MASTER_NUM, &data.humidityData));
-		ESP_LOGI(TAG, "Result Humidity: %d%c", getHumidity(I2C_MASTER_NUM, &data.humidityData), '%');
-		ESP_LOGI(TAG, "Result Pressure: %dhPa", getPressure(I2C_MASTER_NUM));
-
-		color_rgb_t tmp = getColorRGB(I2C_MASTER_NUM);
-		ESP_LOGI(TAG, "Result RGB R: 0x%2x, G: 0x%2x, B: 0x%2x", tmp.r, tmp.g, tmp.r);
-		vTaskDelay(pdMS_TO_TICKS(1000));*/
 	}
 	ESP_ERROR_CHECK(nordicI2CDeinit());
 	vTaskDelete(NULL);

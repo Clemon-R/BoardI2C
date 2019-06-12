@@ -1,6 +1,6 @@
 #include "WifiClient.h"
 
-static const char *TAG = "WifiClient";
+static const char *TAG = "\033[1;35mWifiClient\033[0m";
 static TaskHandle_t	wifiTask = NULL;
 
 static EventGroupHandle_t wifiEventGroup = NULL;
@@ -18,7 +18,7 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         if ((xEventGroupWaitBits(wifiEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT) {
-            ESP_LOGE(TAG, "Wifi was disconnected");
+            ESP_LOGE(TAG, "\033[5mWifi was disconnected\033[0m");
             xEventGroupClearBits(wifiEventGroup, CONNECTED_BIT);
         }
         ESP_LOGI(TAG, "Trying to connect again...");
@@ -68,7 +68,7 @@ static esp_err_t    deinitWifiClient()
 
 static esp_err_t    startWifi()
 {
-    ESP_LOGW(TAG, "Starting the wifi...");
+    ESP_LOGW(TAG, "\033[4mStarting the wifi...\033[0m");
     return esp_wifi_start();
 }
 
@@ -95,6 +95,7 @@ static void    taskWifi(void *arg)
     ESP_ERROR_CHECK(deinitWifiClient());
     free(data);
     vTaskDelete(NULL);
+    wifiTask = NULL;
 }
 
 esp_err_t    startWifiClient(WifiConfig_t   *config)
@@ -102,6 +103,8 @@ esp_err_t    startWifiClient(WifiConfig_t   *config)
     WifiConfig_t    *tmp;
 
     ESP_LOGI(TAG, "Starting the %s task...", TAG);
+    if (wifiTask)
+        return ESP_FAIL;
     tmp = malloc(sizeof(WifiConfig_t));
     if (!tmp)
         return ESP_FAIL;
@@ -124,4 +127,9 @@ esp_err_t   stopWifiClient()
 EventGroupHandle_t  getWifiEventGroup()
 {
     return wifiEventGroup;
+}
+
+char	isUsed()
+{
+    return wifiTask != NULL;
 }

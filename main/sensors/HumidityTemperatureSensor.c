@@ -1,7 +1,7 @@
 #include "HumidityTemperatureSensor.h"
 #include "../I2CByteManager.h"
 
-static const char TAG[] = "HumidityTemperatureSensor";
+static const char TAG[] = "\033[1;94mHumidityTemperatureSensor\033[0m";
 
 static esp_err_t	initTemperatureCalibration(i2c_port_t port, humidity_temp_sensor_t *args)
 {
