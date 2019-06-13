@@ -42,9 +42,11 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 			xEventGroupClearBits(_mqttEventGroup, CONNECTED_BIT);
 			break;
 		case MQTT_EVENT_DATA:
+			ESP_LOGI(TAG, "Topic: %.*s", event->topic_len, event->topic);
 			pos = strrchr(event->topic, '/');
 			if (pos == NULL)
-				break;			
+				break;
+			ESP_LOGI(TAG, "OK: %s", pos + 1);
 			if (strncmp(pos + 1, "commands", event->topic_len - ((pos + 1) - event->topic)) == 0){
 				ESP_LOGI(TAG, "Command received");
 				event->data[event->data_len] = 0;

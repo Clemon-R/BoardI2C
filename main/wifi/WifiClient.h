@@ -40,6 +40,6 @@ esp_err_t	startWifiClient(WifiConfig_t   *config);
 esp_err_t	stopWifiClient();
 
 EventGroupHandle_t  getWifiEventGroup();
-char	isUsed();
+char	wifiIsUsed();
 
 #endif // !WIFICLIENT_H_

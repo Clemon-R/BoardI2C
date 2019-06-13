@@ -7,6 +7,10 @@
 #include "sensors/PressureTemperatureSensor.h"
 #include "sensors/ColorSensor.h"
 
+#define RGB_1 16
+#define RGB_2 17
+#define RGB_3 2
+
 typedef struct main_data_s
 {
 	humidity_temp_sensor_t	humidityData;

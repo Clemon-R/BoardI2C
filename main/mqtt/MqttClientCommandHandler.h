@@ -15,7 +15,11 @@
 
 typedef enum	MqttClientCommandType_e
 {
-	CHANGEWIFI = 0
+	CHANGEWIFI = 0,
+	LED,
+	SENSOR,
+	REBOOT,
+	CHANGEPAGE
 }				MqttClientCommandType;
 
 typedef struct MqttClientCommand_s

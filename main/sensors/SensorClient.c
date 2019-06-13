@@ -8,6 +8,8 @@ static TaskHandle_t	sensorTask = NULL;
 static char	_running = false;
 static QueueHandle_t	_datas;
 
+static TickType_t	refreshDelai = pdMS_TO_TICKS(1000);
+
 static esp_err_t	nordicI2CInit()
 {
 	i2c_port_t i2c_master_port = I2C_MASTER_NUM;
@@ -103,7 +105,7 @@ static void	taskSensor(void *args)
 			vTaskDelay(waitingTicks);
 		}
 		xQueueSend(_datas, &monitor, waitingTicks);
-		vTaskDelay(waitingTicks);
+		vTaskDelay(refreshDelai);
 	}
 	ESP_ERROR_CHECK(nordicI2CDeinit());
 	vTaskDelete(NULL);
@@ -124,4 +126,9 @@ esp_err_t	stopSensorClient()
 		return ESP_FAIL;
 	_running = false;
 	return ESP_OK;
+}
+
+void	setRefreshDelai(TickType_t value)
+{
+	refreshDelai = value;
 }

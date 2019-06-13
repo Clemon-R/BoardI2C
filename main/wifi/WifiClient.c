@@ -13,7 +13,7 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
         esp_wifi_connect();
         break;
     case SYSTEM_EVENT_STA_GOT_IP:
-        ESP_LOGI(TAG, "Wifi successfully connected");
+        ESP_LOGI(TAG, "\033[4mWifi successfully connected\033[0m");
         xEventGroupSetBits(wifiEventGroup, CONNECTED_BIT);
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
@@ -43,9 +43,7 @@ static esp_err_t    initWifiClient(const char *ssid, const char *password)
     tcpip_adapter_init();
 
     ESP_LOGI(TAG, "Initiating Wifi...");
-    ret = esp_event_loop_init(wifi_event_handler, NULL);
-    if (ret != ESP_OK)
-        return ret;
+    esp_event_loop_init(wifi_event_handler, NULL);
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ret = esp_wifi_init(&cfg);
     if (ret != ESP_OK)
@@ -68,14 +66,14 @@ static esp_err_t    deinitWifiClient()
 
 static esp_err_t    startWifi()
 {
-    ESP_LOGW(TAG, "\033[4mStarting the wifi...\033[0m");
+    ESP_LOGW(TAG, "Starting the wifi...");
     return esp_wifi_start();
 }
 
 static esp_err_t    stopWifi()
 {
     ESP_LOGI(TAG, "Stopping the wifi...");
-    return esp_wifi_start();
+    return esp_wifi_stop();
 }
 
 static void    taskWifi(void *arg)
@@ -94,8 +92,8 @@ static void    taskWifi(void *arg)
     ESP_ERROR_CHECK(stopWifi());
     ESP_ERROR_CHECK(deinitWifiClient());
     free(data);
-    vTaskDelete(NULL);
     wifiTask = NULL;
+    vTaskDelete(NULL);
 }
 
 esp_err_t    startWifiClient(WifiConfig_t   *config)
@@ -129,7 +127,7 @@ EventGroupHandle_t  getWifiEventGroup()
     return wifiEventGroup;
 }
 
-char	isUsed()
+char	wifiIsUsed()
 {
     return wifiTask != NULL;
 }
