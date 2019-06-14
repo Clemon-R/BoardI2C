@@ -13,12 +13,16 @@
 
 #include "esp_log.h"
 
+#ifndef	BUFF_SIZE
 #define	BUFF_SIZE 1024
+#endif
 
 typedef struct MqttConfig_s
 {
 	char	*url;
 }				MqttConfig_t;
+
+char	isMqttConnected();
 
 esp_err_t	startMqttClient(MqttConfig_t *config);
 esp_err_t	stopMqttClient();

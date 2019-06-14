@@ -42,7 +42,8 @@ extern uint8_t tft_Comic24[];
 extern uint8_t tft_minya24[];
 extern uint8_t tft_tooney32[];
 extern uint8_t tft_def_small[];
-extern uint8_t tft_Comic7[];
+extern uint8_t tft_Comic10[];
+extern uint8_t tft_Comic6[];
 
 // ==== Color definitions constants ==============
 const color_t TFT_BLACK       = {   0,   0,   0 };
@@ -61,7 +62,7 @@ const color_t TFT_RED         = { 252,   0,   0 };
 const color_t TFT_MAGENTA     = { 252,   0, 255 };
 const color_t TFT_YELLOW      = { 252, 252,   0 };
 const color_t TFT_WHITE       = { 252, 252, 252 };
-const color_t TFT_ORANGE      = { 252, 164,   0 };
+const color_t TFT_ORANGE      = {0 , 36 << 2,   31 << 3 };
 const color_t TFT_GREENYELLOW = { 172, 252,  44 };
 const color_t TFT_PINK        = { 252, 192, 202 };
 // ===============================================
@@ -380,33 +381,11 @@ static void fillCircleHelper(int16_t x0, int16_t y0, int16_t r,	uint8_t cornerna
 	int16_t x = 0;
 	int16_t y = r;
 	int16_t ylm = x0 - r;
-	int16_t	r2 = r;
-	int16_t	diameter = r2 * 2 + 1;
-	uint32_t size = diameter * diameter;
-	color_t	*colors = (color_t	*)malloc(sizeof(color_t) * size);
 
-	if (!colors)
-		return;
-	for (int i = 0;i < size;i++){
-		colors[i] = _bg;
-	}
-	for (int i = 0;i < diameter - 1;i++){
-		colors[r + i * diameter] = color;
-	}
 	while (x < y) {
 		if (f >= 0) {
-			if (cornername & 0x1){
-				int16_t	tmpX = (r2 + y) + diameter * (r2 - x);
-				for (int tmp = 0;tmp < 2 * x +1 + delta;tmp++){
-					colors[tmpX + tmp * diameter] = color;
-				}
-			}
-			if (cornername & 0x2){
-				int16_t	tmpX = (r2 - y) + diameter * (r2 - x);
-				for (int tmp = 0;tmp < 2 * x +1 + delta;tmp++){
-					colors[tmpX + tmp * diameter] = color;
-				}
-			}
+			if (cornername & 0x1) _drawFastVLine(x0 + y, y0 - x, 2 * x + 1 + delta, color);
+			if (cornername & 0x2) _drawFastVLine(x0 - y, y0 - x, 2 * x + 1 + delta, color);
 			ylm = x0 - y;
 			y--;
 			ddF_y += 2;
@@ -417,22 +396,10 @@ static void fillCircleHelper(int16_t x0, int16_t y0, int16_t r,	uint8_t cornerna
 		f += ddF_x;
 
 		if ((x0 - x) > ylm) {
-			if (cornername & 0x1){
-				int16_t	tmpY = (r2 + x) + diameter * (r2 - y);
-				for (int tmp = 0;tmp < y * 2 + 1 + delta;tmp++){
-					colors[tmpY + tmp * diameter ] = color;
-				}
-			}
-			if (cornername & 0x2){
-				int16_t	tmpY = (r2 - x) + diameter * (r2 - y);
-				for (int tmp = 0;tmp < y * 2 + 1 + delta;tmp++){
-					colors[tmpY + tmp * diameter ] = color;
-				}
-			}
+			if (cornername & 0x1) _drawFastVLine(x0 + x, y0 - y, 2 * y + 1 + delta, color);
+			if (cornername & 0x2) _drawFastVLine(x0 - x, y0 - y, 2 * y + 1 + delta, color);
 		}
 	}
-	TFT_pushColorRep2(x0 - r2, y0 - r2, x0 + r2, y0 + r2, colors, size);
-	free(colors);
 }
 
 // Draw a rounded rectangle
@@ -657,6 +624,7 @@ void TFT_fillCircle(int16_t x, int16_t y, int radius, color_t color) {
 	x += dispWin.x1;
 	y += dispWin.y1;
 
+	_drawFastVLine(x, y-radius, 2*radius+1, color);
 	fillCircleHelper(x, y, radius, 3, 0, color);
 }
 
@@ -1543,7 +1511,8 @@ void TFT_setFont(uint8_t font, const char *font_file)
 	  else if (font == TOONEY32_FONT) cfont.font = tft_tooney32;
 	  else if (font == SMALL_FONT) cfont.font = tft_SmallFont;
 	  else if (font == DEF_SMALL_FONT) cfont.font = tft_def_small;
-	  else if (font == COMIC7_FONT) cfont.font = tft_Comic7;
+	  else if (font == COMIC10_FONT) cfont.font = tft_Comic10;
+	  else if (font == COMIC6_FONT) cfont.font = tft_Comic6;
 	  else cfont.font = tft_DefaultFont;
 
 	  cfont.bitmap = 1;

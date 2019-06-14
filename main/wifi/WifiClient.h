@@ -36,6 +36,8 @@ typedef struct WifiConfig_s
 	char	*password;
 }				WifiConfig_t;
 
+char	isWifiConnected();
+
 esp_err_t	startWifiClient(WifiConfig_t   *config);
 esp_err_t	stopWifiClient();
 

@@ -17,7 +17,9 @@
 #define PIN_NUM_RST  (gpio_num_t)18
 #define PIN_NUM_BCKL (gpio_num_t)5
 
-#define BUFF_SIZE	1024
+#ifndef	BUFF_SIZE
+#define	BUFF_SIZE 2048
+#endif
 
 typedef enum	LcdPageIndex_e
 {
@@ -26,9 +28,12 @@ typedef enum	LcdPageIndex_e
 	SETTINGS
 }				LcdPageIndex;
 
-void	changePage(uint8_t index);
+LcdPageIndex	getCurrentPage();
+void	setNextPage(LcdPageIndex index);
 
 esp_err_t	startLcd();
 esp_err_t	stopLcd();
+
+char	lcdIsRunning();
 
 #endif

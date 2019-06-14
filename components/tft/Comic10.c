@@ -21,7 +21,7 @@
 // First Character (Reserved. 0x00)
 // Number Of Characters (Reserved. 0x00)
 
-unsigned char tft_Comic7[] = 
+unsigned char tft_Comic10[] = 
 {
 0x00, 0x0C, 0x00, 0x00,
 

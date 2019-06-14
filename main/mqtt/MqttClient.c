@@ -38,7 +38,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 			break;
 		case MQTT_EVENT_DISCONNECTED:
 			_state = INITIATIED;
-			ESP_LOGE(TAG, "\033[5mClient was disconnected\033[0m");
+			ESP_LOGE(TAG, "\033[5mClient was disMqttconnected\033[0m");
 			xEventGroupClearBits(_mqttEventGroup, CONNECTED_BIT);
 			break;
 		case MQTT_EVENT_DATA:
@@ -46,7 +46,6 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 			pos = strrchr(event->topic, '/');
 			if (pos == NULL)
 				break;
-			ESP_LOGI(TAG, "OK: %s", pos + 1);
 			if (strncmp(pos + 1, "commands", event->topic_len - ((pos + 1) - event->topic)) == 0){
 				ESP_LOGI(TAG, "Command received");
 				event->data[event->data_len] = 0;
@@ -63,7 +62,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 			}
 			break;
 		case MQTT_EVENT_ERROR:
-			ESP_LOGE(TAG, "Error happend");
+			ESP_LOGE(TAG, "\033[5mError happend\033[0m");
 			break;
 		default:
 			break;
@@ -107,7 +106,7 @@ static esp_err_t	stopMqtt(esp_mqtt_client_handle_t client)
 	return esp_mqtt_client_stop(client);
 }
 
-static char	isConnected()
+char	isMqttConnected()
 {
 	return _state == INITIATIED && (xEventGroupWaitBits(_mqttEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT;
 }
@@ -124,12 +123,12 @@ static void	taskMqtt(void *arg)
 
 	_state = NONE;
 	while (_running){
-		if (!isConnected()){
+		if (!isMqttConnected()){
 			if (_state <= DEINITIATIED && (xEventGroupWaitBits(_wifiEventGroup, WIFI_CONNECTED_BIT, false, true, pdMS_TO_TICKS(1000)) & WIFI_CONNECTED_BIT) == WIFI_CONNECTED_BIT){
 				ESP_ERROR_CHECK((client = initMqttClient(data->url)) == NULL);
 				ESP_ERROR_CHECK(startMqtt(client));
 				_state = INITIATING;
-			} else if(client && _state == INITIATIED && !isConnected()) {
+			} else if(client && _state == INITIATIED && !isMqttConnected()) {
 				ESP_ERROR_CHECK(stopMqtt(client));
 				ESP_ERROR_CHECK(deinitMqttClient(client));
 				_state = DEINITIATIED;

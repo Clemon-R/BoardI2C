@@ -1030,4 +1030,25 @@ void TFT_display_init()
 #endif
 }
 
+void TFT_display_deinit()
+{
+    esp_err_t ret;
+
+    ret = disp_select();
+    assert(ret==ESP_OK);
+    //Send all the initialization commands
+	if (tft_disp_type == DISP_TYPE_ILI9341) {
+		commandList(disp_spi, ILI9341_deinit);
+	}
+	else assert(0);
+
+    ret = disp_deselect();
+	assert(ret==ESP_OK);
+
+	///Enable backlight
+#if PIN_NUM_BCKL
+    gpio_set_level(PIN_NUM_BCKL, PIN_BCKL_OFF);
+#endif
+}
+
 

@@ -68,7 +68,10 @@ static void	taskCommandHandler(void *args)
 			case CHANGEPAGE:
 			param = cJSON_GetObjectItem(command->data, "index");
 			if (param && cJSON_IsNumber(param)){
-				changePage(param->valueint);
+				if (!lcdIsRunning()){
+					startLcd();
+				}
+				setNextPage(param->valueint);
 			}
 			break;
 		}

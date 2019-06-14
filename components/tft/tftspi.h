@@ -393,6 +393,10 @@ static const uint8_t ILI9341_init[] = {
   TFT_DISPON, TFT_CMD_DELAY, 200,
 };
 
+static const uint8_t ILI9341_deinit[] = {
+  TFT_DISPOFF, TFT_CMD_DELAY, 200
+};
+
 // Initialization sequence for ILI9488
 // ====================================
 static const uint8_t ILI9488_init[] = {
@@ -663,6 +667,7 @@ void TFT_PinsInit();
 // * 'tft_disp_type', 'COLOR_BITS', '_width', '_height' variables must be set
 //======================
 void TFT_display_init();
+void TFT_display_deinit();
 
 //===================
 void stmpe610_Init();

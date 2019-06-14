@@ -3,7 +3,7 @@
 static const char *TAG = "\033[1;35mWifiClient\033[0m";
 static TaskHandle_t	wifiTask = NULL;
 
-static EventGroupHandle_t wifiEventGroup = NULL;
+static EventGroupHandle_t _wifiEventGroup = NULL;
 const static int CONNECTED_BIT = BIT0;
 
 static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
@@ -14,12 +14,12 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
         break;
     case SYSTEM_EVENT_STA_GOT_IP:
         ESP_LOGI(TAG, "\033[4mWifi successfully connected\033[0m");
-        xEventGroupSetBits(wifiEventGroup, CONNECTED_BIT);
+        xEventGroupSetBits(_wifiEventGroup, CONNECTED_BIT);
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
-        if ((xEventGroupWaitBits(wifiEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT) {
+        if ((xEventGroupWaitBits(_wifiEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT) {
             ESP_LOGE(TAG, "\033[5mWifi was disconnected\033[0m");
-            xEventGroupClearBits(wifiEventGroup, CONNECTED_BIT);
+            xEventGroupClearBits(_wifiEventGroup, CONNECTED_BIT);
         }
         ESP_LOGI(TAG, "Trying to connect again...");
         esp_wifi_connect();
@@ -96,6 +96,11 @@ static void    taskWifi(void *arg)
     vTaskDelete(NULL);
 }
 
+char	isWifiConnected()
+{
+	return (xEventGroupWaitBits(_wifiEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT;
+}
+
 esp_err_t    startWifiClient(WifiConfig_t   *config)
 {
     WifiConfig_t    *tmp;
@@ -107,8 +112,8 @@ esp_err_t    startWifiClient(WifiConfig_t   *config)
     if (!tmp)
         return ESP_FAIL;
     memcpy(tmp, config, sizeof(WifiConfig_t));
-    if (!wifiEventGroup)
-        wifiEventGroup = xEventGroupCreate();
+    if (!_wifiEventGroup)
+        _wifiEventGroup = xEventGroupCreate();
     return xTaskCreate(taskWifi, "wifiTask", 4098, tmp, tskIDLE_PRIORITY, &wifiTask);
 }
 
@@ -124,7 +129,7 @@ esp_err_t   stopWifiClient()
 
 EventGroupHandle_t  getWifiEventGroup()
 {
-    return wifiEventGroup;
+    return _wifiEventGroup;
 }
 
 char	wifiIsUsed()
