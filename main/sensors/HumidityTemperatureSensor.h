@@ -50,7 +50,7 @@ typedef struct	humidity_temp_sensor_s
 esp_err_t	initHumidityTempSensor(i2c_port_t port);
 esp_err_t	setupHumidityTempSensor(i2c_port_t port, humidity_temp_sensor_t *data);
 
-int16_t	getTemperature(i2c_port_t port, humidity_temp_sensor_t *data);
-int16_t	getHumidity(i2c_port_t port, humidity_temp_sensor_t *data);
+float	getTemperature(i2c_port_t port, humidity_temp_sensor_t *data);
+float	getHumidity(i2c_port_t port, humidity_temp_sensor_t *data);
 
 #endif // !HUMIDITYTEMP_H_

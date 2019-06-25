@@ -22,6 +22,11 @@ typedef struct SensorData_s
 
 esp_err_t	startSensorClient();
 esp_err_t	stopSensorClient();
+
+char	isSensorRunning();
+char	isSensorWorking();
+
 void	setRefreshDelai(TickType_t value);
+SensorData_t	*getSensorConfig();
 
 #endif // !SENSORCLIENT_H_

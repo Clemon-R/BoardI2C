@@ -12,9 +12,9 @@
 #include "sensors/SensorClient.h"
 #include "lcd/Lcd.h"
 #include "ButtonClient.h"
+#include "../../lvgl/lvgl.h"
 
 static const char	TAG[] = "\033[1;39;100mMain\033[0m";
-
 
 static void setupLeds()
 {
@@ -24,7 +24,10 @@ static void setupLeds()
 	gpio_conf.intr_type = GPIO_INTR_ANYEDGE;
 	gpio_conf.pin_bit_mask = (1ULL<<RGB_1) | (1ULL<<RGB_2) | (1ULL<<RGB_3);
 	gpio_conf.mode = GPIO_MODE_OUTPUT;
-    gpio_config(&gpio_conf);    
+    gpio_config(&gpio_conf);
+    gpio_set_level(RGB_1, 0);
+    gpio_set_level(RGB_2, 0);
+    gpio_set_level(RGB_3, 0);
 }
 
 static void btnClicked(uint32_t io_num, TypeClick type)
@@ -35,17 +38,19 @@ static void btnClicked(uint32_t io_num, TypeClick type)
     switch (io_num){
         case BTN_1:
         if (type == Simple){
-            setNextPage((LcdPageIndex)(getCurrentPage() - 1));
-        } else if (type == Double){
-            setNextPage((LcdPageIndex)(getCurrentPage() - 2));
+            previousPage();
+        } 
+        if (type == Double){
+            previousPage();
         }
         break;
 
         case BTN_2:
         if (type == Simple){
-            setNextPage((LcdPageIndex)(getCurrentPage() + 1));
-        } else if (type == Double){
-            setNextPage((LcdPageIndex)(getCurrentPage() + 2));
+            nextPage();
+        } 
+        if (type == Double){
+            nextPage();
         }
         break;
     }
@@ -71,5 +76,9 @@ void	app_main() {
 	startWifiClient(&dataWifi);
 	startMqttClient(&dataMqtt);
     startLcd();
-	//startSensorClient();
+	startSensorClient();
+    while (1){
+        vTaskDelay(1);
+        lv_task_handler();
+    }
 }

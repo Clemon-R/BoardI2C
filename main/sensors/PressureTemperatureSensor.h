@@ -36,6 +36,6 @@ typedef struct pressure_temp_sensor_s
 esp_err_t	initPressureTempSensor(i2c_port_t port);
 esp_err_t	setupPressureTempSensor(i2c_port_t port, pressure_temp_sensor_t *result);
 
-int32_t	getPressure(i2c_port_t port);
+float	getPressure(i2c_port_t port);
 
 #endif // !PRESSURETEMP_H_

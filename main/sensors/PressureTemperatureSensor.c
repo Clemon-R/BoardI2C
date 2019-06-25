@@ -39,16 +39,17 @@ esp_err_t	setupPressureTempSensor(i2c_port_t port, pressure_temp_sensor_t *resul
 }
 
 
-int32_t	getPressure(i2c_port_t port)
+float	getPressure(i2c_port_t port)
 {
 	int ret;
 	int32_t	result = 0;
 
-	ESP_LOGI(TAG, "Asking Pressure...");
 	ret = writeByte(port, I2C_SLAVE_PRESSURETEMP, PRESSURETEP_PRESS_OUTXL, NULL);
-	ESP_ERROR_CHECK(ret);
+	if (ret != ESP_OK)
+		return -1;
 	ret = readBytes(port, I2C_SLAVE_PRESSURETEMP, (uint8_t *)&result, 3);
-	ESP_ERROR_CHECK(ret);
+	if (ret != ESP_OK)
+		return -1;
 
-	return result / 4096;
+	return result / 4096.0f;
 }

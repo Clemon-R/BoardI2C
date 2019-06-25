@@ -6,6 +6,8 @@
 #include "esp_log.h"
 #include "sdkconfig.h"
 #include "esp_system.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 
 //LCD
 #define PIN_NUM_MISO (gpio_num_t)25
@@ -25,15 +27,18 @@ typedef enum	LcdPageIndex_e
 {
 	SENSORS = 0,
 	LOGS,
-	SETTINGS
+	STATES
 }				LcdPageIndex;
 
-LcdPageIndex	getCurrentPage();
-void	setNextPage(LcdPageIndex index);
+void	nextPage();
+void	previousPage();
 
 esp_err_t	startLcd();
 esp_err_t	stopLcd();
 
 char	lcdIsRunning();
+char	lcdIsWorking();
+
+SemaphoreHandle_t	lcdGetSemaphore();
 
 #endif

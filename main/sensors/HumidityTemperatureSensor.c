@@ -129,35 +129,39 @@ esp_err_t	initHumidityTempSensor(i2c_port_t port)
 	return ret;
 }
 
-int16_t	getTemperature(i2c_port_t port, humidity_temp_sensor_t *args)
+float	getTemperature(i2c_port_t port, humidity_temp_sensor_t *args)
 {
 	int16_t	T_out;
 	uint8_t *params;
 	int	ret;
 
-	ESP_ERROR_CHECK(args == NULL);
-	ESP_LOGI(TAG, "Asking Temperature...");
+	if (args == NULL)
+		return -1;
 	params = (uint8_t *)&T_out;
 	ret = writeByte(port, I2C_SLAVE_HUMIDITYTEMP, HUMIDITYTEMP_BURST | HUMIDITYTEMP_TEMPL, NULL);
-	ESP_ERROR_CHECK(ret);
+	if (ret != ESP_OK)
+		return -1;
 	ret = readBytes(port, I2C_SLAVE_HUMIDITYTEMP, params, 2);
-	ESP_ERROR_CHECK(ret);
-	return ((args->T1_deg - args->T0_deg) * (T_out - args->T0_out)) / (args->T1_out - args->T0_out) + args->T0_deg;
+	if (ret != ESP_OK)
+		return -1;
+	return ((args->T1_deg - args->T0_deg) * (T_out - args->T0_out)) / (float)(args->T1_out - args->T0_out) + args->T0_deg;
 }
 
 
-int16_t	getHumidity(i2c_port_t port, humidity_temp_sensor_t *args)
+float	getHumidity(i2c_port_t port, humidity_temp_sensor_t *args)
 {
 	int16_t	H_out;
 	uint8_t *params;
 	int	ret;
 
-	ESP_ERROR_CHECK(args == NULL);
-	ESP_LOGI(TAG, "Asking Humidity...");
+	if (args == NULL)
+		return -1;
 	params = (uint8_t *)&H_out;
 	ret = writeByte(port, I2C_SLAVE_HUMIDITYTEMP, HUMIDITYTEMP_BURST | HUMIDITYTEMP_HUMIDITYL, NULL);
-	ESP_ERROR_CHECK(ret);
+	if (ret != ESP_OK)
+		return -1;
 	ret = readBytes(port, I2C_SLAVE_HUMIDITYTEMP, params, 2);
-	ESP_ERROR_CHECK(ret);
-	return ((args->H1_rh - args->H0_rh) * (H_out - args->H0_out)) / (args->H1_out - args->H0_out) + args->H0_rh;
+	if (ret != ESP_OK)
+		return -1;
+	return ((args->H1_rh - args->H0_rh) * (H_out - args->H0_out)) / (float)(args->H1_out - args->H0_out) + args->H0_rh;
 }

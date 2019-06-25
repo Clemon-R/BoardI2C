@@ -29,7 +29,7 @@ esp_err_t	readBytes(i2c_port_t i2c_num, uint8_t address, uint8_t *data, size_t s
     }
     i2c_master_read_byte(cmd, data + size - 1, NACK_VAL);
     i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, 0);
+    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, pdMS_TO_TICKS(100));
     i2c_cmd_link_delete(cmd);
     return ret;
 }
@@ -44,7 +44,7 @@ esp_err_t	readByte(i2c_port_t i2c_num, uint8_t address, uint8_t *data)
     i2c_master_write_byte(cmd, (address << 1) | READ_BIT, ACK_CHECK_EN);
     i2c_master_read_byte(cmd, data, NACK_VAL);
     i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, 0);
+    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, pdMS_TO_TICKS(100));
     i2c_cmd_link_delete(cmd);
     return ret;
 }
@@ -60,7 +60,7 @@ esp_err_t	writeByte(i2c_port_t i2c_num, uint8_t address, uint8_t registerId, uin
         i2c_master_write_byte(cmd, *data, ACK_CHECK_EN);
     }
     i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, 0);
+    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, pdMS_TO_TICKS(100));
     i2c_cmd_link_delete(cmd);
     return ret;
 }
@@ -75,7 +75,7 @@ esp_err_t	writeBytes(i2c_port_t i2c_num, uint8_t address, uint8_t registerId, ui
         i2c_master_write(cmd, data, size, ACK_CHECK_EN);
     }
     i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, 0);
+    esp_err_t ret = i2c_master_cmd_begin(i2c_num, cmd, pdMS_TO_TICKS(100));
     i2c_cmd_link_delete(cmd);
     return ret;
 }

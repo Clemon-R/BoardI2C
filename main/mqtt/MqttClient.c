@@ -3,6 +3,9 @@
 #include "MqttClientCommandHandler.h"
 #include "cJSON.h"
 
+#include "../Main.h"
+#include "driver/gpio.h"
+
 static const char *TAG = "\033[1;36mMqttClient\033[0m";
 static TaskHandle_t	mqttTask = NULL;
 
@@ -20,6 +23,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
 	esp_mqtt_client_handle_t client = event->client;
 	char	*pos;
+	char	tmp;
 	MqttClientCommand_t	command;
 
 	switch (event->event_id) {
@@ -28,6 +32,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 			ESP_LOGI(TAG, "\033[4mClient is connected\033[0m");
 			
 			xEventGroupSetBits(_mqttEventGroup, CONNECTED_BIT);
+			gpio_set_level(RGB_2, 1);
 
 			esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/status", 0);
 			ESP_LOGI(TAG, "Subscribed to /demo/rtone/esp32/status");
@@ -40,13 +45,16 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 			_state = INITIATIED;
 			ESP_LOGE(TAG, "\033[5mClient was disMqttconnected\033[0m");
 			xEventGroupClearBits(_mqttEventGroup, CONNECTED_BIT);
+			gpio_set_level(RGB_2, 0);
 			break;
 		case MQTT_EVENT_DATA:
-			ESP_LOGI(TAG, "Topic: %.*s", event->topic_len, event->topic);
+			tmp = *event->data;
+			*event->data = 0;
 			pos = strrchr(event->topic, '/');
 			if (pos == NULL)
 				break;
-			if (strncmp(pos + 1, "commands", event->topic_len - ((pos + 1) - event->topic)) == 0){
+			if (strcmp(pos + 1, "commands") == 0){	
+				*event->data = tmp;
 				ESP_LOGI(TAG, "Command received");
 				event->data[event->data_len] = 0;
 
@@ -136,16 +144,23 @@ static void	taskMqtt(void *arg)
 		} else {
 			if (xQueueReceive(_datas, (void *)&monitor, (TickType_t)pdMS_TO_TICKS(500)) == pdTRUE && monitor){
 				char	*buff = cJSON_Print(monitor);
-				if (!buff)
+
+				if (!buff){
+					cJSON_Delete(monitor);
+					monitor = NULL;
 					continue;
+				}
 				esp_mqtt_client_publish(client, "/demo/rtone/esp32/datas", buff, strlen(buff), 0, 0);
 				cJSON_Delete(monitor);
+				monitor = NULL;
 			}
 		}
-		vTaskDelay(pdMS_TO_TICKS(500));
+		vTaskDelay(pdMS_TO_TICKS(100));
 	}
 	stopMqtt(client);
 	deinitMqttClient(client);
+	free(data);
+	mqttTask = NULL;
 	vTaskDelete(NULL);
 }
 
@@ -167,7 +182,7 @@ esp_err_t	startMqttClient(MqttConfig_t *config)
 	if (!_datas)
 		_datas = xQueueCreate(10, sizeof(cJSON *));
 	_running = true;
-    return xTaskCreate(taskMqtt, "mqttTask", 4098, tmp, tskIDLE_PRIORITY, &mqttTask);
+    return xTaskCreate(taskMqtt, "mqttTask", 6000, tmp, tskIDLE_PRIORITY, &mqttTask);
 }
 
 esp_err_t	stopMqttClient()

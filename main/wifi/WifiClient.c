@@ -1,5 +1,8 @@
 #include "WifiClient.h"
 
+#include "../Main.h"
+#include "driver/gpio.h"
+
 static const char *TAG = "\033[1;35mWifiClient\033[0m";
 static TaskHandle_t	wifiTask = NULL;
 
@@ -15,11 +18,13 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
     case SYSTEM_EVENT_STA_GOT_IP:
         ESP_LOGI(TAG, "\033[4mWifi successfully connected\033[0m");
         xEventGroupSetBits(_wifiEventGroup, CONNECTED_BIT);
+        gpio_set_level(RGB_1, 1);
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         if ((xEventGroupWaitBits(_wifiEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT) {
             ESP_LOGE(TAG, "\033[5mWifi was disconnected\033[0m");
             xEventGroupClearBits(_wifiEventGroup, CONNECTED_BIT);
+            gpio_set_level(RGB_1, 0);
         }
         ESP_LOGI(TAG, "Trying to connect again...");
         esp_wifi_connect();
@@ -114,7 +119,7 @@ esp_err_t    startWifiClient(WifiConfig_t   *config)
     memcpy(tmp, config, sizeof(WifiConfig_t));
     if (!_wifiEventGroup)
         _wifiEventGroup = xEventGroupCreate();
-    return xTaskCreate(taskWifi, "wifiTask", 4098, tmp, tskIDLE_PRIORITY, &wifiTask);
+    return xTaskCreate(taskWifi, "wifiTask", 6144, tmp, tskIDLE_PRIORITY, &wifiTask);
 }
 
 esp_err_t   stopWifiClient()

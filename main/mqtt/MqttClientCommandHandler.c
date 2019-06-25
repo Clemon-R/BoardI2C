@@ -71,7 +71,8 @@ static void	taskCommandHandler(void *args)
 				if (!lcdIsRunning()){
 					startLcd();
 				}
-				setNextPage(param->valueint);
+				for (int i = 0;i < param->valueint;i++)
+					nextPage();
 			}
 			break;
 		}

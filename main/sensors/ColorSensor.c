@@ -28,7 +28,7 @@ esp_err_t	setupColorSensor(i2c_port_t port)
 	if (ret != ESP_OK)
 		return ret;
 
-	data = 0x90;
+	data = 0x92;
 	ret = writeByte(port, I2C_SLAVE_COLOR, COLOR_MODE_CONTROL2, &data);
 	return ret;
 }
@@ -36,12 +36,13 @@ esp_err_t	setupColorSensor(i2c_port_t port)
 color_rgb_t	getColorRGB(i2c_port_t port)
 {
 	int	ret;
-	color_rgb_t	result = {0,0,0};
+	color_rgb_t	result;
 
-	ESP_LOGI(TAG, "Asking RGB...");
 	ret = writeByte(port, I2C_SLAVE_COLOR, COLOR_REDL, NULL);
-	ESP_ERROR_CHECK(ret);
+	if (ret != ESP_OK)
+		return (color_rgb_t){-1, -1, -1};
 	ret = readBytes(port, I2C_SLAVE_COLOR, (uint8_t *)&result, 6);
-	ESP_ERROR_CHECK(ret);
+	if (ret != ESP_OK)
+		return (color_rgb_t){-1, -1, -1};
 	return result;
 }

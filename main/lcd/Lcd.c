@@ -1,316 +1,424 @@
 #include "Lcd.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "tftspi.h"
-#include "tft.h"
-#include "spiffs_vfs.h"
 #include "driver/spi_master.h"
 #include "freertos/event_groups.h"
+#include "esp_freertos_hooks.h"
+#include "freertos/semphr.h"
 
-#include "../wifi/WifiClient.h"
+//#include "../wifi/WifiClient.h"
 #include "../mqtt/MqttClient.h"
+#include "../sensors/SensorClient.h"
+
+#include "../../drv/disp_spi.h"
+#include "../../drv/ili9341.h"
+#include "../../lvgl/lvgl.h"
+
+#include <math.h>
 
 static const char	*TAG = "\033[1;93mLcd\033[0m";
 static TaskHandle_t	lcdTask = NULL;
 
-static spi_lobo_device_handle_t	busSpi = NULL;
 static char	_running = false;
-static char	_buffer[BUFF_SIZE];
+static char	_working = false;
+static SemaphoreHandle_t	_semaphore = NULL;
 
-static const uint8_t	_pages = 3;
-static const char	*_navbarMenus[] = {
-	"Sensors",
-	"Logs",
-	"Settings"
-};
+static lv_obj_t	*_logs = NULL;
 
-static const uint8_t	_logSize = 17;
-static char	**_logs = NULL;
+static int8_t	_currentIndex = 0;
+static int8_t	_nextIndex = -1;
 
-static char	_currentIndex = -1;
-static char	_nextIndex = -1;
+static lv_obj_t	*_tv = NULL;
 
-static EventGroupHandle_t _eventGroup = NULL;
-static const int REFRESH_LOG = BIT0;
+static void IRAM_ATTR lv_tick_task(void)
+{
+	lv_tick_inc(portTICK_RATE_MS);
+}
 
 static int	customVPrintF(const char *str, va_list arg)
 {
-	char	buffer[BUFF_SIZE];
-	char	*last = NULL;
-	uint32_t	index;
+	static char	**logs = NULL;
+	static char	**next = NULL;
+	static uint8_t	index = 0;
+	char	buffer[1024];
 
-	vsprintf(_buffer, str, arg);
-	if (_logs[_logSize - 1]){
-		free(_logs[_logSize - 1]);
+	if (!logs){
+		logs = (char **)malloc(sizeof(char *) * 15);
+		memset(logs, NULL, sizeof(char *) * 15);
+		next = logs;
 	}
-	for (uint32_t i = _logSize - 1;i > 0;i--){
-		_logs[i] = _logs[i - 1];
+	if (_logs){
+		vsprintf(buffer, str, arg);
+		if (!*next){
+			*next = strdup(buffer);
+			if (index < 13){
+				index++;
+				next = logs + index;
+			}
+		} else {
+			for (int i = 0;i < index;i++){
+				if (i == 0){
+					free(logs[i]);
+				}
+				logs[i] = logs[i + 1];
+			}
+			*next = strdup(buffer);
+		}
+		if (xSemaphoreTake(_semaphore, pdMS_TO_TICKS(1000)) == pdTRUE){
+			lv_ta_set_text(_logs, "");
+			for (int i = 0;logs && logs[i];i++){
+				lv_ta_add_text(_logs, logs[i]);
+			}
+			xSemaphoreGive(_semaphore);
+		}
 	}
-	_logs[0] = strdup(_buffer);
-	xEventGroupSetBits(_eventGroup, REFRESH_LOG);
 	return vprintf(str, arg);
 }
 
-static esp_err_t	initTftLib()
+static esp_err_t	initLcd()
 {
 	esp_err_t	ret;
 
 	ESP_LOGI(TAG, "Initiating the LCD...");
-	tft_disp_type = DISP_TYPE_ILI9341;
-	_width = 240;  // smaller dimension
-	_height = 320; // larger dimension1
-	TFT_PinsInit();
-
-	spi_lobo_device_handle_t spi;
-	spi_lobo_bus_config_t buscfg={
-		.miso_io_num=PIN_NUM_MISO,
-		.mosi_io_num=PIN_NUM_MOSI,
-		.sclk_io_num=PIN_NUM_CLK,
-		.quadwp_io_num=-1,
-		.quadhd_io_num=-1,
-		.max_transfer_sz=6*320*240
-	};
-	spi_lobo_device_interface_config_t devcfg={
-		.clock_speed_hz=10000000,           //Clock out at 10 MHz
-		.mode=0,                                //SPI mode 0
-		.spics_io_num=-1,                       // we will use external CS pin
-		.spics_ext_io_num=PIN_NUM_CS,           // external CS pin
-		.flags=LB_SPI_DEVICE_HALFDUPLEX, // ALWAYS SET  to HALF DUPLEX MODE!! for display spi
-	};
-	ret = spi_lobo_bus_add_device(TFT_HSPI_HOST, &buscfg, &devcfg, &spi);
+	lv_init();
+	ret = disp_spi_init();
 	if (ret != ESP_OK)
 		return ret;
-	busSpi = spi;
-	disp_spi = spi;
+	ili9341_init();
 
-	// ==== Test select/deselect ====
-	ret = spi_lobo_device_select(spi, 1);
+	lv_disp_drv_t disp;
+	lv_disp_drv_init(&disp);
+	disp.disp_flush = ili9341_flush;
+    disp.disp_fill = ili9341_fill;
+	ret = lv_disp_drv_register(&disp) != NULL ? ESP_OK : ESP_FAIL;
 	if (ret != ESP_OK)
 		return ret;
-	TFT_display_init();
-	max_rdclock = find_rd_speed();
-
-	spi_lobo_set_speed(spi, DEFAULT_SPI_CLOCK);
-
-	font_rotate = 0;
-	text_wrap = 0;
-	font_transparent = 1;
-	font_forceFixed = 0;
-	gray_scale = 0;
-	TFT_setGammaCurve(DEFAULT_GAMMA_CURVE);
-	TFT_setRotation(LANDSCAPE);
-	TFT_setFont(COMIC10_FONT, NULL);
-	TFT_resetclipwin();
-
-	_logs = calloc(_logSize, sizeof(char *));
-	if (!_logs)
-		return ESP_FAIL;
 	esp_log_set_vprintf(&customVPrintF);
-	return ESP_OK;
+	return esp_register_freertos_tick_hook(lv_tick_task);
 }
 
-static esp_err_t	deinitTftLib()
+static esp_err_t	deinitLcd()
 {
-	esp_err_t	ret;
-
 	ESP_LOGI(TAG, "Deinitiating the LCD...");
-	TFT_display_deinit();
-	ret = spi_lobo_bus_remove_device(busSpi);
-	if (ret == ESP_OK){
-		busSpi = NULL;
-		esp_log_set_vprintf(&vprintf);
-		for (int i = 0;_logs[i] && i < _logSize;i++)
-			free(_logs[i]);
-		free(_logs);
-	}
-	return ret;
+	esp_log_set_vprintf(&vprintf);
+	_logs = NULL;
+	ili9341_deinit();
+	lv_disp_set_active(NULL);
+	return disp_spi_deinit();
 }
 
-static void	loadingScreen()
+static void	createLogsView(void *tab)
 {
-	ESP_LOGI(TAG, "Drawing loading screen...");
-	TFT_fillRect(0,0,80,240,TFT_BLUE);
-	TFT_fillRect(80,0,80,240,TFT_GREEN);
-	TFT_fillRect(160,0,80,240,TFT_RED);
-	TFT_fillRect(240,0,80,240,TFT_WHITE);
+	lv_obj_t	*parent = (lv_obj_t *)tab;
+	lv_page_set_sb_mode(parent, LV_SB_MODE_HIDE);
+	lv_page_set_scrl_fit(parent, false, true);
+	lv_page_set_scrl_width(parent, lv_obj_get_width(parent));
+	lv_style_t	*styleTab = lv_obj_get_style(parent);
+	styleTab->body.padding.hor = 0;
 
-	_fg = TFT_WHITE;
-	TFT_print("Loading program...", CENTER, CENTER);
+	static lv_style_t	style;
+	lv_style_copy(&style, (lv_theme_get_current()->ta.oneline));
+	style.text.font = &lv_font_dejavu_10;
+
+	lv_obj_t	*textarea = lv_ta_create(parent, NULL);
+	lv_obj_set_style(textarea, &style);
+	lv_obj_set_size(textarea, lv_obj_get_width(parent), lv_obj_get_height(parent));
+	lv_obj_align(textarea, parent, LV_ALIGN_IN_TOP_MID, 0, 0);
+	lv_ta_set_text(textarea, "");
+	lv_ta_set_cursor_type(textarea, LV_CURSOR_HIDDEN);
+
+	_logs = textarea;
 }
 
-static void	drawNavBar(uint8_t selected){
-	uint32_t	navWidth = _height / 2;
-	uint32_t	elemHeight = _height / 6;
-	color_t		bgColor = { 31 << 3, 27 << 2, 0};
-	color_t		bgColorSelected = { 12 << 3, 11 << 2, 0};
 
-	_fg = TFT_WHITE;
-	for (uint32_t i = 0;i < _pages;i++){
-		TFT_fillRect(0, (elemHeight + 1) * i, navWidth, elemHeight, i == selected ? bgColorSelected : bgColor);
-		font_transparent = 1;
-		TFT_print(_navbarMenus[i], (navWidth - TFT_getStringWidth(_navbarMenus[i])) / 2, (elemHeight - TFT_getfontheight()) / 2 + (elemHeight + 1) * i);
-		TFT_fillRect(0, elemHeight + (elemHeight + 1) * i, navWidth, 1, TFT_BLACK);
-	}
-	TFT_fillRect(navWidth, 0, 1, _height, TFT_BLACK);
-	TFT_fillRect(0, (elemHeight + 1) * _pages, navWidth, _height - (elemHeight + 1) * _pages, TFT_WHITE);
-}
-
-static void	newPage(const char *title)
+static void	createStatesView(void *tab)
 {
-	uint32_t	navWidth = _height / 2;
+	lv_obj_t	*parent = (lv_obj_t *)tab;
+	lv_page_set_sb_mode(parent, LV_SB_MODE_HIDE);
+	lv_page_set_scrl_fit(parent, false, true);
+	lv_page_set_scrl_width(parent, lv_obj_get_width(parent));
+	lv_style_t	*style = lv_obj_get_style(parent);
+	style->body.padding.hor = 0;
 
-	TFT_fillRect(navWidth + 1, 0, _width - navWidth - 1, _height, TFT_WHITE);
-	_fg = TFT_BLACK;
-	font_transparent = 1;
-	ESP_LOGI(TAG, "Page: %s", title);
-	TFT_print(title, navWidth + 11, 5);
-	TFT_drawLine(navWidth + 6, 10 + TFT_getfontheight(), navWidth + 6 + TFT_getStringWidth(title) + 20, 10 + TFT_getfontheight(), _fg);
+	static lv_style_t style_line;
+	lv_style_copy(&style_line, &lv_style_pretty_color);
+	style_line.line.color = LV_COLOR_MAKE(0x56, 0x56, 0x56);
+	style_line.line.width = 2;
+
+	static lv_point_t	points[] = {{0, 0}, {0, 180}};
+	lv_obj_t	*line = lv_line_create(parent, NULL);
+	lv_obj_set_style(line, &style_line);
+	lv_line_set_points(line, points, 2);
+	lv_obj_align(line, parent, LV_ALIGN_CENTER, 0, 0);
+
+	static lv_style_t style_led;
+	lv_style_copy(&style_led, &lv_style_pretty_color);
+	style_led.body.radius = LV_RADIUS_CIRCLE;
+	style_led.body.main_color = LV_COLOR_MAKE(0xb5, 0x0f, 0x04);
+	style_led.body.grad_color = LV_COLOR_MAKE(0x50, 0x07, 0x02);
+	style_led.body.border.color = LV_COLOR_MAKE(0xfa, 0x0f, 0x00);
+	style_led.body.border.width = 3;
+	style_led.body.border.opa = LV_OPA_20;
+	style_led.body.shadow.color = LV_COLOR_MAKE(0xb5, 0x0f, 0x04);
+	style_led.body.shadow.width = 5;
+
+	//Wifi
+
+	lv_obj_t	*lblWifi = lv_label_create(parent, NULL);
+	lv_label_set_text(lblWifi, SYMBOL_WIFI" Wifi:");
+	lv_obj_align(lblWifi, parent, LV_ALIGN_IN_TOP_LEFT, 15, lv_obj_get_height(parent) / 2 - 38);
+
+	lv_obj_t	*ledWifi = lv_led_create(parent, NULL);
+	lv_obj_set_style(ledWifi, &style_led);
+	lv_obj_set_size(ledWifi, 20, 20);
+	lv_obj_align(ledWifi, parent, LV_ALIGN_IN_TOP_MID, -15, lv_obj_get_height(parent) / 2 - 38);
+	lv_led_off(ledWifi);
+
+	//Mqtt
+
+	lv_obj_t	*lblMqtt = lv_label_create(parent, NULL);
+	lv_label_set_text(lblMqtt, SYMBOL_UPLOAD" Mqtt:");
+	lv_obj_align(lblMqtt, parent, LV_ALIGN_IN_TOP_LEFT, 15, lv_obj_get_height(parent) / 2 - 13);
+
+	lv_obj_t	*ledMqtt = lv_led_create(parent, NULL);
+	lv_obj_set_style(ledMqtt, &style_led);
+	lv_obj_set_size(ledMqtt, 20, 20);
+	lv_obj_align(ledMqtt, parent, LV_ALIGN_IN_TOP_MID, -15, lv_obj_get_height(parent) / 2 - 13);
+	lv_led_set_bright(ledMqtt, 190);
+
+	//Sensors
+
+	lv_obj_t	*lblSensors = lv_label_create(parent, NULL);
+	lv_label_set_text(lblSensors, SYMBOL_REFRESH" Sensors:");
+	lv_obj_align(lblSensors, parent, LV_ALIGN_IN_TOP_LEFT, 15, lv_obj_get_height(parent) / 2 + 13);
+
+	lv_obj_t	*ledSensors = lv_led_create(parent, NULL);
+	lv_obj_set_style(ledSensors, &style_led);
+	lv_obj_set_size(ledSensors, 20, 20);
+	lv_obj_align(ledSensors, parent, LV_ALIGN_IN_TOP_MID, -15, lv_obj_get_height(parent) / 2 + 13);
+	lv_led_on(ledSensors);
+
+	//Details states
+
+	lv_obj_t	*lblTemperature = lv_label_create(parent, NULL);
+	lv_label_set_text(lblTemperature, "Temperature "SYMBOL_CLOSE);
+	lv_obj_align(lblTemperature, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2 - 50);
+
+	lv_obj_t	*lblHumidity = lv_label_create(parent, NULL);
+	lv_label_set_text(lblHumidity, "Humidity "SYMBOL_CLOSE);
+	lv_obj_align(lblHumidity, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2 - 25);
+
+	lv_obj_t	*lblPressure = lv_label_create(parent, NULL);
+	lv_label_set_text(lblPressure, "Pessure "SYMBOL_CLOSE);
+	lv_obj_align(lblPressure, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2);
+
+	lv_obj_t	*lblColor = lv_label_create(parent, NULL);
+	lv_label_set_text(lblColor, "Color "SYMBOL_CLOSE);
+	lv_obj_align(lblColor, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2 + 25);
 }
 
-static void	printInContent(char *text, uint16_t x, uint16_t y, char all)
+static void	drawDisplayer(lv_obj_t *parent, const char *title, int x, int y, lv_style_t *styleContent, lv_style_t *styleBubble)
 {
-	char	*str = text;
+	static lv_style_t	header;
+	lv_style_copy(&header, &lv_style_plain);
+	header.line.color = LV_COLOR_BLACK;
+	header.line.width = 19;
+	header.line.rounded = 1;
 
-	for (uint32_t i = 0;text && text[i];i++){
-		if (text[i] == '\n'){
-			snprintf(_buffer, i - (str - text) + 1, "%s", str);
-			TFT_fillRect(x, y, all ? _width - x : TFT_getStringWidth(_buffer), TFT_getfontheight(), _bg);
-			TFT_print(_buffer, x, y);
-			y += TFT_getfontheight() + 2;
-			str = text + i + 1;
-		}
-	}
-	if (str && *str){
-		TFT_fillRect(x, y, all ? _width - x : TFT_getStringWidth(str), TFT_getfontheight(), _bg);
-		TFT_print(str, x, y);
-	}
+	styleContent->line.width = header.line.width;
+	styleContent->line.rounded = header.line.rounded;
+
+	static lv_point_t line_points[] = {{0, 0}, {70, 0}};
+
+	lv_obj_t	*line1 = lv_line_create(parent, NULL);
+	lv_line_set_points(line1, line_points, 2);
+	lv_obj_set_style(line1, &header);
+	lv_obj_set_size(line1, (lv_obj_get_width(parent) - 100) / 2, 15);
+	lv_obj_align(line1, parent, LV_ALIGN_IN_TOP_LEFT, 125 + x, 15 + y);
+
+	static lv_style_t	topStyle;
+	lv_style_copy(&topStyle, &lv_style_plain);
+	topStyle.text.color = LV_COLOR_WHITE;
+	topStyle.text.font = &lv_font_dejavu_10;
+
+	lv_obj_t	*top = lv_label_create(line1, NULL);
+	lv_obj_align(top, line1, LV_ALIGN_IN_LEFT_MID, 20, 0);
+	lv_label_set_text(top, title);
+	lv_label_set_style(top, &topStyle);
+
+	lv_obj_t	*line2 = lv_line_create(parent, line1);
+	lv_obj_align(line2, parent, LV_ALIGN_IN_TOP_LEFT, 125 + x, 16 + header.line.width + y);
+	lv_obj_set_style(line2, styleContent);
+
+	styleBubble->line.width = lv_obj_get_height(parent);
+
+	lv_obj_t	*Bubble = lv_arc_create(parent, NULL);
+	lv_arc_set_style(Bubble, LV_ARC_STYLE_MAIN, styleBubble);
+	lv_arc_set_angles(Bubble, 0, 360);
+	lv_obj_set_size(Bubble, 40, 40);
+	lv_obj_align(Bubble, parent, LV_ALIGN_IN_TOP_LEFT, 105 + x, 5 + y);
 }
 
-static void	refreshContent(uint8_t index)
+static void	createSensorsView(void *tab)
 {
-	uint32_t	startX = _height / 2 + 3;
-	uint32_t	startY = TFT_getfontheight() + 15;
+	lv_obj_t	*parent = (lv_obj_t *)tab;
+	lv_page_set_sb_mode(parent, LV_SB_MODE_HIDE);
+	lv_page_set_scrl_fit(parent, false, true);
+	lv_page_set_scrl_width(parent, lv_obj_get_width(parent));
+	lv_style_t	*style = lv_obj_get_style(parent);
+	style->body.padding.hor = 0;
 
-	_bg = TFT_WHITE;
-	_fg = TFT_BLACK;
-	TFT_setFont(COMIC6_FONT, NULL);
-	switch (index){
-		case SENSORS:
-		_bg = (color_t){8 << 3, 16 << 2, 8 << 3};
-		if (_currentIndex != index){
-			TFT_fillRect(startX, startY, _width - startX - 2, _height - startY - 2, _bg);
-		}
-		startX += 2;
-		startY += 2;
-		_fg = TFT_WHITE;
-		printInContent("Test\nyes\nno", startX, startY, 0);
-		break;
+	//Menu
 
-		case LOGS:
-		if ((xEventGroupWaitBits(_eventGroup, REFRESH_LOG, false, false, pdMS_TO_TICKS(100)) & REFRESH_LOG) != REFRESH_LOG)
-			break;
-		xEventGroupClearBits(_eventGroup, REFRESH_LOG);
-		for (uint32_t i = 0, last = 0;_logs && _logs[i] && i < _logSize;i++){
-			if (i > 0){
-				memcpy(_buffer + last, "\n", 1);
-				last++;
-			}
-			char	*infos = strchr(_logs[i], ':');
-			if (!infos)
-				continue;
-			infos += 2;
-			char	*end = strchr(infos, '[');
-			if (end){
-				*end = 0;
-			}
-			uint16_t len = strlen(infos);
-			memcpy(_buffer + last, infos, len);
-			last += len;
-			_buffer[last] = 0;
-		}
-		printInContent(_buffer, startX, startY, 1);
-		break;
+	lv_obj_t	*listMenu = lv_list_create(parent, NULL);
 
-		case SETTINGS:
-		sprintf(_buffer, "Wifi is %s\nMqtt is %s", isWifiConnected() ? "ON" : "OFF", isMqttConnected() ? "ON" : "OFF");
-		printInContent(_buffer, startX, startY, 1);
-		break;
+	static lv_style_t style_btn_rel;
+	lv_style_copy(&style_btn_rel, &lv_style_btn_rel);
+	style_btn_rel.body.main_color = LV_COLOR_MAKE(0x30, 0x30, 0x30);
+	style_btn_rel.body.grad_color = LV_COLOR_BLACK;
+	style_btn_rel.body.border.color = LV_COLOR_SILVER;
+	style_btn_rel.body.border.width = 1;
+	style_btn_rel.body.border.opa = LV_OPA_50;
+	style_btn_rel.body.radius = 0;
+	style_btn_rel.body.padding.hor = 10;
 
-		default:
-		break;
-	}
-	TFT_setFont(COMIC10_FONT, NULL);
-	_currentIndex = index;
+	lv_obj_set_size(listMenu, 100, lv_obj_get_height(parent) + 5);
+	lv_list_set_sb_mode(listMenu, LV_SB_MODE_AUTO);
+	lv_obj_align(listMenu, parent, LV_ALIGN_IN_TOP_LEFT, 0, -5);
+
+	lv_obj_t *tmp  = lv_list_add(listMenu, SYMBOL_LIST, "All", NULL);
+	lv_list_add(listMenu, NULL, "Temperature", NULL);
+	lv_list_add(listMenu, NULL, "Humidity", NULL);
+	lv_list_add(listMenu, NULL, "Pressure", NULL);
+	lv_list_add(listMenu, NULL, "Color", NULL);
+
+	lv_list_set_style(listMenu, LV_LIST_STYLE_BG, &lv_style_transp_tight);
+	lv_list_set_style(listMenu, LV_LIST_STYLE_BTN_REL, &style_btn_rel);
+	lv_list_set_sb_mode(listMenu, LV_SB_MODE_HIDE);
+
+	lv_btn_set_state(tmp, LV_BTN_STATE_PR);
+
+	//Color displayer
+
+	static lv_style_t styleBlue;
+	lv_style_copy(&styleBlue, &lv_style_plain);
+	styleBlue.line.color = LV_COLOR_BLUE;           /*Arc color*/
+	styleBlue.line.width = lv_obj_get_height(parent);                       /*Arc width*/
+
+	static lv_style_t styleGreen;
+	lv_style_copy(&styleGreen, &styleBlue);
+	styleGreen.line.color = LV_COLOR_GREEN;    /*Arc color*/
+
+	static lv_style_t styleRed;
+	lv_style_copy(&styleRed, &styleBlue);
+	styleRed.line.color = LV_COLOR_RED;  /*Arc color*/
+
+	/*Create an Arc*/
+	lv_obj_t	*arcBlue = lv_arc_create(parent, NULL);
+	lv_arc_set_style(arcBlue, LV_ARC_STYLE_MAIN, &styleBlue);          /*Use the new style*/
+	lv_arc_set_angles(arcBlue, 180, 210);
+	lv_obj_set_size(arcBlue, lv_obj_get_width(parent), lv_obj_get_height(parent));
+	lv_obj_align(arcBlue, parent, LV_ALIGN_IN_BOTTOM_RIGHT, lv_obj_get_width(parent) / 2, lv_obj_get_height(parent) / 2);
+
+	/*Create an Arc*/
+	lv_obj_t	*arcGreen = lv_arc_create(parent, arcBlue);
+	lv_arc_set_style(arcGreen, LV_ARC_STYLE_MAIN, &styleGreen);          /*Use the new style*/
+	lv_arc_set_angles(arcGreen, 210, 240);
+
+	/*Create an Arc*/
+	lv_obj_t	*arcRed = lv_arc_create(parent, arcBlue);
+	lv_arc_set_style(arcRed, LV_ARC_STYLE_MAIN, &styleRed);          /*Use the new style*/
+	lv_arc_set_angles(arcRed, 240, 270);
+
+	//Displayer temperature
+	static lv_style_t	styleTemmperature;
+	lv_style_copy(&styleTemmperature, &lv_style_plain);
+	styleTemmperature.line.color = LV_COLOR_RED;
+
+	static lv_style_t	styleTemmperatureBubble;
+	lv_style_copy(&styleTemmperatureBubble, &lv_style_plain);
+	styleTemmperatureBubble.line.color = LV_COLOR_RED;
+	drawDisplayer(parent, "Temperature", 0, 0, &styleTemmperature, &styleTemmperatureBubble);
+
+	static lv_style_t	styleHumidity;
+	lv_style_copy(&styleHumidity, &lv_style_plain);
+	styleHumidity.line.color = LV_COLOR_GREEN;
+
+	static lv_style_t	styleHumidityBubble;
+	lv_style_copy(&styleHumidityBubble, &lv_style_plain);
+	styleHumidityBubble.line.color = LV_COLOR_GREEN;
+	drawDisplayer(parent, "Humidity", (lv_obj_get_width(parent) - 100) / 2, 0, &styleHumidity, &styleHumidityBubble);
+
+	static lv_style_t	stylePressure;
+	lv_style_copy(&stylePressure, &lv_style_plain);
+	stylePressure.line.color = LV_COLOR_BLUE;
+
+	static lv_style_t	stylePressureBubble;
+	lv_style_copy(&stylePressureBubble, &lv_style_plain);
+	stylePressureBubble.line.color = LV_COLOR_BLUE;
+	drawDisplayer(parent, "Pressure", 0, 45, &stylePressure, &stylePressureBubble);
 }
 
-static void	stateDot()
+static void	setupUI()
 {
-	TFT_fillCircle(_width - 20, 9, 8, TFT_BLUE);
-}
+	ESP_LOGI(TAG, "Drawing general UI...");
 
-static void	changePage(uint8_t index)
-{
-	index %= _pages;
-	drawNavBar(index);
-	newPage(_navbarMenus[index]);
-	refreshContent(index);
-	stateDot();
-}
+	lv_theme_t	*th = lv_theme_material_init(0, NULL);
+	lv_theme_set_current(th);
 
-static color_t	getStateColor()
-{
-	color_t	tmp = TFT_RED;
-	uint8_t	counter = 0;
+	lv_obj_t * tv = lv_tabview_create(lv_scr_act(), NULL);                               /*Create a slider*/
+	lv_style_t	*paddingOff = lv_obj_get_style(tv);
+	paddingOff->body.padding.inner = 0;
+	paddingOff->body.padding.ver = 0;
+	paddingOff->body.padding.hor = 0;
 
-	if (isWifiConnected())
-		counter++;
-	if (isMqttConnected())
-		counter++;
-	if (counter >= 3)
-		tmp = TFT_GREEN;
-	else if (counter != 0)
-		tmp = TFT_ORANGE;
-	return tmp;
+	lv_obj_t * tab1 = lv_tabview_add_tab(tv, "Sensors");
+	lv_obj_t * tab2 = lv_tabview_add_tab(tv, "Logs");
+	lv_obj_t * tab3 = lv_tabview_add_tab(tv, "States");
+	
+	createSensorsView(tab1);
+	createLogsView(tab2);
+	createStatesView(tab3);
+	_tv = tv;
 }
 
 static void taskLcd(void *args)
 {
-	color_t	stateColor = TFT_RED;
-
-	ESP_LOGI(TAG, "Initiating the Task...");
-	ESP_ERROR_CHECK(initTftLib());
-	loadingScreen();
-	vTaskDelay(pdMS_TO_TICKS(1000));
-	_nextIndex = 0;
-	while (_running){
-		color_t	tmp = getStateColor();
-		if (strcmp((char *)&tmp, (char *)&stateColor) != 0){
-			TFT_fillCircle(_width - 20, 9, 8, tmp);
-			stateColor = tmp;
-		}
-		if (_nextIndex >= 0 && _nextIndex < _pages){
-			changePage(_nextIndex);
-			_nextIndex = -1;
-		} else {
-			refreshContent(_currentIndex);
-		}
-		vTaskDelay(pdMS_TO_TICKS(100));
+    ESP_LOGI(TAG, "Initiating the task...");
+	while(_running) {
+		_working = true;
 	}
-	deinitTftLib();
+	_working = false;
+	deinitLcd();
 	lcdTask = NULL;
 	vTaskDelete(NULL);
 }
 
-/* Public function */
+//Public function
 
-LcdPageIndex	getCurrentPage()
+static void	changePage(int i)
 {
-	return (LcdPageIndex)_currentIndex;
+	static int8_t	index = 0;
+
+	index += i;
+	if (index < 0)
+		index = index % 3 + 3;
+	if (index > 3)
+		index = 0;
+	if (_tv != NULL && xSemaphoreTake(_semaphore, pdMS_TO_TICKS(1000)) == pdTRUE){
+		lv_tabview_set_tab_act(_tv, index, true);
+		xSemaphoreGive(_semaphore);
+	}
 }
 
-void	setNextPage(LcdPageIndex index)
+void	nextPage()
 {
-	_nextIndex = index;
+	changePage(1);
+}
+
+void	previousPage()
+{
+	changePage(-1);
 }
 
 esp_err_t	startLcd()
@@ -318,10 +426,12 @@ esp_err_t	startLcd()
 	ESP_LOGI(TAG, "Starting the %s task...", TAG);
 	if (_running)
 		return ESP_FAIL;
-	if (!_eventGroup)
-        _eventGroup = xEventGroupCreate();
+	if (!_semaphore)
+		_semaphore = xSemaphoreCreateMutex();
 	_running = true;
-	return xTaskCreate(&taskLcd, "TaskLcd", 4098, NULL, tskIDLE_PRIORITY, &lcdTask);
+	ESP_ERROR_CHECK(initLcd());
+	setupUI();
+	return xTaskCreate(&taskLcd, "lcdTask", 4098, NULL, tskIDLE_PRIORITY, &lcdTask);
 }
 
 esp_err_t	stopLcd()
@@ -336,4 +446,14 @@ esp_err_t	stopLcd()
 char	lcdIsRunning()
 {
 	return _running;
+}
+
+char	lcdIsWorking()
+{
+	return _working;
+}
+
+SemaphoreHandle_t	lcdGetSemaphore()
+{
+	return _semaphore;
 }

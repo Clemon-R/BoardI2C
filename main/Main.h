@@ -7,8 +7,8 @@
 #include "sensors/PressureTemperatureSensor.h"
 #include "sensors/ColorSensor.h"
 
-#define RGB_1 (gpio_num_t)16
-#define RGB_2 (gpio_num_t)17
+#define RGB_1 (gpio_num_t)15
+#define RGB_2 (gpio_num_t)12
 #define RGB_3 (gpio_num_t)2
 
 #define	BTN_1 (gpio_num_t)27
