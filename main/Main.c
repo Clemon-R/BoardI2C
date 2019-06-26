@@ -61,11 +61,13 @@ static void btnClicked(uint32_t io_num, TypeClick type)
 
 void	app_main() {
     WifiConfig_t	dataWifi = {
-        .ssid = "Honor Raphael",
+        /*.ssid = "1234-6789-12345",
+        .password = "12345678"*/
+		.ssid = "Honor Raphael",
         .password = "clemon69"
     };
     MqttConfig_t	dataMqtt = {
-        .url = "mqtt://iot.eclipse.org"
+        .url = "tcp://iot.eclipse.org"
     };
 
     nvs_flash_init();
@@ -75,10 +77,13 @@ void	app_main() {
 
 	startWifiClient(&dataWifi);
 	startMqttClient(&dataMqtt);
-    startLcd();
 	startSensorClient();
+    startLcd();
     while (1){
-        vTaskDelay(1);
-        lv_task_handler();
+        if (xSemaphoreTake(lcdGetSemaphore(), pdMS_TO_TICKS(100)) == pdTRUE){
+            lv_task_handler();
+            xSemaphoreGive(lcdGetSemaphore());
+            vTaskDelay(1);
+        }
     }
 }

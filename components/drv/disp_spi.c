@@ -57,7 +57,7 @@ esp_err_t   disp_spi_init(void)
     };
 
     spi_device_interface_config_t devcfg={
-            .clock_speed_hz=16*1000*1000,           //Clock out at 40 MHz
+            .clock_speed_hz=30*1000*1000,           //Clock out at 40 MHz
             .mode=0,                                //SPI mode 0
             .spics_io_num=DISP_SPI_CS,              //CS pin
             .queue_size=2,

@@ -9,6 +9,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 
+#include "../../lvgl/lvgl.h"
+
 //LCD
 #define PIN_NUM_MISO (gpio_num_t)25
 #define PIN_NUM_MOSI (gpio_num_t)23
@@ -29,6 +31,12 @@ typedef enum	LcdPageIndex_e
 	LOGS,
 	STATES
 }				LcdPageIndex;
+
+typedef struct	ValueContainer_s
+{
+	lv_obj_t	*value;
+	lv_obj_t	*decimale;
+}				ValueContainer_t;
 
 void	nextPage();
 void	previousPage();

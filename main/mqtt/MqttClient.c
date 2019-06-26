@@ -83,7 +83,8 @@ static esp_mqtt_client_handle_t	initMqttClient(const char *url)
 	esp_mqtt_client_config_t mqtt_cfg = {
 		.uri = url,
 		.event_handle = mqtt_event_handler,
-		//.transport = MQTT_TRANSPORT_OVER_TCP
+		.port = 1883,
+		.transport = MQTT_TRANSPORT_OVER_TCP
 	};
 
     ESP_LOGI(TAG, "Initiating the mqtt...");
@@ -182,7 +183,7 @@ esp_err_t	startMqttClient(MqttConfig_t *config)
 	if (!_datas)
 		_datas = xQueueCreate(10, sizeof(cJSON *));
 	_running = true;
-    return xTaskCreate(taskMqtt, "mqttTask", 6000, tmp, tskIDLE_PRIORITY, &mqttTask);
+    return xTaskCreate(taskMqtt, "mqttTask", 7168, tmp, tskIDLE_PRIORITY, &mqttTask);
 }
 
 esp_err_t	stopMqttClient()

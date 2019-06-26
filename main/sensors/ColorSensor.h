@@ -18,6 +18,7 @@
 #define COLOR_SYSTEM_CONTROL_ANS	0x0B
 #define	COLOR_MODE_CONTROL1	0x41
 #define	COLOR_MODE_CONTROL2	0x42
+#define	COLOR_MODE_CONTROL3	0x44
 #define COLOR_REDL	0x50
 #define COLOR_REDH	0x51
 #define COLOR_GREENL	0x52
@@ -27,9 +28,10 @@
 
 typedef struct	color_rgb_s
 {
-	int16_t	r;
-	int16_t	g;
-	int16_t	b;
+	char		available;
+	uint16_t	r;
+	uint16_t	g;
+	uint16_t	b;
 }				color_rgb_t;
 
 esp_err_t	initColorSensor(i2c_port_t port);

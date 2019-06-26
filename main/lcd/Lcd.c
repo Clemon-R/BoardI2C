@@ -6,13 +6,12 @@
 #include "esp_freertos_hooks.h"
 #include "freertos/semphr.h"
 
-//#include "../wifi/WifiClient.h"
+#include "../wifi/WifiClient.h"
 #include "../mqtt/MqttClient.h"
 #include "../sensors/SensorClient.h"
 
 #include "../../drv/disp_spi.h"
 #include "../../drv/ili9341.h"
-#include "../../lvgl/lvgl.h"
 
 #include <math.h>
 
@@ -25,10 +24,27 @@ static SemaphoreHandle_t	_semaphore = NULL;
 
 static lv_obj_t	*_logs = NULL;
 
-static int8_t	_currentIndex = 0;
-static int8_t	_nextIndex = -1;
+static lv_obj_t	*_red = NULL;
+static lv_obj_t	*_green = NULL;
+static lv_obj_t	*_blue = NULL;
+static lv_obj_t	*_rgb = NULL;
+
+static lv_obj_t	*_ledWifi = NULL;
+static lv_obj_t	*_ledMqtt = NULL;
+static lv_obj_t	*_ledSensors = NULL;
+
+static lv_obj_t	*_lblTemperature = NULL;
+static lv_obj_t	*_lblHumidity = NULL;
+static lv_obj_t	*_lblPressure = NULL;
+static lv_obj_t	*_lblColor = NULL;
+static ValueContainer_t	_temperature = {.value = NULL, .decimale = NULL};
+static ValueContainer_t	_humidity = {.value = NULL, .decimale = NULL};
+static ValueContainer_t	_pressure = {.value = NULL, .decimale = NULL};
 
 static lv_obj_t	*_tv = NULL;
+static int32_t	_index = 0;
+
+static char	_buffer[BUFF_SIZE];
 
 static void IRAM_ATTR lv_tick_task(void)
 {
@@ -40,17 +56,16 @@ static int	customVPrintF(const char *str, va_list arg)
 	static char	**logs = NULL;
 	static char	**next = NULL;
 	static uint8_t	index = 0;
-	char	buffer[1024];
 
 	if (!logs){
 		logs = (char **)malloc(sizeof(char *) * 15);
-		memset(logs, NULL, sizeof(char *) * 15);
+		memset(logs, 0, sizeof(char *) * 15);
 		next = logs;
 	}
 	if (_logs){
-		vsprintf(buffer, str, arg);
+		vsprintf(_buffer, str, arg);
 		if (!*next){
-			*next = strdup(buffer);
+			*next = strdup(_buffer);
 			if (index < 13){
 				index++;
 				next = logs + index;
@@ -62,7 +77,7 @@ static int	customVPrintF(const char *str, va_list arg)
 				}
 				logs[i] = logs[i + 1];
 			}
-			*next = strdup(buffer);
+			*next = strdup(_buffer);
 		}
 		if (xSemaphoreTake(_semaphore, pdMS_TO_TICKS(1000)) == pdTRUE){
 			lv_ta_set_text(_logs, "");
@@ -168,11 +183,11 @@ static void	createStatesView(void *tab)
 	lv_label_set_text(lblWifi, SYMBOL_WIFI" Wifi:");
 	lv_obj_align(lblWifi, parent, LV_ALIGN_IN_TOP_LEFT, 15, lv_obj_get_height(parent) / 2 - 38);
 
-	lv_obj_t	*ledWifi = lv_led_create(parent, NULL);
-	lv_obj_set_style(ledWifi, &style_led);
-	lv_obj_set_size(ledWifi, 20, 20);
-	lv_obj_align(ledWifi, parent, LV_ALIGN_IN_TOP_MID, -15, lv_obj_get_height(parent) / 2 - 38);
-	lv_led_off(ledWifi);
+	_ledWifi = lv_led_create(parent, NULL);
+	lv_obj_set_style(_ledWifi, &style_led);
+	lv_obj_set_size(_ledWifi, 20, 20);
+	lv_obj_align(_ledWifi, parent, LV_ALIGN_IN_TOP_MID, -15, lv_obj_get_height(parent) / 2 - 38);
+	lv_led_set_bright(_ledWifi, 0);
 
 	//Mqtt
 
@@ -180,11 +195,11 @@ static void	createStatesView(void *tab)
 	lv_label_set_text(lblMqtt, SYMBOL_UPLOAD" Mqtt:");
 	lv_obj_align(lblMqtt, parent, LV_ALIGN_IN_TOP_LEFT, 15, lv_obj_get_height(parent) / 2 - 13);
 
-	lv_obj_t	*ledMqtt = lv_led_create(parent, NULL);
-	lv_obj_set_style(ledMqtt, &style_led);
-	lv_obj_set_size(ledMqtt, 20, 20);
-	lv_obj_align(ledMqtt, parent, LV_ALIGN_IN_TOP_MID, -15, lv_obj_get_height(parent) / 2 - 13);
-	lv_led_set_bright(ledMqtt, 190);
+	_ledMqtt = lv_led_create(parent, NULL);
+	lv_obj_set_style(_ledMqtt, &style_led);
+	lv_obj_set_size(_ledMqtt, 20, 20);
+	lv_obj_align(_ledMqtt, parent, LV_ALIGN_IN_TOP_MID, -15, lv_obj_get_height(parent) / 2 - 13);
+	lv_led_set_bright(_ledMqtt, 0);
 
 	//Sensors
 
@@ -192,38 +207,39 @@ static void	createStatesView(void *tab)
 	lv_label_set_text(lblSensors, SYMBOL_REFRESH" Sensors:");
 	lv_obj_align(lblSensors, parent, LV_ALIGN_IN_TOP_LEFT, 15, lv_obj_get_height(parent) / 2 + 13);
 
-	lv_obj_t	*ledSensors = lv_led_create(parent, NULL);
-	lv_obj_set_style(ledSensors, &style_led);
-	lv_obj_set_size(ledSensors, 20, 20);
-	lv_obj_align(ledSensors, parent, LV_ALIGN_IN_TOP_MID, -15, lv_obj_get_height(parent) / 2 + 13);
-	lv_led_on(ledSensors);
+	_ledSensors = lv_led_create(parent, NULL);
+	lv_obj_set_style(_ledSensors, &style_led);
+	lv_obj_set_size(_ledSensors, 20, 20);
+	lv_obj_align(_ledSensors, parent, LV_ALIGN_IN_TOP_MID, -15, lv_obj_get_height(parent) / 2 + 13);
+	lv_led_set_bright(_ledSensors, 0);
 
 	//Details states
 
-	lv_obj_t	*lblTemperature = lv_label_create(parent, NULL);
-	lv_label_set_text(lblTemperature, "Temperature "SYMBOL_CLOSE);
-	lv_obj_align(lblTemperature, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2 - 50);
+	_lblTemperature = lv_label_create(parent, NULL);
+	lv_label_set_text(_lblTemperature, "Temperature "SYMBOL_CLOSE);
+	lv_obj_align(_lblTemperature, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2 - 50);
 
-	lv_obj_t	*lblHumidity = lv_label_create(parent, NULL);
-	lv_label_set_text(lblHumidity, "Humidity "SYMBOL_CLOSE);
-	lv_obj_align(lblHumidity, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2 - 25);
+	_lblHumidity = lv_label_create(parent, NULL);
+	lv_label_set_text(_lblHumidity, "Humidity "SYMBOL_CLOSE);
+	lv_obj_align(_lblHumidity, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2 - 25);
 
-	lv_obj_t	*lblPressure = lv_label_create(parent, NULL);
-	lv_label_set_text(lblPressure, "Pessure "SYMBOL_CLOSE);
-	lv_obj_align(lblPressure, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2);
+	_lblPressure = lv_label_create(parent, NULL);
+	lv_label_set_text(_lblPressure, "Pessure "SYMBOL_CLOSE);
+	lv_obj_align(_lblPressure, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2);
 
-	lv_obj_t	*lblColor = lv_label_create(parent, NULL);
-	lv_label_set_text(lblColor, "Color "SYMBOL_CLOSE);
-	lv_obj_align(lblColor, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2 + 25);
+	_lblColor = lv_label_create(parent, NULL);
+	lv_label_set_text(_lblColor, "Color "SYMBOL_CLOSE);
+	lv_obj_align(_lblColor, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2 + 25);
 }
 
-static void	drawDisplayer(lv_obj_t *parent, const char *title, int x, int y, lv_style_t *styleContent, lv_style_t *styleBubble)
+static void	drawDisplayer(lv_obj_t *parent, const char *title, int x, int y, lv_style_t *styleContent, lv_style_t *styleBubble, lv_obj_t **value, lv_obj_t **decimal)
 {
 	static lv_style_t	header;
 	lv_style_copy(&header, &lv_style_plain);
 	header.line.color = LV_COLOR_BLACK;
 	header.line.width = 19;
 	header.line.rounded = 1;
+	header.body.padding.ver = 0;
 
 	styleContent->line.width = header.line.width;
 	styleContent->line.rounded = header.line.rounded;
@@ -241,7 +257,7 @@ static void	drawDisplayer(lv_obj_t *parent, const char *title, int x, int y, lv_
 	topStyle.text.color = LV_COLOR_WHITE;
 	topStyle.text.font = &lv_font_dejavu_10;
 
-	lv_obj_t	*top = lv_label_create(line1, NULL);
+	lv_obj_t	*top = lv_label_create(parent, NULL);
 	lv_obj_align(top, line1, LV_ALIGN_IN_LEFT_MID, 20, 0);
 	lv_label_set_text(top, title);
 	lv_label_set_style(top, &topStyle);
@@ -252,11 +268,19 @@ static void	drawDisplayer(lv_obj_t *parent, const char *title, int x, int y, lv_
 
 	styleBubble->line.width = lv_obj_get_height(parent);
 
-	lv_obj_t	*Bubble = lv_arc_create(parent, NULL);
-	lv_arc_set_style(Bubble, LV_ARC_STYLE_MAIN, styleBubble);
-	lv_arc_set_angles(Bubble, 0, 360);
-	lv_obj_set_size(Bubble, 40, 40);
-	lv_obj_align(Bubble, parent, LV_ALIGN_IN_TOP_LEFT, 105 + x, 5 + y);
+	lv_obj_t	*bubble = lv_arc_create(parent, NULL);
+	lv_arc_set_style(bubble, LV_ARC_STYLE_MAIN, styleBubble);
+	lv_arc_set_angles(bubble, 0, 360);
+	lv_obj_set_size(bubble, 40, 40);
+	lv_obj_align(bubble, parent, LV_ALIGN_IN_TOP_LEFT, 105 + x, 5 + y);
+	if (value != NULL){
+		*value = lv_label_create(parent, NULL);
+		lv_obj_align(*value, bubble, LV_ALIGN_CENTER, 8, 0);
+	}
+	if (decimal != NULL){
+		*decimal = lv_label_create(parent, NULL);
+		lv_obj_align(*decimal, line2, LV_ALIGN_IN_LEFT_MID, 20, 0);
+	}
 }
 
 static void	createSensorsView(void *tab)
@@ -314,23 +338,44 @@ static void	createSensorsView(void *tab)
 	styleRed.line.color = LV_COLOR_RED;  /*Arc color*/
 
 	/*Create an Arc*/
-	lv_obj_t	*arcBlue = lv_arc_create(parent, NULL);
-	lv_arc_set_style(arcBlue, LV_ARC_STYLE_MAIN, &styleBlue);          /*Use the new style*/
-	lv_arc_set_angles(arcBlue, 180, 210);
-	lv_obj_set_size(arcBlue, lv_obj_get_width(parent), lv_obj_get_height(parent));
-	lv_obj_align(arcBlue, parent, LV_ALIGN_IN_BOTTOM_RIGHT, lv_obj_get_width(parent) / 2, lv_obj_get_height(parent) / 2);
+	_blue = lv_arc_create(parent, NULL);
+	lv_arc_set_style(_blue, LV_ARC_STYLE_MAIN, &styleBlue);          /*Use the new style*/
+	lv_arc_set_angles(_blue, 180, 210);
+	lv_obj_set_size(_blue, lv_obj_get_width(parent), lv_obj_get_height(parent));
+	lv_obj_align(_blue, parent, LV_ALIGN_IN_BOTTOM_RIGHT, lv_obj_get_width(parent) / 2, lv_obj_get_height(parent) / 2);
 
 	/*Create an Arc*/
-	lv_obj_t	*arcGreen = lv_arc_create(parent, arcBlue);
-	lv_arc_set_style(arcGreen, LV_ARC_STYLE_MAIN, &styleGreen);          /*Use the new style*/
-	lv_arc_set_angles(arcGreen, 210, 240);
+	_green = lv_arc_create(parent, _blue);
+	lv_arc_set_style(_green, LV_ARC_STYLE_MAIN, &styleGreen);          /*Use the new style*/
+	lv_arc_set_angles(_green, 210, 240);
 
 	/*Create an Arc*/
-	lv_obj_t	*arcRed = lv_arc_create(parent, arcBlue);
-	lv_arc_set_style(arcRed, LV_ARC_STYLE_MAIN, &styleRed);          /*Use the new style*/
-	lv_arc_set_angles(arcRed, 240, 270);
+	_red = lv_arc_create(parent, _blue);
+	lv_arc_set_style(_red, LV_ARC_STYLE_MAIN, &styleRed);          /*Use the new style*/
+	lv_arc_set_angles(_red, 240, 270);
+
+	static lv_style_t styleRGB;
+	lv_style_copy(&styleRGB, &styleBlue);
+	styleRGB.line.color = LV_COLOR_RED;
+	styleRGB.line.width = 10;
+
+	_rgb = lv_arc_create(parent, NULL);
+	lv_arc_set_style(_rgb, LV_ARC_STYLE_MAIN, &styleRGB);
+	lv_arc_set_angles(_rgb, 180, 270);
+	lv_obj_set_size(_rgb, lv_obj_get_width(parent) * 1.1f, lv_obj_get_height(parent) * 1.1f);
+	lv_obj_align(_rgb, parent, LV_ALIGN_IN_BOTTOM_RIGHT, lv_obj_get_width(parent) / 2* 1.1f, lv_obj_get_height(parent) / 2* 1.1f);
 
 	//Displayer temperature
+	static lv_style_t	valueStyle;
+	lv_style_copy(&valueStyle, &lv_style_plain);
+	valueStyle.text.color = LV_COLOR_WHITE;
+	valueStyle.text.font = &lv_font_dejavu_20;
+
+	static lv_style_t	decimaleStyle;
+	lv_style_copy(&decimaleStyle, &lv_style_plain);
+	decimaleStyle.text.color = LV_COLOR_WHITE;
+	decimaleStyle.text.font = &lv_font_dejavu_10;
+
 	static lv_style_t	styleTemmperature;
 	lv_style_copy(&styleTemmperature, &lv_style_plain);
 	styleTemmperature.line.color = LV_COLOR_RED;
@@ -338,7 +383,11 @@ static void	createSensorsView(void *tab)
 	static lv_style_t	styleTemmperatureBubble;
 	lv_style_copy(&styleTemmperatureBubble, &lv_style_plain);
 	styleTemmperatureBubble.line.color = LV_COLOR_RED;
-	drawDisplayer(parent, "Temperature", 0, 0, &styleTemmperature, &styleTemmperatureBubble);
+	drawDisplayer(parent, "Temperature", 0, 0, &styleTemmperature, &styleTemmperatureBubble, &_temperature.value, &_temperature.decimale);
+	lv_label_set_text(_temperature.value, "100");
+	lv_label_set_text(_temperature.decimale, ",00°C");
+	lv_obj_set_style(_temperature.value, &valueStyle);
+	lv_obj_set_style(_temperature.decimale, &decimaleStyle);
 
 	static lv_style_t	styleHumidity;
 	lv_style_copy(&styleHumidity, &lv_style_plain);
@@ -347,7 +396,11 @@ static void	createSensorsView(void *tab)
 	static lv_style_t	styleHumidityBubble;
 	lv_style_copy(&styleHumidityBubble, &lv_style_plain);
 	styleHumidityBubble.line.color = LV_COLOR_GREEN;
-	drawDisplayer(parent, "Humidity", (lv_obj_get_width(parent) - 100) / 2, 0, &styleHumidity, &styleHumidityBubble);
+	drawDisplayer(parent, "Humidity", (lv_obj_get_width(parent) - 100) / 2, 0, &styleHumidity, &styleHumidityBubble, &_humidity.value, &_humidity.decimale);
+	lv_label_set_text(_humidity.value, "100");
+	lv_label_set_text(_humidity.decimale, ",00°C");
+	lv_obj_set_style(_humidity.value, &valueStyle);
+	lv_obj_set_style(_humidity.decimale, &decimaleStyle);
 
 	static lv_style_t	stylePressure;
 	lv_style_copy(&stylePressure, &lv_style_plain);
@@ -356,7 +409,11 @@ static void	createSensorsView(void *tab)
 	static lv_style_t	stylePressureBubble;
 	lv_style_copy(&stylePressureBubble, &lv_style_plain);
 	stylePressureBubble.line.color = LV_COLOR_BLUE;
-	drawDisplayer(parent, "Pressure", 0, 45, &stylePressure, &stylePressureBubble);
+	drawDisplayer(parent, "Pressure", 0, 45, &stylePressure, &stylePressureBubble, &_pressure.value, &_pressure.decimale);
+	lv_label_set_text(_pressure.value, "100");
+	lv_label_set_text(_pressure.decimale, ",00°C");
+	lv_obj_set_style(_pressure.value, &valueStyle);
+	lv_obj_set_style(_pressure.decimale, &decimaleStyle);
 }
 
 static void	setupUI()
@@ -384,11 +441,123 @@ static void	setupUI()
 
 static void taskLcd(void *args)
 {
+	SensorData_t	*config = NULL;
+	float	temp, humidity, pressure;
+	color_rgb_t	color;
+
     ESP_LOGI(TAG, "Initiating the task...");
-	while(_running) {
+	config = getSensorConfig();
+	while(_running && config) {
 		_working = true;
+		if (lv_tabview_get_tab_act(_tv) != _index){
+			if (_tv != NULL && xSemaphoreTake(_semaphore, pdMS_TO_TICKS(0)) == pdTRUE){
+				lv_tabview_set_tab_act(_tv, _index, true);
+				xSemaphoreGive(_semaphore);
+			}
+		}
+		temp = getTemperature(I2C_MASTER_NUM, &config->humidityData);
+		humidity = getHumidity(I2C_MASTER_NUM, &config->humidityData);
+		pressure = getPressure(I2C_MASTER_NUM);
+		color = getColorRGB(I2C_MASTER_NUM);
+		switch (_index){
+			case 0:
+			if (temp != -1){
+				if (_temperature.value && _temperature.decimale && xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE){
+					sprintf(_buffer, "%d", (int)temp);
+					lv_label_set_text(_temperature.value, _buffer);
+					sprintf(_buffer, ",%d°C", (int)(temp * 100) % 100);
+					lv_label_set_text(_temperature.decimale, _buffer);
+					xSemaphoreGive(lcdGetSemaphore());
+				}
+			}
+			if (humidity != -1){
+				if (_humidity.value && _humidity.decimale && xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE){
+					sprintf(_buffer, "%d", (int)humidity);
+					lv_label_set_text(_humidity.value, _buffer);
+					sprintf(_buffer, ",%d%c", (int)(humidity * 100) % 100, '%');
+					lv_label_set_text(_humidity.decimale, _buffer);
+					xSemaphoreGive(lcdGetSemaphore());
+				}
+			}
+			if (pressure != -1){
+				if (_pressure.value && _pressure.decimale && xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE){
+					sprintf(_buffer, "%d", (int)pressure);
+					lv_label_set_text(_pressure.value, _buffer);
+					sprintf(_buffer, ",%dhPa", (int)(pressure * 100) % 100);
+					lv_label_set_text(_pressure.decimale, _buffer);
+					xSemaphoreGive(lcdGetSemaphore());
+				}
+			}
+
+			uint32_t	total = color.r + color.g + color.b;
+			uint32_t	last = 270, tmp = 0;
+			if (color.available){
+				if (xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE){
+					if (_red){
+						lv_arc_set_angles(_red, (tmp = last - (90 * (color.r / (float)total))), last);
+						last = tmp;
+					}
+					if (_green){
+						lv_arc_set_angles(_green, (tmp = last - (90 * (color.g / (float)total))), last);
+						last = tmp;	
+					}
+					if (_blue){
+						lv_arc_set_angles(_blue, (tmp = last - (90 * (color.b / (float)total))), last);
+					}
+					if (_rgb){
+						ESP_LOGI(TAG, "%d / %d = %.2f * %d = %d", color.r, UINT16_MAX, color.r / (float)UINT16_MAX, UINT8_MAX, (int)(UINT8_MAX * (color.r / (float)UINT16_MAX)));
+						lv_arc_get_style(_rgb, LV_ARC_STYLE_MAIN)->line.color = LV_COLOR_MAKE((int)(UINT8_MAX * (color.r / (float)UINT16_MAX)), (int)(UINT8_MAX * (color.g  / UINT16_MAX)), (int)(UINT8_MAX * (color.b  / UINT16_MAX)));
+					}
+					xSemaphoreGive(lcdGetSemaphore());
+				}
+			}
+			break;
+			case 2:
+			if (xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE){
+				if (temp != -1)
+					lv_label_set_text(_lblTemperature, "Temperature "SYMBOL_OK);
+				else
+					lv_label_set_text(_lblTemperature, "Temperature "SYMBOL_CLOSE);
+
+				if (humidity != -1)
+					lv_label_set_text(_lblHumidity, "Humidity "SYMBOL_OK);
+				else
+					lv_label_set_text(_lblHumidity, "Humidity "SYMBOL_CLOSE);
+
+				if (pressure != -1)
+					lv_label_set_text(_lblPressure, "Pessure "SYMBOL_OK);
+				else
+					lv_label_set_text(_lblPressure, "Pessure "SYMBOL_CLOSE);
+
+				if (color.available)
+					lv_label_set_text(_lblColor, "Color "SYMBOL_OK);
+				else
+					lv_label_set_text(_lblColor, "Color "SYMBOL_CLOSE);
+				ESP_LOGI(TAG, "Wifi: %d", isWifiConnected());
+				if (isWifiConnected())
+					lv_led_on(_ledWifi);
+				else
+					lv_led_off(_ledWifi);
+				
+				if (isMqttConnected())
+					lv_led_on(_ledMqtt);
+				else
+					lv_led_off(_ledMqtt);
+				
+				if (temp != -1 && humidity != -1 && pressure != -1 && color.available)
+					lv_led_set_bright(_ledSensors, 255);
+				else if (temp != -1 || humidity != -1 || pressure != -1 || color.available)
+					lv_led_set_bright(_ledSensors, 150);
+				else
+					lv_led_set_bright(_ledSensors, 0);
+				xSemaphoreGive(lcdGetSemaphore());
+			}
+			break;
+		}
+		vTaskDelay(pdMS_TO_TICKS(10));
 	}
 	_working = false;
+	_running = false;
 	deinitLcd();
 	lcdTask = NULL;
 	vTaskDelete(NULL);
@@ -398,17 +567,11 @@ static void taskLcd(void *args)
 
 static void	changePage(int i)
 {
-	static int8_t	index = 0;
-
-	index += i;
-	if (index < 0)
-		index = index % 3 + 3;
-	if (index > 3)
-		index = 0;
-	if (_tv != NULL && xSemaphoreTake(_semaphore, pdMS_TO_TICKS(1000)) == pdTRUE){
-		lv_tabview_set_tab_act(_tv, index, true);
-		xSemaphoreGive(_semaphore);
-	}
+	_index += i;
+	if (_index < 0)
+		_index = _index % 3 + 3;
+	if (_index > 3)
+		_index = 0;
 }
 
 void	nextPage()
@@ -431,7 +594,7 @@ esp_err_t	startLcd()
 	_running = true;
 	ESP_ERROR_CHECK(initLcd());
 	setupUI();
-	return xTaskCreate(&taskLcd, "lcdTask", 4098, NULL, tskIDLE_PRIORITY, &lcdTask);
+	return xTaskCreate(&taskLcd, "lcdTask", 30720, NULL, tskIDLE_PRIORITY, &lcdTask);
 }
 
 esp_err_t	stopLcd()

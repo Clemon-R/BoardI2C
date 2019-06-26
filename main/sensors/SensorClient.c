@@ -121,7 +121,7 @@ static void	taskSensor(void *args)
 		sprintf(buffer, "0x%02X %02x %02x", tmp.r & 0XFF, tmp.g & 0XFF, tmp.b & 0XFF);
 		raw = cJSON_CreateString(buffer);
 		cJSON_AddItemReferenceToObject(sensors, "color", raw);
-		if (tmp.r == -1)
+		if (!tmp.available)
 			state = 0;
 
 		cJSON_AddItemReferenceToObject(monitor, "sensors", sensors);
