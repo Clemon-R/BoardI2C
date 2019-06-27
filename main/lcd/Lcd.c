@@ -311,10 +311,10 @@ static void	createSensorsView(void *tab)
 	lv_obj_align(listMenu, parent, LV_ALIGN_IN_TOP_LEFT, 0, -5);
 
 	lv_obj_t *tmp  = lv_list_add(listMenu, SYMBOL_LIST, "All", NULL);
-	lv_list_add(listMenu, NULL, "Temperature", NULL);
-	lv_list_add(listMenu, NULL, "Humidity", NULL);
-	lv_list_add(listMenu, NULL, "Pressure", NULL);
-	lv_list_add(listMenu, NULL, "Color", NULL);
+	//lv_list_add(listMenu, NULL, "Temperature", NULL);
+	//lv_list_add(listMenu, NULL, "Humidity", NULL);
+	//lv_list_add(listMenu, NULL, "Pressure", NULL);
+	//lv_list_add(listMenu, NULL, "Color", NULL);
 
 	lv_list_set_style(listMenu, LV_LIST_STYLE_BG, &lv_style_transp_tight);
 	lv_list_set_style(listMenu, LV_LIST_STYLE_BTN_REL, &style_btn_rel);
