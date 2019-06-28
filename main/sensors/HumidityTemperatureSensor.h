@@ -1,6 +1,6 @@
 /**
  * Based on Sensor HTS221
- * 
+ *
  * Author: Raphaël-G
  **/
 
@@ -32,19 +32,18 @@
 #define HUMIDITYTEMP_ODR0 1
 #define HUMIDITYTEMP_ODR ((HUMIDITYTEMP_ODR1 << 1) | HUMIDITYTEMP_ODR0)
 
-typedef struct	humidity_temp_sensor_s
-{
-	//Values of calibration temperature
-	int16_t	T0_out;
-	int16_t	T1_out;
-	uint16_t	T0_deg;
-	uint16_t	T1_deg;	
+typedef struct	humidity_temp_sensor_s {
+    //Values of calibration temperature
+    int16_t	T0_out;
+    int16_t	T1_out;
+    uint16_t	T0_deg;
+    uint16_t	T1_deg;
 
-	//Values of calibration humidity
-	int16_t	H0_out;
-	int16_t	H1_out;
-	uint8_t	H0_rh;
-	uint8_t	H1_rh;
+    //Values of calibration humidity
+    int16_t	H0_out;
+    int16_t	H1_out;
+    uint8_t	H0_rh;
+    uint8_t	H1_rh;
 }				humidity_temp_sensor_t;
 
 esp_err_t	initHumidityTempSensor(i2c_port_t port);

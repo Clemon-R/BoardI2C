@@ -14,10 +14,9 @@
 #define	BTN_1 (gpio_num_t)27
 #define	BTN_2 (gpio_num_t)26
 
-typedef struct main_data_s
-{
-	humidity_temp_sensor_t	humidityData;
-	pressure_temp_sensor_t	pressureData;
+typedef struct main_data_s {
+    humidity_temp_sensor_t	humidityData;
+    pressure_temp_sensor_t	pressureData;
 }				main_data_t;
 
 #endif // !APPMAIN_H_

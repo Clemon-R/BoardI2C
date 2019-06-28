@@ -102,6 +102,8 @@ esp_err_t	setupHumidityTempSensor(i2c_port_t port, humidity_temp_sensor_t *data)
 	data->T0_deg = 0;
 	data->T1_deg = 0;
 	ret = initTemperatureCalibration(port, data);
+	if (ret != ESP_OK)
+		return ret;
 	ret = initHumidityCalibration(port, data);
 	return ESP_OK;
 }
@@ -118,7 +120,7 @@ esp_err_t	initHumidityTempSensor(i2c_port_t port)
 	ret = readByte(port, I2C_SLAVE_HUMIDITYTEMP, &data);
 	if (ret != ESP_OK || data != HUMIDITYTEMP_WHOIAM_ANS)
 		return ESP_FAIL;
-		
+
 	data = HUMIDITYTEMP_ODR;
 	ret = writeByte(port, I2C_SLAVE_HUMIDITYTEMP, HUMIDITYTEMP_CTRL_REG, &data);
 	if (ret != ESP_OK)

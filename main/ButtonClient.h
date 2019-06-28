@@ -5,8 +5,7 @@
 
 #include "lcd/Lcd.h"
 
-typedef enum TypeClick_e
-{
+typedef enum TypeClick_e {
     Simple = 1,
     Double,
     Long,

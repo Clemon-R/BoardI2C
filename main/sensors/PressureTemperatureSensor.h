@@ -1,6 +1,6 @@
 /**
  * Based on Sensor LPS22HB
- * 
+ *
  * Author: Raphaël-G
  **/
 
@@ -28,9 +28,8 @@
 #define PRESSURETEMP_ODR0 0
 #define PRESSURETEMP_ODR ((PRESSURETEMP_ODR2 << 6) | (PRESSURETEMP_ODR1 << 5) | (PRESSURETEMP_ODR0 << 4))
 
-typedef struct pressure_temp_sensor_s
-{
-	int16_t	offset;
+typedef struct pressure_temp_sensor_s {
+    int16_t	offset;
 }				pressure_temp_sensor_t;
 
 esp_err_t	initPressureTempSensor(i2c_port_t port);

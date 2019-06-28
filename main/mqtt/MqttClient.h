@@ -17,9 +17,8 @@
 #define	BUFF_SIZE 1024
 #endif
 
-typedef struct MqttConfig_s
-{
-	char	*url;
+typedef struct MqttConfig_s {
+    char	*url;
 }				MqttConfig_t;
 
 char	isMqttConnected();

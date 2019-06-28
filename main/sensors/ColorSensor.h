@@ -1,6 +1,6 @@
 /**
  * Based on Sensor BH1745NUC
- * 
+ *
  * Author: Raphaël-G
  **/
 
@@ -26,12 +26,11 @@
 #define COLOR_BLUEL	0x54
 #define COLOR_BLUER	0x55
 
-typedef struct	color_rgb_s
-{
-	uint16_t	r;
-	uint16_t	g;
-	uint16_t	b;
-	char		available;
+typedef struct	color_rgb_s {
+    uint16_t	r;
+    uint16_t	g;
+    uint16_t	b;
+    char		available;
 }				color_rgb_t;
 
 esp_err_t	initColorSensor(i2c_port_t port);

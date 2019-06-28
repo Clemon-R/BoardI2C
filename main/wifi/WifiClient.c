@@ -103,7 +103,7 @@ static void    taskWifi(void *arg)
 
 char	isWifiConnected()
 {
-	return (xEventGroupWaitBits(_wifiEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT;
+    return (xEventGroupWaitBits(_wifiEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT;
 }
 
 esp_err_t    startWifiClient(WifiConfig_t   *config)
@@ -125,7 +125,7 @@ esp_err_t    startWifiClient(WifiConfig_t   *config)
 esp_err_t   stopWifiClient()
 {
     ESP_LOGI(TAG, "Stopping the %s task...", TAG);
-    if (!wifiTask){
+    if (!wifiTask) {
         return ESP_FAIL;
     }
     vTaskResume(wifiTask);

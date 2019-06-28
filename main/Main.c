@@ -21,9 +21,9 @@ static void setupLeds()
     gpio_config_t	gpio_conf;
 
     ESP_LOGI(TAG, "Settings GPIO Leds...");
-	gpio_conf.intr_type = GPIO_INTR_ANYEDGE;
-	gpio_conf.pin_bit_mask = (1ULL<<RGB_1) | (1ULL<<RGB_2) | (1ULL<<RGB_3);
-	gpio_conf.mode = GPIO_MODE_OUTPUT;
+    gpio_conf.intr_type = GPIO_INTR_ANYEDGE;
+    gpio_conf.pin_bit_mask = (1ULL<<RGB_1) | (1ULL<<RGB_2) | (1ULL<<RGB_3);
+    gpio_conf.mode = GPIO_MODE_OUTPUT;
     gpio_config(&gpio_conf);
     gpio_set_level(RGB_1, 0);
     gpio_set_level(RGB_2, 0);
@@ -32,39 +32,40 @@ static void setupLeds()
 
 static void btnClicked(uint32_t io_num, TypeClick type)
 {
-    if (type == Simple && !lcdIsRunning()){
+    if (type == Simple && !lcdIsRunning()) {
         startLcd();
     }
-    switch (io_num){
-        case BTN_1:
-        if (type == Simple){
+    switch (io_num) {
+    case BTN_1:
+        if (type == Simple) {
             previousPage();
-        } 
-        if (type == Double){
+        }
+        if (type == Double) {
             previousPage();
         }
         break;
 
-        case BTN_2:
-        if (type == Simple){
+    case BTN_2:
+        if (type == Simple) {
             nextPage();
-        } 
-        if (type == Double){
+        }
+        if (type == Double) {
             nextPage();
         }
         break;
     }
-    if (type == VeryLong){
+    if (type == VeryLong) {
         stopLcd();
     }
 }
 
-void	app_main() {
+void	app_main()
+{
     WifiConfig_t	dataWifi = {
-        /*.ssid = "1234-6789-12345",
-        .password = "12345678"*/
-		.ssid = "Honor Raphael",
-        .password = "clemon69"
+        .ssid = "1234-6789-12345",
+        .password = "12345678"
+        //.ssid = "Honor Raphael",
+        //.password = "clemon69"
     };
     MqttConfig_t	dataMqtt = {
         .url = "tcp://iot.eclipse.org"
@@ -75,12 +76,12 @@ void	app_main() {
     setButtonCallback(&btnClicked);
     startButtonClient();
 
-	startWifiClient(&dataWifi);
-	startMqttClient(&dataMqtt);
-	startSensorClient();
+    startWifiClient(&dataWifi);
+    startMqttClient(&dataMqtt);
+    startSensorClient();
     startLcd();
-    while (1){
-        if (xSemaphoreTake(lcdGetSemaphore(), pdMS_TO_TICKS(100)) == pdTRUE){
+    while (1) {
+        if (xSemaphoreTake(lcdGetSemaphore(), pdMS_TO_TICKS(100)) == pdTRUE) {
             lv_task_handler();
             xSemaphoreGive(lcdGetSemaphore());
             vTaskDelay(1);

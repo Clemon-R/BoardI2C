@@ -22,18 +22,16 @@
 
 #include "esp_log.h"
 
-typedef enum	WifiState_e
-{
-	NONE = 0,
-	DEINITIATIED,
-	INITIATING,
-	INITIATIED
+typedef enum	WifiState_e {
+    NONE = 0,
+    DEINITIATIED,
+    INITIATING,
+    INITIATIED
 }				WifiState_t;
 
-typedef struct WifiConfig_s
-{
-	char	*ssid;
-	char	*password;
+typedef struct WifiConfig_s {
+    char	*ssid;
+    char	*password;
 }				WifiConfig_t;
 
 char	isWifiConnected();

@@ -13,19 +13,17 @@
 
 #include "cJSON.h"
 
-typedef enum	MqttClientCommandType_e
-{
-	CHANGEWIFI = 0,
-	LED,
-	SENSOR,
-	REBOOT,
-	CHANGEPAGE
+typedef enum	MqttClientCommandType_e {
+    CHANGEWIFI = 0,
+    LED,
+    SENSOR,
+    REBOOT,
+    CHANGEPAGE
 }				MqttClientCommandType;
 
-typedef struct MqttClientCommand_s
-{
-	MqttClientCommandType	type;
-	cJSON	*data;
+typedef struct MqttClientCommand_s {
+    MqttClientCommandType	type;
+    cJSON	*data;
 }				MqttClientCommand_t;
 
 esp_err_t	launchCommand(MqttClientCommand_t *command);

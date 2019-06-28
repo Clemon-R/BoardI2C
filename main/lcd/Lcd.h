@@ -25,17 +25,15 @@
 #define	BUFF_SIZE 2048
 #endif
 
-typedef enum	LcdPageIndex_e
-{
-	SENSORS = 0,
-	LOGS,
-	STATES
+typedef enum	LcdPageIndex_e {
+    SENSORS = 0,
+    LOGS,
+    STATES
 }				LcdPageIndex;
 
-typedef struct	ValueContainer_s
-{
-	lv_obj_t	*value;
-	lv_obj_t	*decimale;
+typedef struct	ValueContainer_s {
+    lv_obj_t	*value;
+    lv_obj_t	*decimale;
 }				ValueContainer_t;
 
 void	nextPage();
