@@ -21,7 +21,7 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
         gpio_set_level(RGB_1, 1);
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
-        if ((xEventGroupWaitBits(_wifiEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT) {
+        if (isWifiConnected()) {
             ESP_LOGE(TAG, "\033[5mWifi was disconnected\033[0m");
             xEventGroupClearBits(_wifiEventGroup, CONNECTED_BIT);
             gpio_set_level(RGB_1, 0);

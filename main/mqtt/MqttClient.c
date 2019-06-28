@@ -182,6 +182,10 @@ esp_err_t	startMqttClient(MqttConfig_t *config)
 		_wifiEventGroup = getWifiEventGroup();
 	if (!_datas)
 		_datas = xQueueCreate(10, sizeof(cJSON *));
+	if (!_wifiEventGroup){
+		ESP_LOGE(TAG, "Missing eventGroup for wifi");
+		return ESP_FAIL;
+	}
 	_running = true;
     return xTaskCreate(taskMqtt, "mqttTask", 7168, tmp, tskIDLE_PRIORITY, &mqttTask);
 }

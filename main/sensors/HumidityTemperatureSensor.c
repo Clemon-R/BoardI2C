@@ -144,7 +144,7 @@ float	getTemperature(i2c_port_t port, humidity_temp_sensor_t *args)
 	ret = readBytes(port, I2C_SLAVE_HUMIDITYTEMP, params, 2);
 	if (ret != ESP_OK)
 		return -1;
-	return ((args->T1_deg - args->T0_deg) * (T_out - args->T0_out)) / (float)(args->T1_out - args->T0_out) + args->T0_deg;
+	return ((args->T1_deg - args->T0_deg) * (T_out - args->T0_out)) / (float)(args->T1_out - args->T0_out) + args->T0_deg + 15;
 }
 
 

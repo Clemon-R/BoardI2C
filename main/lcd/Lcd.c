@@ -533,7 +533,6 @@ static void taskLcd(void *args)
 					lv_label_set_text(_lblColor, "Color "SYMBOL_OK);
 				else
 					lv_label_set_text(_lblColor, "Color "SYMBOL_CLOSE);
-				ESP_LOGI(TAG, "Wifi: %d", isWifiConnected());
 				if (isWifiConnected())
 					lv_led_on(_ledWifi);
 				else

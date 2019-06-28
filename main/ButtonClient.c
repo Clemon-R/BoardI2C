@@ -4,7 +4,6 @@
 #define BTN_CLICKED 1
 
 static const char	*TAG = "\033[1;43mButtonClient\033[0m";
-static TaskHandle_t	buttonTask = NULL;
 
 static xQueueHandle gpio_evt_queue = NULL;
 static char	_running = false;
@@ -68,11 +67,7 @@ static void taskHandler(void* arg) //Tache de traitement des trigger
 
     ESP_LOGI(TAG, "Initiating the task...");
 	ESP_ERROR_CHECK(initButtonGpio());
-    while(_running) {
-		if (!_callback){
-			vTaskDelay(pdMS_TO_TICKS(500));
-			continue;
-		}
+    while(_running && _callback) {
         uint32_t current;
 	
         if(xQueueReceive(gpio_evt_queue, &io_num, 200 / portTICK_PERIOD_MS) == pdTRUE) {
@@ -100,7 +95,6 @@ static void taskHandler(void* arg) //Tache de traitement des trigger
         }
     }
 	deinitButtonGpio();
-    buttonTask = NULL;
 	vTaskDelete(NULL);
 }
 
@@ -110,7 +104,7 @@ esp_err_t	startButtonClient()
 	if (_running)
 		return ESP_FAIL;
 	_running = true;
-    return xTaskCreate(taskHandler, "buttonTask", 4096, NULL, tskIDLE_PRIORITY, &buttonTask);
+    return xTaskCreate(taskHandler, "buttonTask", 4096, NULL, tskIDLE_PRIORITY, NULL);
 }
 
 esp_err_t	stopButtonClient()

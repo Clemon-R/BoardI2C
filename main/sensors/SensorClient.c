@@ -125,13 +125,14 @@ static void	taskSensor(void *args)
 			state = 0;
 
 		cJSON_AddItemReferenceToObject(monitor, "sensors", sensors);
+
+		_working = state;
+		gpio_set_level(RGB_3, state);
 		while (xQueueIsQueueFullFromISR(_datas) == pdTRUE){
 			vTaskDelay(waitingTicks);
 		}
 		xQueueSend(_datas, &monitor, waitingTicks);
 
-		_working = state;		
-		gpio_set_level(RGB_3, _working);
 		vTaskDelay(refreshDelai);
 	}
 	nordicI2CDeinit();

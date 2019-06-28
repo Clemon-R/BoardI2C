@@ -45,7 +45,7 @@ color_rgb_t	getColorRGB(i2c_port_t port)
 	ret = writeByte(port, I2C_SLAVE_COLOR, COLOR_REDL, NULL);
 	if (ret != ESP_OK)
 		return (color_rgb_t){false, 0, 0, 0};
-	ret = readBytes(port, I2C_SLAVE_COLOR, ((uint8_t *)&result) + 1, 6);
+	ret = readBytes(port, I2C_SLAVE_COLOR, (uint8_t *)&result, 6);
 	if (ret != ESP_OK)
 		return (color_rgb_t){false, 0, 0, 0};
 	result.available = true;
