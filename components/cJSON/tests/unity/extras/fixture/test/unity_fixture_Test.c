@@ -179,7 +179,7 @@ TEST_TEAR_DOWN(UnityCommandOptions)
 
 
 static const char* noOptions[] = {
-        "testrunner.exe"
+    "testrunner.exe"
 };
 
 TEST(UnityCommandOptions, DefaultOptions)
@@ -192,8 +192,8 @@ TEST(UnityCommandOptions, DefaultOptions)
 }
 
 static const char* verbose[] = {
-        "testrunner.exe",
-        "-v"
+    "testrunner.exe",
+    "-v"
 };
 
 TEST(UnityCommandOptions, OptionVerbose)
@@ -203,8 +203,8 @@ TEST(UnityCommandOptions, OptionVerbose)
 }
 
 static const char* group[] = {
-        "testrunner.exe",
-        "-g", "groupname"
+    "testrunner.exe",
+    "-g", "groupname"
 };
 
 TEST(UnityCommandOptions, OptionSelectTestByGroup)
@@ -214,8 +214,8 @@ TEST(UnityCommandOptions, OptionSelectTestByGroup)
 }
 
 static const char* name[] = {
-        "testrunner.exe",
-        "-n", "testname"
+    "testrunner.exe",
+    "-n", "testname"
 };
 
 TEST(UnityCommandOptions, OptionSelectTestByName)
@@ -225,8 +225,8 @@ TEST(UnityCommandOptions, OptionSelectTestByName)
 }
 
 static const char* repeat[] = {
-        "testrunner.exe",
-        "-r", "99"
+    "testrunner.exe",
+    "-r", "99"
 };
 
 TEST(UnityCommandOptions, OptionSelectRepeatTestsDefaultCount)
@@ -242,11 +242,11 @@ TEST(UnityCommandOptions, OptionSelectRepeatTestsSpecificCount)
 }
 
 static const char* multiple[] = {
-        "testrunner.exe",
-        "-v",
-        "-g", "groupname",
-        "-n", "testname",
-        "-r", "98"
+    "testrunner.exe",
+    "-v",
+    "-g", "groupname",
+    "-n", "testname",
+    "-r", "98"
 };
 
 TEST(UnityCommandOptions, MultipleOptions)
@@ -259,11 +259,11 @@ TEST(UnityCommandOptions, MultipleOptions)
 }
 
 static const char* dashRNotLast[] = {
-        "testrunner.exe",
-        "-v",
-        "-g", "gggg",
-        "-r",
-        "-n", "tttt",
+    "testrunner.exe",
+    "-v",
+    "-g", "gggg",
+    "-r",
+    "-n", "tttt",
 };
 
 TEST(UnityCommandOptions, MultipleOptionsDashRNotLastAndNoValueSpecified)
@@ -276,12 +276,12 @@ TEST(UnityCommandOptions, MultipleOptionsDashRNotLastAndNoValueSpecified)
 }
 
 static const char* unknownCommand[] = {
-        "testrunner.exe",
-        "-v",
-        "-g", "groupname",
-        "-n", "testname",
-        "-r", "98",
-        "-z"
+    "testrunner.exe",
+    "-v",
+    "-g", "groupname",
+    "-n", "testname",
+    "-r", "98",
+    "-z"
 };
 TEST(UnityCommandOptions, UnknownCommandIsIgnored)
 {
@@ -352,14 +352,14 @@ TEST_TEAR_DOWN(LeakDetection)
 #define EXPAND_AND_USE_2ND(a, b)           SECOND_PARAM(a, b, throwaway)
 #define SECOND_PARAM(a, b, ...)            b
 #if USING_SPY_AS(UNITY_OUTPUT_CHAR)
-  #define USING_OUTPUT_SPY /* UNITY_OUTPUT_CHAR = UnityOutputCharSpy_OutputChar */
+#define USING_OUTPUT_SPY /* UNITY_OUTPUT_CHAR = UnityOutputCharSpy_OutputChar */
 #endif
 #endif /* >= 199901 */
 
 #else  /* __STDC_VERSION__ else */
 #define UnityOutputCharSpy_OutputChar 42
 #if UNITY_OUTPUT_CHAR == UnityOutputCharSpy_OutputChar /* Works if no -Wundef -Werror */
-  #define USING_OUTPUT_SPY
+#define USING_OUTPUT_SPY
 #endif
 #undef UnityOutputCharSpy_OutputChar
 #endif /* __STDC_VERSION__ */

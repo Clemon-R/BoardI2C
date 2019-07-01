@@ -115,8 +115,7 @@ static void parse_object_should_parse_objects_with_multiple_elements(void)
     {
         size_t i = 0;
         cJSON *node = NULL;
-        int expected_types[7] =
-        {
+        int expected_types[7] = {
             cJSON_Number,
             cJSON_NULL,
             cJSON_True,
@@ -125,8 +124,7 @@ static void parse_object_should_parse_objects_with_multiple_elements(void)
             cJSON_String,
             cJSON_Object
         };
-        const char *expected_names[7] =
-        {
+        const char *expected_names[7] = {
             "one",
             "NULL",
             "TRUE",
@@ -139,11 +137,10 @@ static void parse_object_should_parse_objects_with_multiple_elements(void)
 
         node = item->child;
         for (
-                i = 0;
-                (i < (sizeof(expected_types)/sizeof(int)))
-                && (node != NULL);
-                (void)i++, node = node->next)
-        {
+            i = 0;
+            (i < (sizeof(expected_types)/sizeof(int)))
+            && (node != NULL);
+            (void)i++, node = node->next) {
             assert_is_child(node, expected_names[i], expected_types[i]);
         }
         TEST_ASSERT_EQUAL_INT(i, 7);

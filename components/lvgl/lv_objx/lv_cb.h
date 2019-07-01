@@ -43,8 +43,7 @@ extern "C" {
  **********************/
 
 /*Data of check box*/
-typedef struct
-{
+typedef struct {
     lv_btn_ext_t bg_btn; /*Ext. of ancestor*/
     /*New data for this type */
     lv_obj_t * bullet;  /*Pointer to button*/

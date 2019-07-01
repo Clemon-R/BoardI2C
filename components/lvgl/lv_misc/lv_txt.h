@@ -32,8 +32,7 @@ extern "C" {
 /**********************
  *      TYPEDEFS
  **********************/
-enum
-{
+enum {
     LV_TXT_FLAG_NONE =     0x00,
     LV_TXT_FLAG_RECOLOR =  0x01,   /*Enable parsing of recolor command*/
     LV_TXT_FLAG_EXPAND =   0x02,   /*Ignore width to avoid automatic word wrapping*/
@@ -42,8 +41,7 @@ enum
 };
 typedef uint8_t lv_txt_flag_t;
 
-enum
-{
+enum {
     LV_TXT_CMD_STATE_WAIT,      /*Waiting for command*/
     LV_TXT_CMD_STATE_PAR,       /*Processing the parameter*/
     LV_TXT_CMD_STATE_IN,        /*Processing the command*/

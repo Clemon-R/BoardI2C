@@ -35,8 +35,7 @@ extern "C" {
  **********************/
 
 /*Data of bar*/
-typedef struct
-{
+typedef struct {
     /*No inherited ext*/            /*Ext. of ancestor*/
     /*New data for this type */
     int16_t cur_value;              /*Current value of the bar*/

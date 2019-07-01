@@ -40,19 +40,19 @@ extern void test_TheFourthThingToTest(void);
 void resetTest(void);
 void resetTest(void)
 {
-  tearDown();
-  setUp();
+    tearDown();
+    setUp();
 }
 
 
 /*=======MAIN=====*/
 int main(void)
 {
-  UnityBegin("testdata/testsample.c");
-  RUN_TEST(test_TheFirstThingToTest, 21, RUN_TEST_NO_ARGS);
-  RUN_TEST(test_TheSecondThingToTest, 43, RUN_TEST_NO_ARGS);
-  RUN_TEST(test_TheThirdThingToTest, 53, RUN_TEST_NO_ARGS);
-  RUN_TEST(test_TheFourthThingToTest, 58, RUN_TEST_NO_ARGS);
+    UnityBegin("testdata/testsample.c");
+    RUN_TEST(test_TheFirstThingToTest, 21, RUN_TEST_NO_ARGS);
+    RUN_TEST(test_TheSecondThingToTest, 43, RUN_TEST_NO_ARGS);
+    RUN_TEST(test_TheThirdThingToTest, 53, RUN_TEST_NO_ARGS);
+    RUN_TEST(test_TheFourthThingToTest, 58, RUN_TEST_NO_ARGS);
 
-  return (UnityEnd());
+    return (UnityEnd());
 }

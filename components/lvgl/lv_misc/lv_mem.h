@@ -43,8 +43,7 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 
-typedef struct
-{
+typedef struct {
     uint32_t total_size;
     uint32_t free_cnt;
     uint32_t free_size;

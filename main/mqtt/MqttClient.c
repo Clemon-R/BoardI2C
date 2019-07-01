@@ -124,6 +124,7 @@ static void	taskMqtt(void *arg)
 {
     esp_mqtt_client_handle_t client = NULL;
     MqttConfig_t	*data = NULL;
+    char    *buff = NULL;
     cJSON	*monitor = NULL;
 
     ESP_LOGI(TAG, "Initiating the task...");
@@ -143,16 +144,14 @@ static void	taskMqtt(void *arg)
                 _state = DEINITIATIED;
             }
         } else {
-            if (xQueueReceive(_datas, (void *)&monitor, (TickType_t)pdMS_TO_TICKS(500)) == pdTRUE && monitor) {
-                char	*buff = cJSON_Print(monitor);
+            if (xQueueReceive(_datas, (void *)&monitor, 10) == pdTRUE && monitor) {
+                buff = cJSON_Print(monitor);
 
-                if (!buff || strlen(buff) <= 0) {
-                    cJSON_Delete(monitor);
-                    monitor = NULL;
-                    continue;
+                if (buff) {
+                    esp_mqtt_client_publish(client, "/demo/rtone/esp32/datas", buff, strlen(buff), 0, 0);
                 }
-                esp_mqtt_client_publish(client, "/demo/rtone/esp32/datas", buff, strlen(buff), 0, 0);
                 cJSON_Delete(monitor);
+                free(buff);
                 monitor = NULL;
             }
         }
@@ -186,7 +185,7 @@ esp_err_t	startMqttClient(MqttConfig_t *config)
         return ESP_FAIL;
     }
     _running = true;
-    return xTaskCreate(taskMqtt, "mqttTask", 7168, tmp, tskIDLE_PRIORITY, &mqttTask);
+    return xTaskCreate(taskMqtt, "mqttTask", 4096, tmp, tskIDLE_PRIORITY, &mqttTask);
 }
 
 esp_err_t	stopMqttClient()

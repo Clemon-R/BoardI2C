@@ -287,31 +287,27 @@ int32_t lv_anim_path_bounce(const lv_anim_t * a)
 
     /*3 bounces has 5 parts: 3 down and 2 up. One part is t / 5 long*/
 
-    if(t < 408){
+    if(t < 408) {
         /*Go down*/
         t = (t * 2500) >> 10;      /*[0..1024] range*/
-    }
-    else if(t >= 408 && t < 614) {
+    } else if(t >= 408 && t < 614) {
         /*First bounce back*/
         t -= 408;
         t = t * 5;      /*to [0..1024] range*/
         t = 1024 - t;
         diff = diff / 6;
-    }
-    else if(t >= 614 && t < 819) {
+    } else if(t >= 614 && t < 819) {
         /*Fall back*/
         t -= 614;
         t = t * 5;      /*to [0..1024] range*/
         diff = diff / 6;
-    }
-    else if(t >= 819 && t < 921) {
+    } else if(t >= 819 && t < 921) {
         /*Second bounce back*/
         t -= 819;
         t = t * 10;      /*to [0..1024] range*/
         t = 1024 - t;
         diff = diff / 16;
-    }
-    else if(t >= 921 && t <= 1024) {
+    } else if(t >= 921 && t <= 1024) {
         /*Fall back*/
         t -= 921;
         t = t * 10;      /*to [0..1024] range*/
@@ -410,7 +406,7 @@ static bool anim_ready_handler(lv_anim_t * a)
      * - no repeat and no play back (simple one shot animation)
      * - no repeat, play back is enabled and play back is ready */
     if((a->repeat == 0 && a->playback == 0) ||
-            (a->repeat == 0 && a->playback == 1 && a->playback_now == 1)) {
+       (a->repeat == 0 && a->playback == 1 && a->playback_now == 1)) {
         void (*cb)(void *) = a->end_cb;
         void * p = a->var;
         lv_ll_rem(&LV_GC_ROOT(_lv_anim_ll), a);

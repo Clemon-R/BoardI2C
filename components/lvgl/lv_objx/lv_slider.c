@@ -151,16 +151,16 @@ void lv_slider_set_style(lv_obj_t * slider, lv_slider_style_t type, lv_style_t *
     lv_slider_ext_t * ext = lv_obj_get_ext_attr(slider);
 
     switch(type) {
-        case LV_SLIDER_STYLE_BG:
-            lv_bar_set_style(slider, LV_BAR_STYLE_BG, style);
-            break;
-        case LV_SLIDER_STYLE_INDIC:
-            lv_bar_set_style(slider, LV_BAR_STYLE_INDIC, style);
-            break;
-        case LV_SLIDER_STYLE_KNOB:
-            ext->style_knob = style;
-            lv_obj_refresh_ext_size(slider);
-            break;
+    case LV_SLIDER_STYLE_BG:
+        lv_bar_set_style(slider, LV_BAR_STYLE_BG, style);
+        break;
+    case LV_SLIDER_STYLE_INDIC:
+        lv_bar_set_style(slider, LV_BAR_STYLE_INDIC, style);
+        break;
+    case LV_SLIDER_STYLE_KNOB:
+        ext->style_knob = style;
+        lv_obj_refresh_ext_size(slider);
+        break;
     }
 }
 
@@ -227,18 +227,18 @@ lv_style_t * lv_slider_get_style(const lv_obj_t * slider, lv_slider_style_t type
     lv_slider_ext_t * ext = lv_obj_get_ext_attr(slider);
 
     switch(type) {
-        case LV_SLIDER_STYLE_BG:
-            style = lv_bar_get_style(slider, LV_BAR_STYLE_BG);
-            break;
-        case LV_SLIDER_STYLE_INDIC:
-            style = lv_bar_get_style(slider, LV_BAR_STYLE_INDIC);
-            break;
-        case LV_SLIDER_STYLE_KNOB:
-            style = ext->style_knob;
-            break;
-        default:
-            style = NULL;
-            break;
+    case LV_SLIDER_STYLE_BG:
+        style = lv_bar_get_style(slider, LV_BAR_STYLE_BG);
+        break;
+    case LV_SLIDER_STYLE_INDIC:
+        style = lv_bar_get_style(slider, LV_BAR_STYLE_INDIC);
+        break;
+    case LV_SLIDER_STYLE_KNOB:
+        style = ext->style_knob;
+        break;
+    default:
+        style = NULL;
+        break;
     }
 
     return style;
@@ -464,7 +464,7 @@ static lv_res_t lv_slider_signal(lv_obj_t * slider, lv_signal_t sign, void * par
         /* The knob size depends on slider size.
          * During the drawing method the ext. size is used by the knob so refresh the ext. size.*/
         if(lv_obj_get_width(slider) != lv_area_get_width(param) ||
-                lv_obj_get_height(slider) != lv_area_get_height(param)) {
+           lv_obj_get_height(slider) != lv_area_get_height(param)) {
             slider->signal_func(slider, LV_SIGNAL_REFR_EXT_SIZE, NULL);
         }
     } else if(sign == LV_SIGNAL_REFR_EXT_SIZE) {

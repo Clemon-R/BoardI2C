@@ -142,9 +142,9 @@ void lv_arc_set_angles(lv_obj_t * arc, uint16_t start, uint16_t end)
 void lv_arc_set_style(lv_obj_t * arc, lv_arc_style_t type, lv_style_t * style)
 {
     switch(type) {
-        case LV_ARC_STYLE_MAIN:
-            lv_obj_set_style(arc, style);
-            break;
+    case LV_ARC_STYLE_MAIN:
+        lv_obj_set_style(arc, style);
+        break;
     }
 }
 
@@ -187,12 +187,12 @@ lv_style_t * lv_arc_get_style(const lv_obj_t * arc, lv_arc_style_t type)
     lv_style_t * style = NULL;
 
     switch(type) {
-        case LV_ARC_STYLE_MAIN:
-            style = lv_obj_get_style(arc);
-            break;
-        default:
-            style = NULL;
-            break;
+    case LV_ARC_STYLE_MAIN:
+        style = lv_obj_get_style(arc);
+        break;
+    default:
+        style = NULL;
+        break;
     }
 
     return style;

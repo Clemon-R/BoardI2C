@@ -29,8 +29,7 @@ extern "C" {
  **********************/
 
 /*Border types (Use 'OR'ed values)*/
-enum
-{
+enum {
     LV_BORDER_NONE =     0x00,
     LV_BORDER_BOTTOM =   0x01,
     LV_BORDER_TOP =      0x02,
@@ -42,15 +41,13 @@ enum
 typedef uint8_t lv_border_part_t;
 
 /*Shadow types*/
-enum
-{
+enum {
     LV_SHADOW_BOTTOM = 0,
     LV_SHADOW_FULL,
 };
 typedef uint8_t lv_shadow_type_t;
 
-typedef struct
-{
+typedef struct {
     uint8_t glass :1;           /*1: Do not inherit this style*/
 
     struct {

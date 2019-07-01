@@ -36,18 +36,18 @@ extern void test_ThisFunctionHasNotBeenTested_NeedsToBeImplemented(void);
 void resetTest(void);
 void resetTest(void)
 {
-  tearDown();
-  setUp();
+    tearDown();
+    setUp();
 }
 
 
 /*=======MAIN=====*/
 int main(void)
 {
-  UnityBegin("test/TestProductionCode2.c");
-  RUN_TEST(test_IgnoredTest, 18);
-  RUN_TEST(test_AnotherIgnoredTest, 23);
-  RUN_TEST(test_ThisFunctionHasNotBeenTested_NeedsToBeImplemented, 28);
+    UnityBegin("test/TestProductionCode2.c");
+    RUN_TEST(test_IgnoredTest, 18);
+    RUN_TEST(test_AnotherIgnoredTest, 23);
+    RUN_TEST(test_ThisFunctionHasNotBeenTested_NeedsToBeImplemented, 28);
 
-  return (UnityEnd());
+    return (UnityEnd());
 }

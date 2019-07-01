@@ -3,7 +3,7 @@
  *
  */
 
- /*Copy this file as "lv_port_indev.c" and set this value to "1" to enable content*/
+/*Copy this file as "lv_port_indev.c" and set this value to "1" to enable content*/
 #if 0
 
 /*********************
@@ -164,8 +164,8 @@ void lv_port_indev_init(void)
 
     /*Assign buttons to points on the screen*/
     static const lv_point_t btn_points[2] = {
-            {10, 10},   /*Button 0 -> x:10; y:10*/
-            {40, 100},  /*Button 1 -> x:40; y:100*/
+        {10, 10},   /*Button 0 -> x:10; y:10*/
+        {40, 100},  /*Button 1 -> x:40; y:100*/
     };
     lv_indev_set_button_points(indev_button, btn_points);
 }

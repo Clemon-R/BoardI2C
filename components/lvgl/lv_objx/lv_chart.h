@@ -32,16 +32,14 @@ extern "C" {
 /**********************
  *      TYPEDEFS
  **********************/
-typedef struct
-{
+typedef struct {
     lv_coord_t * points;
     lv_color_t color;
     uint16_t start_point;
 } lv_chart_series_t;
 
 /*Data of chart */
-typedef struct
-{
+typedef struct {
     /*No inherited ext*/ /*Ext. of ancestor*/
     /*New data for this type */
     lv_ll_t series_ll;       /*Linked list for the data line pointers (stores lv_chart_dl_t)*/
@@ -60,8 +58,7 @@ typedef struct
 } lv_chart_ext_t;
 
 /*Chart types*/
-enum
-{
+enum {
     LV_CHART_TYPE_LINE = 0x01,
     LV_CHART_TYPE_COLUMN = 0x02,
     LV_CHART_TYPE_POINT = 0x04,

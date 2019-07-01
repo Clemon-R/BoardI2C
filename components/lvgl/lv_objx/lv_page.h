@@ -38,8 +38,7 @@ extern "C" {
  **********************/
 
 /*Scrollbar modes: shows when should the scrollbars be visible*/
-enum
-{
+enum {
     LV_SB_MODE_OFF  = 0x0,      /*Never show scrollbars*/
     LV_SB_MODE_ON   = 0x1,      /*Always show scrollbars*/
     LV_SB_MODE_DRAG = 0x2,      /*Show scrollbars when page is being dragged*/
@@ -50,8 +49,7 @@ enum
 typedef uint8_t lv_sb_mode_t;
 
 /*Data of page*/
-typedef struct
-{
+typedef struct {
     lv_cont_ext_t bg; /*Ext. of ancestor*/
     /*New data for this type */
     lv_obj_t * scrl;            /*The scrollable object on the background*/
@@ -73,7 +71,7 @@ typedef struct
         uint8_t bottom_ip  :1;     /*Used internally to show that bottom most position is reached (flash is In Progress)*/
         uint8_t right_ip   :1;     /*Used internally to show that right most position is reached (flash is In Progress)*/
         uint8_t left_ip    :1;     /*Used internally to show that left most position is reached (flash is In Progress)*/
-    }edge_flash;
+    } edge_flash;
 
     uint8_t arrow_scroll   :1;        /*1: Enable scrolling with LV_GROUP_KEY_LEFT/RIGHT/UP/DOWN*/
     uint8_t scroll_prop    :1;        /*1: Propagate the scrolling the the parent if the edge is reached*/

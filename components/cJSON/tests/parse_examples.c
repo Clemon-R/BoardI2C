@@ -35,8 +35,7 @@ static cJSON *parse_file(const char *filename)
 
     parsed = cJSON_Parse(content);
 
-    if (content != NULL)
-    {
+    if (content != NULL) {
         free(content);
     }
 
@@ -84,24 +83,19 @@ static void do_test(const char *test_name)
     TEST_ASSERT_EQUAL_STRING(expected, actual);
 
     /* cleanup resources */
-    if (expected != NULL)
-    {
+    if (expected != NULL) {
         free(expected);
     }
-    if (tree != NULL)
-    {
+    if (tree != NULL) {
         cJSON_Delete(tree);
     }
-    if (actual != NULL)
-    {
+    if (actual != NULL) {
         free(actual);
     }
-    if (test_path != NULL)
-    {
+    if (test_path != NULL) {
         free(test_path);
     }
-    if (expected_path != NULL)
-    {
+    if (expected_path != NULL) {
         free(expected_path);
     }
 }
@@ -144,12 +138,10 @@ static void file_test6_should_not_be_parsed(void)
 
     TEST_ASSERT_EQUAL_PTR_MESSAGE(test6, cJSON_GetErrorPtr(), "Error pointer is incorrect.");
 
-    if (test6 != NULL)
-    {
+    if (test6 != NULL) {
         free(test6);
     }
-    if (tree != NULL)
-    {
+    if (tree != NULL) {
         cJSON_Delete(tree);
     }
 }
@@ -189,8 +181,7 @@ static void test12_should_not_be_parsed(void)
 
     TEST_ASSERT_EQUAL_PTR_MESSAGE(test12 + strlen(test12), cJSON_GetErrorPtr(), "Error pointer is incorrect.");
 
-    if (tree != NULL)
-    {
+    if (tree != NULL) {
         cJSON_Delete(tree);
     }
 }

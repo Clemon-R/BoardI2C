@@ -65,8 +65,7 @@ typedef uint8_t lv_img_cf_t;
 
 /* Image header it is compatible with
  * the result image converter utility*/
-typedef struct
-{
+typedef struct {
     lv_img_header_t header;
     uint32_t data_size;
     const uint8_t * data;

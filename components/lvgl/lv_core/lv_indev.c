@@ -173,7 +173,7 @@ void lv_indev_set_button_points(lv_indev_t * indev, const lv_point_t * points)
  */
 void lv_indev_set_feedback(lv_indev_t *indev, lv_indev_feedback_t feedback)
 {
-	indev->feedback = feedback;
+    indev->feedback = feedback;
 }
 
 /**
@@ -266,7 +266,7 @@ uint32_t lv_indev_get_inactive_time(const lv_indev_t * indev)
  */
 lv_indev_feedback_t lv_indev_get_feedback(const lv_indev_t *indev)
 {
-	return indev->feedback;
+    return indev->feedback;
 }
 
 /**
@@ -348,8 +348,8 @@ static void indev_pointer_proc(lv_indev_t * i, lv_indev_data_t * data)
 {
     /*Move the cursor if set and moved*/
     if(i->cursor != NULL &&
-            (i->proc.last_point.x != data->point.x ||
-             i->proc.last_point.y != data->point.y)) {
+       (i->proc.last_point.x != data->point.x ||
+        i->proc.last_point.y != data->point.y)) {
         lv_obj_set_pos(i->cursor, data->point.x, data->point.y);
     }
 
@@ -386,7 +386,7 @@ static void indev_keypad_proc(lv_indev_t * i, lv_indev_data_t * data)
 
     /*Key press happened*/
     if(data->state == LV_INDEV_STATE_PR &&
-            i->proc.last_state == LV_INDEV_STATE_REL) {
+       i->proc.last_state == LV_INDEV_STATE_REL) {
         i->proc.pr_timestamp = lv_tick_get();
         lv_obj_t * focused = lv_group_get_focused(i->group);
         if(focused && data->key == LV_GROUP_KEY_ENTER) {
@@ -396,8 +396,8 @@ static void indev_keypad_proc(lv_indev_t * i, lv_indev_data_t * data)
     /*Pressing*/
     else if(data->state == LV_INDEV_STATE_PR && i->proc.last_state == LV_INDEV_STATE_PR) {
         if(data->key == LV_GROUP_KEY_ENTER &&
-                i->proc.long_pr_sent == 0 &&
-                lv_tick_elaps(i->proc.pr_timestamp) > LV_INDEV_LONG_PRESS_TIME) {
+           i->proc.long_pr_sent == 0 &&
+           lv_tick_elaps(i->proc.pr_timestamp) > LV_INDEV_LONG_PRESS_TIME) {
             /*On enter long press leave edit mode.*/
             lv_obj_t * focused = lv_group_get_focused(i->group);
             if(focused) {
@@ -477,13 +477,13 @@ static void indev_encoder_proc(lv_indev_t * i, lv_indev_data_t * data)
 
     /*Key press happened*/
     if(data->state == LV_INDEV_STATE_PR &&
-            i->proc.last_state == LV_INDEV_STATE_REL) {
+       i->proc.last_state == LV_INDEV_STATE_REL) {
         i->proc.pr_timestamp = lv_tick_get();
     }
     /*Pressing*/
     else if(data->state == LV_INDEV_STATE_PR && i->proc.last_state == LV_INDEV_STATE_PR) {
         if(i->proc.long_pr_sent == 0 &&
-                lv_tick_elaps(i->proc.pr_timestamp) > LV_INDEV_LONG_PRESS_TIME) {
+           lv_tick_elaps(i->proc.pr_timestamp) > LV_INDEV_LONG_PRESS_TIME) {
             /*On enter long press leave edit mode.*/
             lv_obj_t * focused = lv_group_get_focused(i->group);
 
@@ -551,8 +551,8 @@ static void indev_button_proc(lv_indev_t * i, lv_indev_data_t * data)
 
     /*Still the same point is pressed*/
     if(i->proc.last_point.x == i->proc.act_point.x &&
-            i->proc.last_point.y == i->proc.act_point.y &&
-            data->state == LV_INDEV_STATE_PR) {
+       i->proc.last_point.y == i->proc.act_point.y &&
+       data->state == LV_INDEV_STATE_PR) {
 #if LV_INDEV_POINT_MARKER != 0
         lv_area_t area;
         area.x1 = i->proc.act_point.x - (LV_INDEV_POINT_MARKER >> 1);
@@ -837,7 +837,7 @@ static void indev_drag(lv_indev_proc_t * state)
 
     /*If drag parent is active check recursively the drag_parent attribute*/
     while(lv_obj_get_drag_parent(drag_obj) != false &&
-            drag_obj != NULL) {
+          drag_obj != NULL) {
         drag_obj = lv_obj_get_parent(drag_obj);
     }
 
@@ -853,7 +853,7 @@ static void indev_drag(lv_indev_proc_t * state)
     if(state->drag_range_out == 0) {
         /*If a move is greater then LV_DRAG_LIMIT then begin the drag*/
         if(LV_MATH_ABS(state->drag_sum.x) >= LV_INDEV_DRAG_LIMIT ||
-                LV_MATH_ABS(state->drag_sum.y) >= LV_INDEV_DRAG_LIMIT) {
+           LV_MATH_ABS(state->drag_sum.y) >= LV_INDEV_DRAG_LIMIT) {
             state->drag_range_out = 1;
         }
     }
@@ -862,7 +862,7 @@ static void indev_drag(lv_indev_proc_t * state)
     if(state->drag_range_out != 0) {
         /*Set new position if the vector is not zero*/
         if(state->vect.x != 0 ||
-                state->vect.y != 0) {
+           state->vect.y != 0) {
             /*Get the coordinates of the object and modify them*/
             lv_coord_t act_x = lv_obj_get_x(drag_obj);
             lv_coord_t act_y = lv_obj_get_y(drag_obj);
@@ -913,7 +913,7 @@ static void indev_drag_throw(lv_indev_proc_t * state)
 
     /*If drag parent is active check recursively the drag_parent attribute*/
     while(lv_obj_get_drag_parent(drag_obj) != false &&
-            drag_obj != NULL) {
+          drag_obj != NULL) {
         drag_obj = lv_obj_get_parent(drag_obj);
     }
 
@@ -931,7 +931,7 @@ static void indev_drag_throw(lv_indev_proc_t * state)
     state->vect.y = state->vect.y * (100 - LV_INDEV_DRAG_THROW) / 100;
 
     if(state->vect.x != 0 ||
-            state->vect.y != 0) {
+       state->vect.y != 0) {
         /*Get the coordinates and modify them*/
         lv_area_t coords_ori;
         lv_obj_get_coords(drag_obj, &coords_ori);
@@ -944,7 +944,7 @@ static void indev_drag_throw(lv_indev_proc_t * state)
 
         /*If non of the coordinates are changed then do not continue throwing*/
         if((coords_ori.x1 == coord_new.x1 || state->vect.x == 0) &&
-                (coords_ori.y1 == coord_new.y1 || state->vect.y == 0)) {
+           (coords_ori.y1 == coord_new.y1 || state->vect.y == 0)) {
             state->drag_in_prog = 0;
             state->vect.x = 0;
             state->vect.y = 0;

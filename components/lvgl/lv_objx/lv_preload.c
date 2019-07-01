@@ -177,10 +177,8 @@ void lv_preload_set_animation_type(lv_obj_t * preload, lv_preloader_type_t type)
 
     /*delete previous animation*/
     //lv_anim_del(preload, NULL);
-    switch(type)
-    {
-    case LV_PRELOAD_TYPE_FILLSPIN_ARC:
-    {
+    switch(type) {
+    case LV_PRELOAD_TYPE_FILLSPIN_ARC: {
         ext->anim_type = LV_PRELOAD_TYPE_FILLSPIN_ARC;
         lv_anim_t a;
         a.var = preload;
@@ -214,8 +212,7 @@ void lv_preload_set_animation_type(lv_obj_t * preload, lv_preloader_type_t type)
         break;
     }
     case LV_PRELOAD_TYPE_SPINNING_ARC:
-    default:
-    {
+    default: {
         ext->anim_type = LV_PRELOAD_TYPE_SPINNING_ARC;
         lv_anim_t a;
         a.var = preload;

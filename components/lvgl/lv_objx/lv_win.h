@@ -55,8 +55,7 @@ extern "C" {
  **********************/
 
 /*Data of window*/
-typedef struct
-{
+typedef struct {
     /*Ext. of ancestor*/
     /*New data for this type */
     lv_obj_t * page;                /*Pointer to a page which holds the content*/

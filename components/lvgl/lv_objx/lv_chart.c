@@ -177,8 +177,7 @@ void lv_chart_clear_serie(lv_obj_t * chart, lv_chart_series_t * serie)
     lv_chart_ext_t * ext = lv_obj_get_ext_attr(chart);
     if(ext == NULL)
         return;
-    for(uint32_t i = 0; i < ext->point_cnt; i++)
-    {
+    for(uint32_t i = 0; i < ext->point_cnt; i++) {
         serie->points[i] = LV_CHART_POINT_DEF;
     }
 
@@ -792,17 +791,14 @@ static void lv_chart_draw_vertical_lines(lv_obj_t * chart, const lv_area_t * mas
         p1.y = LV_COORD_MIN;
         p2.y = h - y_tmp + y_ofs;
 
-        if(ext->point_cnt == w)
-        {
-            for(i = 0; i < ext->point_cnt; i++)
-            {
+        if(ext->point_cnt == w) {
+            for(i = 0; i < ext->point_cnt; i++) {
 
                 y_tmp = (int32_t)((int32_t) ser->points[i] - ext->ymin) * h;
                 y_tmp = y_tmp / (ext->ymax - ext->ymin);
                 p2.y = h - y_tmp + y_ofs;
 
-                if(p1.y == p2.y)
-                {
+                if(p1.y == p2.y) {
                     p2.x++;
                 }
 
@@ -812,9 +808,7 @@ static void lv_chart_draw_vertical_lines(lv_obj_t * chart, const lv_area_t * mas
                 p1.x = p2.x;
                 p1.y = p2.y;
             }
-        }
-        else
-        {
+        } else {
             for(i = 1; i < ext->point_cnt; i ++) {
                 p1.x = p2.x;
                 p1.y = p2.y;
@@ -825,8 +819,7 @@ static void lv_chart_draw_vertical_lines(lv_obj_t * chart, const lv_area_t * mas
                 y_tmp = y_tmp / (ext->ymax - ext->ymin);
                 p2.y = h - y_tmp + y_ofs;
 
-                if(ser->points[i - 1] >= 0 && ser->points[i] >= 0)
-                {
+                if(ser->points[i - 1] >= 0 && ser->points[i] >= 0) {
                     lv_draw_line(&p1, &p2, mask, &style, opa_scale);
                 }
             }

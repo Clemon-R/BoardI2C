@@ -72,13 +72,13 @@
  * will be called to draw to the frame buffer directly*/
 #define LV_VDB_SIZE         ((LV_VER_RES * LV_HOR_RES) / 10)
 
- /* Bit-per-pixel of VDB. Useful for monochrome or non-standard color format displays.
-  * Special formats are handled with `disp_drv.vdb_wr`)*/
+/* Bit-per-pixel of VDB. Useful for monochrome or non-standard color format displays.
+ * Special formats are handled with `disp_drv.vdb_wr`)*/
 #define LV_VDB_PX_BPP       LV_COLOR_SIZE       /*LV_COLOR_SIZE comes from LV_COLOR_DEPTH below to set 8, 16 or 32 bit pixel size automatically */
 
- /* Place VDB to a specific address (e.g. in external RAM)
-  * 0: allocate automatically into RAM
-  * LV_VDB_ADR_INV: to replace it later with `lv_vdb_set_adr()`*/
+/* Place VDB to a specific address (e.g. in external RAM)
+ * 0: allocate automatically into RAM
+ * LV_VDB_ADR_INV: to replace it later with `lv_vdb_set_adr()`*/
 #define LV_VDB_ADR          0
 
 /* Use two Virtual Display buffers (VDB) to parallelize rendering and flushing

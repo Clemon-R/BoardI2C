@@ -274,25 +274,25 @@ void lv_ddlist_set_style(lv_obj_t * ddlist, lv_ddlist_style_t type, lv_style_t *
     lv_ddlist_ext_t * ext = lv_obj_get_ext_attr(ddlist);
 
     switch(type) {
-        case LV_DDLIST_STYLE_BG:
-            lv_page_set_style(ddlist, LV_PAGE_STYLE_BG, style);
-            break;
-        case LV_DDLIST_STYLE_SB:
-            lv_page_set_style(ddlist, LV_PAGE_STYLE_SB, style);
-            break;
-        case LV_DDLIST_STYLE_SEL:
-            ext->sel_style = style;
-            lv_obj_t * scrl = lv_page_get_scrl(ddlist);
-            lv_obj_refresh_ext_size(scrl);  /*Because of the wider selected rectangle*/
-            break;
+    case LV_DDLIST_STYLE_BG:
+        lv_page_set_style(ddlist, LV_PAGE_STYLE_BG, style);
+        break;
+    case LV_DDLIST_STYLE_SB:
+        lv_page_set_style(ddlist, LV_PAGE_STYLE_SB, style);
+        break;
+    case LV_DDLIST_STYLE_SEL:
+        ext->sel_style = style;
+        lv_obj_t * scrl = lv_page_get_scrl(ddlist);
+        lv_obj_refresh_ext_size(scrl);  /*Because of the wider selected rectangle*/
+        break;
     }
 }
 
 void lv_ddlist_set_align(lv_obj_t *ddlist, lv_label_align_t align)
 {
-	lv_ddlist_ext_t * ext = lv_obj_get_ext_attr(ddlist);
+    lv_ddlist_ext_t * ext = lv_obj_get_ext_attr(ddlist);
 
-	lv_label_set_align(ext->label, align);
+    lv_label_set_align(ext->label, align);
 }
 /*=====================
  * Getter functions
@@ -401,14 +401,14 @@ lv_style_t * lv_ddlist_get_style(const lv_obj_t * ddlist, lv_ddlist_style_t type
     lv_ddlist_ext_t * ext = lv_obj_get_ext_attr(ddlist);
 
     switch(type) {
-        case LV_DDLIST_STYLE_BG:
-            return lv_page_get_style(ddlist, LV_PAGE_STYLE_BG);
-        case LV_DDLIST_STYLE_SB:
-            return lv_page_get_style(ddlist, LV_PAGE_STYLE_SB);
-        case LV_DDLIST_STYLE_SEL:
-            return ext->sel_style;
-        default:
-            return NULL;
+    case LV_DDLIST_STYLE_BG:
+        return lv_page_get_style(ddlist, LV_PAGE_STYLE_BG);
+    case LV_DDLIST_STYLE_SB:
+        return lv_page_get_style(ddlist, LV_PAGE_STYLE_SB);
+    case LV_DDLIST_STYLE_SEL:
+        return ext->sel_style;
+    default:
+        return NULL;
     }
 
     /*To avoid warning*/
@@ -417,9 +417,9 @@ lv_style_t * lv_ddlist_get_style(const lv_obj_t * ddlist, lv_ddlist_style_t type
 
 lv_label_align_t lv_ddlist_get_align(const lv_obj_t *ddlist)
 {
-	lv_ddlist_ext_t * ext = lv_obj_get_ext_attr(ddlist);
+    lv_ddlist_ext_t * ext = lv_obj_get_ext_attr(ddlist);
 
-	return lv_label_get_align(ext->label);
+    return lv_label_get_align(ext->label);
 }
 
 /*=====================
@@ -469,23 +469,22 @@ void lv_ddlist_close(lv_obj_t * ddlist, bool anim_en)
  */
 static lv_txt_flag_t lv_ddlist_get_txt_flag(const lv_obj_t *ddlist)
 {
-	lv_ddlist_ext_t * ext = lv_obj_get_ext_attr(ddlist);
+    lv_ddlist_ext_t * ext = lv_obj_get_ext_attr(ddlist);
 
-	/*The label might be already deleted so just return with some value*/
-	if(!ext->label) return LV_TXT_FLAG_CENTER;
+    /*The label might be already deleted so just return with some value*/
+    if(!ext->label) return LV_TXT_FLAG_CENTER;
 
-	lv_label_align_t align = lv_label_get_align(ext->label);
+    lv_label_align_t align = lv_label_get_align(ext->label);
 
-	switch(align)
-	{
-	default:
-	case LV_LABEL_ALIGN_LEFT:
-		return LV_TXT_FLAG_NONE;
-	case LV_LABEL_ALIGN_CENTER:
-		return LV_TXT_FLAG_CENTER;
-	case LV_LABEL_ALIGN_RIGHT:
-		return LV_TXT_FLAG_RIGHT;
-	}
+    switch(align) {
+    default:
+    case LV_LABEL_ALIGN_LEFT:
+        return LV_TXT_FLAG_NONE;
+    case LV_LABEL_ALIGN_CENTER:
+        return LV_TXT_FLAG_CENTER;
+    case LV_LABEL_ALIGN_RIGHT:
+        return LV_TXT_FLAG_RIGHT;
+    }
 }
 
 /**
@@ -564,38 +563,35 @@ static bool lv_ddlist_design(lv_obj_t * ddlist, const lv_area_t * mask, lv_desig
             }
         }
 
-		/*Add a down symbol in ddlist when closed*/
-		else
-		{						
-			/*Draw a arrow in ddlist if enabled*/
-			if(ext->draw_arrow)
-			{
-				lv_style_t * style = lv_ddlist_get_style(ddlist, LV_DDLIST_STYLE_BG);
-				const lv_font_t * font = style->text.font;
-				lv_style_t * sel_style = lv_ddlist_get_style(ddlist, LV_DDLIST_STYLE_BG);
-				lv_coord_t font_h = lv_font_get_height(font);
-				lv_style_t new_style;
-				lv_style_copy(&new_style, style);
-				new_style.text.color = sel_style->text.color;
-				new_style.text.opa = sel_style->text.opa;
-				lv_area_t area_arrow;
-				area_arrow.x2 = ddlist->coords.x2 - style->body.padding.hor;
-				area_arrow.x1 = area_arrow.x2 - lv_txt_get_width(SYMBOL_DOWN, strlen(SYMBOL_DOWN), sel_style->text.font, 0, 0);
+        /*Add a down symbol in ddlist when closed*/
+        else {
+            /*Draw a arrow in ddlist if enabled*/
+            if(ext->draw_arrow) {
+                lv_style_t * style = lv_ddlist_get_style(ddlist, LV_DDLIST_STYLE_BG);
+                const lv_font_t * font = style->text.font;
+                lv_style_t * sel_style = lv_ddlist_get_style(ddlist, LV_DDLIST_STYLE_BG);
+                lv_coord_t font_h = lv_font_get_height(font);
+                lv_style_t new_style;
+                lv_style_copy(&new_style, style);
+                new_style.text.color = sel_style->text.color;
+                new_style.text.opa = sel_style->text.opa;
+                lv_area_t area_arrow;
+                area_arrow.x2 = ddlist->coords.x2 - style->body.padding.hor;
+                area_arrow.x1 = area_arrow.x2 - lv_txt_get_width(SYMBOL_DOWN, strlen(SYMBOL_DOWN), sel_style->text.font, 0, 0);
 
-				area_arrow.y1 = ddlist->coords.y1 + style->text.line_space;
-				area_arrow.y2 = area_arrow.y1 + font_h;
+                area_arrow.y1 = ddlist->coords.y1 + style->text.line_space;
+                area_arrow.y2 = area_arrow.y1 + font_h;
 
 
-				lv_area_t mask_arrow;
-				bool area_ok;
-				area_ok = lv_area_intersect(&mask_arrow, mask, &area_arrow);
-				if (area_ok)
-				{
-					lv_draw_label(&area_arrow, &mask_arrow, &new_style, opa_scale,
-					SYMBOL_DOWN, LV_TXT_FLAG_NONE, NULL);		/*Use a down arrow in ddlist, you can replace it with your custom symbol*/
-				}
-			}
-		}
+                lv_area_t mask_arrow;
+                bool area_ok;
+                area_ok = lv_area_intersect(&mask_arrow, mask, &area_arrow);
+                if (area_ok) {
+                    lv_draw_label(&area_arrow, &mask_arrow, &new_style, opa_scale,
+                                  SYMBOL_DOWN, LV_TXT_FLAG_NONE, NULL);		/*Use a down arrow in ddlist, you can replace it with your custom symbol*/
+                }
+            }
+        }
         /*Draw the scrollbar in the ancestor page design function*/
         ancestor_design(ddlist, mask, mode);
     }

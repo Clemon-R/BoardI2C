@@ -47,22 +47,22 @@ esp_err_t   disp_spi_init(void)
 {
     esp_err_t ret;
 
-    spi_bus_config_t buscfg={
-            .miso_io_num=DISP_SPI_MISO,
-            .mosi_io_num=DISP_SPI_MOSI,
-            .sclk_io_num=DISP_SPI_CLK,
-            .quadwp_io_num=-1,
-            .quadhd_io_num=-1,
-            .max_transfer_sz = LV_VDB_SIZE * 2,
+    spi_bus_config_t buscfg= {
+        .miso_io_num=DISP_SPI_MISO,
+        .mosi_io_num=DISP_SPI_MOSI,
+        .sclk_io_num=DISP_SPI_CLK,
+        .quadwp_io_num=-1,
+        .quadhd_io_num=-1,
+        .max_transfer_sz = LV_VDB_SIZE * 2,
     };
 
-    spi_device_interface_config_t devcfg={
-            .clock_speed_hz=30*1000*1000,           //Clock out at 40 MHz
-            .mode=0,                                //SPI mode 0
-            .spics_io_num=DISP_SPI_CS,              //CS pin
-            .queue_size=2,
-            .pre_cb=NULL,
-            .post_cb=spi_ready,
+    spi_device_interface_config_t devcfg= {
+        .clock_speed_hz=30*1000*1000,           //Clock out at 40 MHz
+        .mode=0,                                //SPI mode 0
+        .spics_io_num=DISP_SPI_CS,              //CS pin
+        .queue_size=2,
+        .pre_cb=NULL,
+        .post_cb=spi_ready,
     };
 
     //Initialize the SPI bus

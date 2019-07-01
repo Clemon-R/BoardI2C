@@ -29,14 +29,12 @@ extern "C" {
  **********************/
 typedef int16_t lv_coord_t;
 
-typedef struct
-{
+typedef struct {
     lv_coord_t x;
     lv_coord_t y;
 } lv_point_t;
 
-typedef struct
-{
+typedef struct {
     lv_coord_t x1;
     lv_coord_t y1;
     lv_coord_t x2;

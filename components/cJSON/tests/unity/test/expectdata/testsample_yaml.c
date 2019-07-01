@@ -45,27 +45,27 @@ extern void test_TheFourthThingToTest(void);
 /*=======Suite Setup=====*/
 static int suite_setup(void)
 {
-a_yaml_setup();
+    a_yaml_setup();
 }
 
 /*=======Test Reset Option=====*/
 void resetTest(void);
 void resetTest(void)
 {
-  tearDown();
-  setUp();
+    tearDown();
+    setUp();
 }
 
 
 /*=======MAIN=====*/
 int main(void)
 {
-  suite_setup();
-  UnityBegin("testdata/testsample.c");
-  RUN_TEST(test_TheFirstThingToTest, 21);
-  RUN_TEST(test_TheSecondThingToTest, 43);
-  RUN_TEST(test_TheThirdThingToTest, 53);
-  RUN_TEST(test_TheFourthThingToTest, 58);
+    suite_setup();
+    UnityBegin("testdata/testsample.c");
+    RUN_TEST(test_TheFirstThingToTest, 21);
+    RUN_TEST(test_TheSecondThingToTest, 43);
+    RUN_TEST(test_TheThirdThingToTest, 53);
+    RUN_TEST(test_TheFourthThingToTest, 58);
 
-  return (UnityEnd());
+    return (UnityEnd());
 }

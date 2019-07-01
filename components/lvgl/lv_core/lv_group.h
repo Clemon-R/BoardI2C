@@ -46,8 +46,7 @@ struct _lv_group_t;
 typedef void (*lv_group_style_mod_func_t)(lv_style_t *);
 typedef void (*lv_group_focus_cb_t)(struct _lv_group_t *);
 
-typedef struct _lv_group_t
-{
+typedef struct _lv_group_t {
     lv_ll_t obj_ll;                         /*Linked list to store the objects in the group */
     lv_obj_t ** obj_focus;                  /*The object in focus*/
     lv_group_style_mod_func_t style_mod;    /*A function which modifies the style of the focused object*/

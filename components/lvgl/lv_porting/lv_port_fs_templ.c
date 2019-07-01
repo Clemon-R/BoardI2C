@@ -3,7 +3,7 @@
  *
  */
 
- /*Copy this file as "lv_port_fs.c" and set this value to "1" to enable content*/
+/*Copy this file as "lv_port_fs.c" and set this value to "1" to enable content*/
 #if 0
 
 /*********************
@@ -27,14 +27,14 @@ typedef struct {
     /*Add the data you need to store about a file*/
     uint32_t dummy1;
     uint32_t dummy2;
-}file_t;
+} file_t;
 
 /*Similarly to `file_t` create a type for directory reading too */
 typedef struct {
     /*Add the data you need to store about directory reading*/
     uint32_t dummy1;
     uint32_t dummy2;
-}dir_t;
+} dir_t;
 
 
 /**********************
@@ -134,20 +134,15 @@ static lv_fs_res_t fs_open (void * file_p, const char * path, lv_fs_mode_t mode)
 {
     lv_fs_res_t res = LV_FS_RES_NOT_IMP;
 
-    if(mode == LV_FS_MODE_WR)
-    {
+    if(mode == LV_FS_MODE_WR) {
         /*Open a file for write*/
 
         /* Add your code here*/
-    }
-    else if(mode == LV_FS_MODE_RD)
-    {
+    } else if(mode == LV_FS_MODE_RD) {
         /*Open a file for read*/
 
         /* Add your code here*/
-    }
-    else if(mode == (LV_FS_MODE_WR | LV_FS_MODE_RD))
-    {
+    } else if(mode == (LV_FS_MODE_WR | LV_FS_MODE_RD)) {
         /*Open a file for read and write*/
 
         /* Add your code here*/

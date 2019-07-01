@@ -43,15 +43,13 @@ static void cjson_array_foreach_should_loop_over_arrays(void)
     array[0].child = &elements[0];
     elements[0].prev = NULL;
     elements[9].next = NULL;
-    for (i = 0; i < 9; i++)
-    {
+    for (i = 0; i < 9; i++) {
         elements[i].next = &elements[i + 1];
         elements[i + 1].prev = &elements[i];
     }
 
     i = 0;
-    cJSON_ArrayForEach(element_pointer, array)
-    {
+    cJSON_ArrayForEach(element_pointer, array) {
         TEST_ASSERT_TRUE_MESSAGE(element_pointer == &elements[i], "Not iterating over array properly");
         i++;
     }
@@ -127,7 +125,8 @@ static void cjson_get_object_item_case_sensitive_should_get_object_items(void)
     cJSON_Delete(item);
 }
 
-static void cjson_get_object_item_should_not_crash_with_array(void) {
+static void cjson_get_object_item_should_not_crash_with_array(void)
+{
     cJSON *array = NULL;
     cJSON *found = NULL;
     array = cJSON_Parse("[1]");
@@ -138,7 +137,8 @@ static void cjson_get_object_item_should_not_crash_with_array(void) {
     cJSON_Delete(array);
 }
 
-static void cjson_get_object_item_case_sensitive_should_not_crash_with_array(void) {
+static void cjson_get_object_item_case_sensitive_should_not_crash_with_array(void)
+{
     cJSON *array = NULL;
     cJSON *found = NULL;
     array = cJSON_Parse("[1]");
@@ -210,8 +210,7 @@ static void cjson_should_not_parse_to_deeply_nested_jsons(void)
     char deep_json[CJSON_NESTING_LIMIT + 1];
     size_t position = 0;
 
-    for (position = 0; position < sizeof(deep_json); position++)
-    {
+    for (position = 0; position < sizeof(deep_json); position++) {
         deep_json[position] = '[';
     }
     deep_json[sizeof(deep_json) - 1] = '\0';
@@ -485,7 +484,8 @@ static void cjson_get_string_value_should_get_a_string(void)
     cJSON_Delete(string);
 }
 
-static void cjson_create_string_reference_should_create_a_string_reference(void) {
+static void cjson_create_string_reference_should_create_a_string_reference(void)
+{
     const char *string = "I am a string!";
 
     cJSON *string_reference = cJSON_CreateStringReference(string);
@@ -495,7 +495,8 @@ static void cjson_create_string_reference_should_create_a_string_reference(void)
     cJSON_Delete(string_reference);
 }
 
-static void cjson_create_object_reference_should_create_an_object_reference(void) {
+static void cjson_create_object_reference_should_create_an_object_reference(void)
+{
     cJSON *number_reference = NULL;
     cJSON *number_object = cJSON_CreateObject();
     cJSON *number = cJSON_CreateNumber(42);
@@ -513,7 +514,8 @@ static void cjson_create_object_reference_should_create_an_object_reference(void
     cJSON_Delete(number_reference);
 }
 
-static void cjson_create_array_reference_should_create_an_array_reference(void) {
+static void cjson_create_array_reference_should_create_an_array_reference(void)
+{
     cJSON *number_reference = NULL;
     cJSON *number_array = cJSON_CreateArray();
     cJSON *number = cJSON_CreateNumber(42);

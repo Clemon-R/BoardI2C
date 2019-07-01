@@ -92,18 +92,15 @@ enum {
  *      TYPEDEFS
  **********************/
 
-typedef union
-{
+typedef union {
     uint8_t blue  :1;
     uint8_t green :1;
     uint8_t red   :1;
     uint8_t full  :1;
 } lv_color1_t;
 
-typedef union
-{
-    struct
-    {
+typedef union {
+    struct {
         uint8_t blue  :2;
         uint8_t green :3;
         uint8_t red   :3;
@@ -111,10 +108,8 @@ typedef union
     uint8_t full;
 } lv_color8_t;
 
-typedef union
-{
-    struct
-    {
+typedef union {
+    struct {
 #if LV_COLOR_16_SWAP == 0
         uint16_t blue  :5;
         uint16_t green :6;
@@ -129,10 +124,8 @@ typedef union
     uint16_t full;
 } lv_color16_t;
 
-typedef union
-{
-    struct
-    {
+typedef union {
+    struct {
         uint8_t blue;
         uint8_t green;
         uint8_t red;
@@ -159,8 +152,7 @@ typedef lv_color32_t lv_color_t;
 
 typedef uint8_t lv_opa_t;
 
-typedef struct
-{
+typedef struct {
     uint16_t h;
     uint8_t s;
     uint8_t v;
@@ -190,8 +182,8 @@ static inline uint8_t lv_color_to1(lv_color_t color)
     return color.full;
 #elif LV_COLOR_DEPTH == 8
     if((color.red   & 0x4) ||
-            (color.green & 0x4) ||
-            (color.blue  & 0x2)) {
+       (color.green & 0x4) ||
+       (color.blue  & 0x2)) {
         return 1;
     } else {
         return 0;
@@ -199,13 +191,13 @@ static inline uint8_t lv_color_to1(lv_color_t color)
 #elif LV_COLOR_DEPTH == 16
 #  if LV_COLOR_16_SWAP == 0
     if((color.red   & 0x10) ||
-            (color.green & 0x20) ||
-            (color.blue  & 0x10)) {
+       (color.green & 0x20) ||
+       (color.blue  & 0x10)) {
         return 1;
 #  else
     if((color.red   & 0x10) ||
-            (color.green_h & 0x20) ||
-            (color.blue  & 0x10)) {
+       (color.green_h & 0x20) ||
+       (color.blue  & 0x10)) {
         return 1;
 #  endif
     } else {
@@ -213,8 +205,8 @@ static inline uint8_t lv_color_to1(lv_color_t color)
     }
 #elif LV_COLOR_DEPTH == 32
     if((color.red   & 0x80) ||
-            (color.green & 0x80) ||
-            (color.blue  & 0x80)) {
+       (color.green & 0x80) ||
+       (color.blue  & 0x80)) {
         return 1;
     } else {
         return 0;
@@ -402,11 +394,13 @@ static inline uint8_t lv_color_brightness(lv_color_t color)
                                 ((uint32_t)(c & 0xF0)       | ((c & 0xF0) >> 4)), \
                                 ((uint32_t)(c & 0xF)         | ((c & 0xF) << 4)))
 
-static inline lv_color_t lv_color_hex(uint32_t c){
+static inline lv_color_t lv_color_hex(uint32_t c)
+{
     return LV_COLOR_HEX(c);
 }
 
-static inline lv_color_t lv_color_hex3(uint32_t c){
+static inline lv_color_t lv_color_hex3(uint32_t c)
+{
     return LV_COLOR_HEX3(c);
 }
 

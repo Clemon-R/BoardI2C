@@ -8,7 +8,10 @@
 #include <stdio.h>
 #include "unity.h"
 
-void putcharSpy(int c) { (void)putchar(c);} // include passthrough for linking tests
+void putcharSpy(int c)
+{
+    (void)putchar(c);   // include passthrough for linking tests
+}
 
 #define TEST_CASE(...)
 
@@ -46,19 +49,18 @@ int SetToOneMeanWeAlreadyCheckedThisGuy;
 
 void setUp(void)
 {
-  SetToOneToFailInTearDown = 0;
-  SetToOneMeanWeAlreadyCheckedThisGuy = 0;
+    SetToOneToFailInTearDown = 0;
+    SetToOneMeanWeAlreadyCheckedThisGuy = 0;
 }
 
 void tearDown(void)
 {
-  if (SetToOneToFailInTearDown == 1)
-    TEST_FAIL_MESSAGE("<= Failed in tearDown");
-  if ((SetToOneMeanWeAlreadyCheckedThisGuy == 0) && (Unity.CurrentTestFailed > 0))
-  {
-    UnityPrint(": [[[[ Test Should Have Passed But Did Not ]]]]");
-    UNITY_OUTPUT_CHAR('\n');
-  }
+    if (SetToOneToFailInTearDown == 1)
+        TEST_FAIL_MESSAGE("<= Failed in tearDown");
+    if ((SetToOneMeanWeAlreadyCheckedThisGuy == 0) && (Unity.CurrentTestFailed > 0)) {
+        UnityPrint(": [[[[ Test Should Have Passed But Did Not ]]]]");
+        UNITY_OUTPUT_CHAR('\n');
+    }
 }
 
 TEST_CASE(0)
@@ -85,14 +87,11 @@ TEST_CASE(99)
 TEST_CASE(98)
 void test_TheseAreEveryOther(int Num)
 {
-    if (Num & 1)
-    {
+    if (Num & 1) {
         EXPECT_ABORT_BEGIN
         TEST_ASSERT_TRUE(Num > 100);
         VERIFY_FAILS_END
-    }
-    else
-    {
+    } else {
         TEST_ASSERT_TRUE(Num < 100);
     }
 }

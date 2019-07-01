@@ -176,12 +176,12 @@ void lv_roller_set_visible_row_count(lv_obj_t * roller, uint8_t row_cnt)
 void lv_roller_set_style(lv_obj_t * roller, lv_roller_style_t type, lv_style_t * style)
 {
     switch(type) {
-        case LV_ROLLER_STYLE_BG:
-            lv_obj_set_style(roller, style);
-            break;
-        case LV_ROLLER_STYLE_SEL:
-            lv_ddlist_set_style(roller, LV_DDLIST_STYLE_SEL, style);
-            break;
+    case LV_ROLLER_STYLE_BG:
+        lv_obj_set_style(roller, style);
+        break;
+    case LV_ROLLER_STYLE_SEL:
+        lv_ddlist_set_style(roller, LV_DDLIST_STYLE_SEL, style);
+        break;
     }
 }
 
@@ -221,12 +221,12 @@ bool lv_roller_get_hor_fit(const lv_obj_t * roller)
 lv_style_t * lv_roller_get_style(const lv_obj_t * roller, lv_roller_style_t type)
 {
     switch(type) {
-        case LV_ROLLER_STYLE_BG:
-            return lv_obj_get_style(roller);
-        case LV_ROLLER_STYLE_SEL:
-            return lv_ddlist_get_style(roller, LV_DDLIST_STYLE_SEL);
-        default:
-            return NULL;
+    case LV_ROLLER_STYLE_BG:
+        return lv_obj_get_style(roller);
+    case LV_ROLLER_STYLE_SEL:
+        return lv_ddlist_get_style(roller, LV_DDLIST_STYLE_SEL);
+    default:
+        return NULL;
     }
 
     /*To avoid warning*/
@@ -350,7 +350,7 @@ static lv_res_t lv_roller_signal(lv_obj_t * roller, lv_signal_t sign, void * par
     } else if(sign == LV_SIGNAL_CORD_CHG) {
 
         if(lv_obj_get_width(roller) != lv_area_get_width(param) ||
-                lv_obj_get_height(roller) != lv_area_get_height(param)) {
+           lv_obj_get_height(roller) != lv_area_get_height(param)) {
 
             lv_ddlist_set_fix_height(roller, lv_obj_get_height(roller));
             lv_obj_set_height(lv_page_get_scrl(roller),

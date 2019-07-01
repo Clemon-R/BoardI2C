@@ -160,30 +160,30 @@ static void cjson_compare_should_compare_objects(void)
     TEST_ASSERT_TRUE(compare_from_string("{}", "{}", false));
 
     TEST_ASSERT_TRUE(compare_from_string(
-                "{\"false\": false, \"true\": true, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
-                "{\"true\": true, \"false\": false, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
-                true));
+                         "{\"false\": false, \"true\": true, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
+                         "{\"true\": true, \"false\": false, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
+                         true));
     TEST_ASSERT_FALSE(compare_from_string(
-                "{\"False\": false, \"true\": true, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
-                "{\"true\": true, \"false\": false, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
-                true));
+                          "{\"False\": false, \"true\": true, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
+                          "{\"true\": true, \"false\": false, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
+                          true));
     TEST_ASSERT_TRUE(compare_from_string(
-                "{\"False\": false, \"true\": true, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
-                "{\"true\": true, \"false\": false, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
-                false));
+                         "{\"False\": false, \"true\": true, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
+                         "{\"true\": true, \"false\": false, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
+                         false));
     TEST_ASSERT_FALSE(compare_from_string(
-                "{\"Flse\": false, \"true\": true, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
-                "{\"true\": true, \"false\": false, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
-                false));
+                          "{\"Flse\": false, \"true\": true, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
+                          "{\"true\": true, \"false\": false, \"null\": null, \"number\": 42, \"string\": \"string\", \"array\": [], \"object\": {}}",
+                          false));
     /* test objects that are a subset of each other */
     TEST_ASSERT_FALSE(compare_from_string(
-                "{\"one\": 1, \"two\": 2}",
-                "{\"one\": 1, \"two\": 2, \"three\": 3}",
-                true))
+                          "{\"one\": 1, \"two\": 2}",
+                          "{\"one\": 1, \"two\": 2, \"three\": 3}",
+                          true))
     TEST_ASSERT_FALSE(compare_from_string(
-                "{\"one\": 1, \"two\": 2}",
-                "{\"one\": 1, \"two\": 2, \"three\": 3}",
-                false))
+                          "{\"one\": 1, \"two\": 2}",
+                          "{\"one\": 1, \"two\": 2, \"three\": 3}",
+                          false))
 }
 
 int CJSON_CDECL main(void)

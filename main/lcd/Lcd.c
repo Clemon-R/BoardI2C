@@ -563,8 +563,8 @@ static void	changePage(int i)
 {
     _index += i;
     if (_index < 0)
-        _index = _index % 3 + 3;
-    if (_index > 3)
+        _index = _index + 3;
+    if (_index >= 3)
         _index = 0;
 }
 

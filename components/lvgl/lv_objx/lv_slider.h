@@ -37,8 +37,7 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 /*Data of slider*/
-typedef struct
-{
+typedef struct {
     lv_bar_ext_t bar;       /*Ext. of ancestor*/
     /*New data for this type */
     lv_action_t action;             /*Function to call when a new value is set*/
@@ -48,8 +47,7 @@ typedef struct
 } lv_slider_ext_t;
 
 /*Built-in styles of slider*/
-enum
-{
+enum {
     LV_SLIDER_STYLE_BG,
     LV_SLIDER_STYLE_INDIC,
     LV_SLIDER_STYLE_KNOB,

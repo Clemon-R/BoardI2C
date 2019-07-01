@@ -2,8 +2,8 @@
 
 // This data structure was designed to support Proportional fonts
 // on Arduinos. It can however handle any ttf font that has been converted
-// using the conversion program. These could be fixed width or proportional 
-// fonts. Individual characters do not have to be multiples of 8 bits wide. 
+// using the conversion program. These could be fixed width or proportional
+// fonts. Individual characters do not have to be multiples of 8 bits wide.
 // Any width is fine and does not need to be fixed.
 
 // The data bits are packed to minimize data requirements, but the tradeoff
@@ -23,9 +23,8 @@
 
 #include <avr/pgmspace.h>
 
-uint8_t dejavuY18[] PROGMEM = 
-{
-0x00, 0x00, 0x00, 0x00,
+uint8_t dejavuY18[] PROGMEM = {
+    0x00, 0x00, 0x00, 0x00,
 
 // Individual Character Format:
 // ----------------------------
@@ -44,5 +43,5 @@ uint8_t dejavuY18[] PROGMEM =
 
 
 // Terminator
-0xFF
+    0xFF
 };

@@ -121,24 +121,24 @@ void lv_rletter(const lv_point_t * pos_p, const lv_area_t * mask_p,
     uint8_t mask;
 
     switch(bpp) {
-        case 1:
-            bpp_opa_table = bpp1_opa_table;
-            mask_init = 0x80;
-            break;
-        case 2:
-            bpp_opa_table = bpp2_opa_table;
-            mask_init = 0xC0;
-            break;
-        case 4:
-            bpp_opa_table = bpp4_opa_table;
-            mask_init = 0xF0;
-            break;
-        case 8:
-            bpp_opa_table = NULL;
-            mask_init = 0xFF;
-            break;             /*No opa table, pixel value will be used directly*/
-        default:
-            return;        /*Invalid bpp. Can't render the letter*/
+    case 1:
+        bpp_opa_table = bpp1_opa_table;
+        mask_init = 0x80;
+        break;
+    case 2:
+        bpp_opa_table = bpp2_opa_table;
+        mask_init = 0xC0;
+        break;
+    case 4:
+        bpp_opa_table = bpp4_opa_table;
+        mask_init = 0xF0;
+        break;
+    case 8:
+        bpp_opa_table = NULL;
+        mask_init = 0xFF;
+        break;             /*No opa table, pixel value will be used directly*/
+    default:
+        return;        /*Invalid bpp. Can't render the letter*/
     }
 
     const uint8_t * map_p = lv_font_get_bitmap(font_p, letter);
@@ -147,7 +147,7 @@ void lv_rletter(const lv_point_t * pos_p, const lv_area_t * mask_p,
 
     /*If the letter is completely out of mask don't draw it */
     if(pos_p->x + letter_w < mask_p->x1 || pos_p->x > mask_p->x2 ||
-            pos_p->y + letter_h < mask_p->y1 || pos_p->y > mask_p->y2) return;
+       pos_p->y + letter_h < mask_p->y1 || pos_p->y > mask_p->y2) return;
 
     lv_coord_t col, row;
     uint8_t col_bit;

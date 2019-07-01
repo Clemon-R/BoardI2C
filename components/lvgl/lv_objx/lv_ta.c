@@ -649,20 +649,20 @@ void lv_ta_set_style(lv_obj_t * ta, lv_ta_style_t type, lv_style_t * style)
     lv_ta_ext_t * ext = lv_obj_get_ext_attr(ta);
 
     switch(type) {
-        case LV_TA_STYLE_BG:
-            lv_page_set_style(ta, LV_PAGE_STYLE_BG, style);
-            break;
-        case LV_TA_STYLE_SB:
-            lv_page_set_style(ta, LV_PAGE_STYLE_SB, style);
-            break;
-        case LV_TA_STYLE_EDGE_FLASH:
-            lv_page_set_style(ta, LV_PAGE_STYLE_EDGE_FLASH, style);
-            break;
-        case LV_TA_STYLE_CURSOR:
-            ext->cursor.style = style;
-            lv_obj_refresh_ext_size(lv_page_get_scrl(ta)); /*Refresh ext. size because of cursor drawing*/
-            refr_cursor_area(ta);
-            break;
+    case LV_TA_STYLE_BG:
+        lv_page_set_style(ta, LV_PAGE_STYLE_BG, style);
+        break;
+    case LV_TA_STYLE_SB:
+        lv_page_set_style(ta, LV_PAGE_STYLE_SB, style);
+        break;
+    case LV_TA_STYLE_EDGE_FLASH:
+        lv_page_set_style(ta, LV_PAGE_STYLE_EDGE_FLASH, style);
+        break;
+    case LV_TA_STYLE_CURSOR:
+        ext->cursor.style = style;
+        lv_obj_refresh_ext_size(lv_page_get_scrl(ta)); /*Refresh ext. size because of cursor drawing*/
+        refr_cursor_area(ta);
+        break;
     }
 }
 
@@ -781,21 +781,21 @@ lv_style_t * lv_ta_get_style(const lv_obj_t * ta, lv_ta_style_t type)
     lv_ta_ext_t * ext = lv_obj_get_ext_attr(ta);
 
     switch(type) {
-        case LV_TA_STYLE_BG:
-            style = lv_page_get_style(ta, LV_PAGE_STYLE_BG);
-            break;
-        case LV_TA_STYLE_SB:
-            style = lv_page_get_style(ta, LV_PAGE_STYLE_SB);
-            break;
-        case LV_TA_STYLE_EDGE_FLASH:
-            style = lv_page_get_style(ta, LV_PAGE_STYLE_EDGE_FLASH);
-            break;
-        case LV_TA_STYLE_CURSOR:
-            style = ext->cursor.style;
-            break;
-        default:
-            style = NULL;
-            break;
+    case LV_TA_STYLE_BG:
+        style = lv_page_get_style(ta, LV_PAGE_STYLE_BG);
+        break;
+    case LV_TA_STYLE_SB:
+        style = lv_page_get_style(ta, LV_PAGE_STYLE_SB);
+        break;
+    case LV_TA_STYLE_EDGE_FLASH:
+        style = lv_page_get_style(ta, LV_PAGE_STYLE_EDGE_FLASH);
+        break;
+    case LV_TA_STYLE_CURSOR:
+        style = ext->cursor.style;
+        break;
+    default:
+        style = NULL;
+        break;
     }
 
     return style;
@@ -942,8 +942,8 @@ static bool lv_ta_scrollable_design(lv_obj_t * scrl, const lv_area_t * mask, lv_
         lv_ta_ext_t * ext = lv_obj_get_ext_attr(ta);
 
         if(ext->cursor.type == LV_CURSOR_NONE ||
-                (ext->cursor.type & LV_CURSOR_HIDDEN) ||
-                ext->cursor.state == 0) {
+           (ext->cursor.type & LV_CURSOR_HIDDEN) ||
+           ext->cursor.state == 0) {
             return true;    /*The cursor is not visible now*/
         }
 
@@ -956,12 +956,12 @@ static bool lv_ta_scrollable_design(lv_obj_t * scrl, const lv_area_t * mask, lv_
         lv_area_t cur_area;
         lv_area_copy(&cur_area, &ext->cursor.area);
 
-         cur_area.x1 += ext->label->coords.x1;
-         cur_area.y1 += ext->label->coords.y1;
-         cur_area.x2 += ext->label->coords.x1;
-         cur_area.y2 += ext->label->coords.y1;
+        cur_area.x1 += ext->label->coords.x1;
+        cur_area.y1 += ext->label->coords.y1;
+        cur_area.x2 += ext->label->coords.x1;
+        cur_area.y2 += ext->label->coords.y1;
 
-         lv_opa_t opa_scale = lv_obj_get_opa_scale(ta);
+        lv_opa_t opa_scale = lv_obj_get_opa_scale(ta);
 
         if(ext->cursor.type == LV_CURSOR_LINE) {
             lv_draw_rect(&cur_area, mask, &cur_style, opa_scale);
@@ -1034,7 +1034,7 @@ static lv_res_t lv_ta_signal(lv_obj_t * ta, lv_signal_t sign, void * param)
         /*Set the label width according to the text area width*/
         if(ext->label) {
             if(lv_obj_get_width(ta) != lv_area_get_width(param) ||
-                    lv_obj_get_height(ta) != lv_area_get_height(param)) {
+               lv_obj_get_height(ta) != lv_area_get_height(param)) {
                 lv_obj_t * scrl = lv_page_get_scrl(ta);
                 lv_style_t * style_scrl = lv_obj_get_style(scrl);
                 lv_obj_set_width(ext->label, lv_obj_get_width(scrl) - 2 * style_scrl->body.padding.hor);
@@ -1055,8 +1055,7 @@ static lv_res_t lv_ta_signal(lv_obj_t * ta, lv_signal_t sign, void * param)
             uint16_t cp = lv_ta_get_cursor_pos(ta);
             lv_ta_set_cursor_pos(ta, cp + 1);
             if(cp != lv_ta_get_cursor_pos(ta)) lv_ta_del_char(ta);
-        }
-        else {
+        } else {
             lv_ta_add_char(ta, c);
         }
     } else if(sign == LV_SIGNAL_GET_EDITABLE) {
@@ -1085,8 +1084,7 @@ static lv_res_t lv_ta_signal(lv_obj_t * ta, lv_signal_t sign, void * param)
         if(indev_type == LV_INDEV_TYPE_ENCODER) {
             if(editing) lv_ta_set_cursor_type(ta, cur_type & (~LV_CURSOR_HIDDEN));
             else lv_ta_set_cursor_type(ta, cur_type | LV_CURSOR_HIDDEN);
-        }
-        else {
+        } else {
             lv_ta_set_cursor_type(ta, cur_type & (~LV_CURSOR_HIDDEN));
         }
 #endif
@@ -1134,8 +1132,7 @@ static void cursor_blink_anim(lv_obj_t * ta, uint8_t show)
     if(show != ext->cursor.state) {
         ext->cursor.state = show == 0 ? 0 : 1;
         if(ext->cursor.type != LV_CURSOR_NONE &&
-                (ext->cursor.type & LV_CURSOR_HIDDEN) == 0)
-        {
+           (ext->cursor.type & LV_CURSOR_HIDDEN) == 0) {
             lv_area_t area_tmp;
             lv_area_copy(&area_tmp, &ext->cursor.area);
             area_tmp.x1 += ext->label->coords.x1;
@@ -1201,7 +1198,7 @@ static bool char_is_accepted(lv_obj_t * ta, uint32_t c)
 
     /*Too many characters?*/
     if(ext->max_length > 0 &&
-            lv_txt_get_encoded_length(lv_ta_get_text(ta)) >= ext->max_length) {
+       lv_txt_get_encoded_length(lv_ta_get_text(ta)) >= ext->max_length) {
         return false;
     }
 

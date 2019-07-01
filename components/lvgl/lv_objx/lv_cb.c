@@ -141,28 +141,28 @@ void lv_cb_set_style(lv_obj_t * cb, lv_cb_style_t type, lv_style_t * style)
     lv_cb_ext_t * ext = lv_obj_get_ext_attr(cb);
 
     switch(type) {
-        case LV_CB_STYLE_BG:
-            lv_btn_set_style(cb, LV_BTN_STYLE_REL, style);
-            lv_btn_set_style(cb, LV_BTN_STYLE_PR, style);
-            lv_btn_set_style(cb, LV_BTN_STYLE_TGL_REL, style);
-            lv_btn_set_style(cb, LV_BTN_STYLE_TGL_PR, style);
-            lv_btn_set_style(cb, LV_BTN_STYLE_INA, style);
-            break;
-        case LV_CB_STYLE_BOX_REL:
-            lv_btn_set_style(ext->bullet, LV_BTN_STYLE_REL, style);
-            break;
-        case LV_CB_STYLE_BOX_PR:
-            lv_btn_set_style(ext->bullet, LV_BTN_STYLE_PR, style);
-            break;
-        case LV_CB_STYLE_BOX_TGL_REL:
-            lv_btn_set_style(ext->bullet, LV_BTN_STYLE_TGL_REL, style);
-            break;
-        case LV_CB_STYLE_BOX_TGL_PR:
-            lv_btn_set_style(ext->bullet, LV_BTN_STYLE_TGL_PR, style);
-            break;
-        case LV_CB_STYLE_BOX_INA:
-            lv_btn_set_style(ext->bullet, LV_BTN_STYLE_INA, style);
-            break;
+    case LV_CB_STYLE_BG:
+        lv_btn_set_style(cb, LV_BTN_STYLE_REL, style);
+        lv_btn_set_style(cb, LV_BTN_STYLE_PR, style);
+        lv_btn_set_style(cb, LV_BTN_STYLE_TGL_REL, style);
+        lv_btn_set_style(cb, LV_BTN_STYLE_TGL_PR, style);
+        lv_btn_set_style(cb, LV_BTN_STYLE_INA, style);
+        break;
+    case LV_CB_STYLE_BOX_REL:
+        lv_btn_set_style(ext->bullet, LV_BTN_STYLE_REL, style);
+        break;
+    case LV_CB_STYLE_BOX_PR:
+        lv_btn_set_style(ext->bullet, LV_BTN_STYLE_PR, style);
+        break;
+    case LV_CB_STYLE_BOX_TGL_REL:
+        lv_btn_set_style(ext->bullet, LV_BTN_STYLE_TGL_REL, style);
+        break;
+    case LV_CB_STYLE_BOX_TGL_PR:
+        lv_btn_set_style(ext->bullet, LV_BTN_STYLE_TGL_PR, style);
+        break;
+    case LV_CB_STYLE_BOX_INA:
+        lv_btn_set_style(ext->bullet, LV_BTN_STYLE_INA, style);
+        break;
     }
 }
 
@@ -196,24 +196,24 @@ lv_style_t * lv_cb_get_style(const lv_obj_t * cb, lv_cb_style_t type)
     lv_cb_ext_t * ext = lv_obj_get_ext_attr(cb);
 
     switch(type) {
-        case LV_CB_STYLE_BOX_REL:
-            style = lv_btn_get_style(ext->bullet, LV_BTN_STYLE_REL);
-            break;
-        case LV_CB_STYLE_BOX_PR:
-            style = lv_btn_get_style(ext->bullet, LV_BTN_STYLE_PR);
-            break;
-        case LV_CB_STYLE_BOX_TGL_REL:
-            style = lv_btn_get_style(ext->bullet, LV_BTN_STYLE_TGL_REL);
-            break;
-        case LV_CB_STYLE_BOX_TGL_PR:
-            style = lv_btn_get_style(ext->bullet, LV_BTN_STYLE_TGL_PR);
-            break;
-        case LV_CB_STYLE_BOX_INA:
-            style = lv_btn_get_style(ext->bullet, LV_BTN_STYLE_INA);
-            break;
-        default:
-            style = NULL;
-            break;
+    case LV_CB_STYLE_BOX_REL:
+        style = lv_btn_get_style(ext->bullet, LV_BTN_STYLE_REL);
+        break;
+    case LV_CB_STYLE_BOX_PR:
+        style = lv_btn_get_style(ext->bullet, LV_BTN_STYLE_PR);
+        break;
+    case LV_CB_STYLE_BOX_TGL_REL:
+        style = lv_btn_get_style(ext->bullet, LV_BTN_STYLE_TGL_REL);
+        break;
+    case LV_CB_STYLE_BOX_TGL_PR:
+        style = lv_btn_get_style(ext->bullet, LV_BTN_STYLE_TGL_PR);
+        break;
+    case LV_CB_STYLE_BOX_INA:
+        style = lv_btn_get_style(ext->bullet, LV_BTN_STYLE_INA);
+        break;
+    default:
+        style = NULL;
+        break;
     }
 
     return style;
@@ -328,8 +328,8 @@ static lv_res_t lv_cb_signal(lv_obj_t * cb, lv_signal_t sign, void * param)
     } else if(sign == LV_SIGNAL_CONTROLL) {
         char c = *((char *)param);
         if(c == LV_GROUP_KEY_RIGHT || c == LV_GROUP_KEY_DOWN ||
-                c == LV_GROUP_KEY_LEFT || c == LV_GROUP_KEY_UP ||
-                c == LV_GROUP_KEY_ENTER) {
+           c == LV_GROUP_KEY_LEFT || c == LV_GROUP_KEY_UP ||
+           c == LV_GROUP_KEY_ENTER) {
             lv_btn_set_state(ext->bullet, lv_btn_get_state(cb));
         }
     } else if(sign == LV_SIGNAL_GET_TYPE) {

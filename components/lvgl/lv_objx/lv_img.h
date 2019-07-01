@@ -35,8 +35,7 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 /*Data of image*/
-typedef struct
-{
+typedef struct {
     /*No inherited ext. because inherited from the base object*/ /*Ext. of ancestor*/
     /*New data for this type */
     const void * src;             /*Image source: Pointer to an array or a file or a symbol*/

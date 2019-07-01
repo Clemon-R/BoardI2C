@@ -13,8 +13,7 @@ extern "C"
 {
 #endif
 
-struct UNITY_FIXTURE_T
-{
+struct UNITY_FIXTURE_T {
     int Verbose;
     unsigned int RepeatCount;
     const char* NameFilter;

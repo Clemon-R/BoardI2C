@@ -49,7 +49,7 @@ typedef union {
         uint8_t crop:1;
     };
     uint8_t format_byte;
-}lv_table_cell_format_t;
+} lv_table_cell_format_t;
 
 /*Data of table*/
 typedef struct {

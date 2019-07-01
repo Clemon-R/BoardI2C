@@ -320,9 +320,9 @@ static bool lv_task_exec(lv_task_t * lv_task_p)
 
         /*Delete if it was a one shot lv_task*/
         if(task_deleted == false) {			/*The task might be deleted by itself as well*/
-        	if(lv_task_p->once != 0) {
-        	    lv_task_del(lv_task_p);
-        	}
+            if(lv_task_p->once != 0) {
+                lv_task_del(lv_task_p);
+            }
         }
         exec = true;
     }

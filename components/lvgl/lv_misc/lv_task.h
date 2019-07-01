@@ -37,8 +37,7 @@ extern "C" {
 /**
  * Possible priorities for lv_tasks
  */
-enum
-{
+enum {
     LV_TASK_PRIO_OFF = 0,
     LV_TASK_PRIO_LOWEST,
     LV_TASK_PRIO_LOW,
@@ -52,8 +51,7 @@ typedef uint8_t lv_task_prio_t;
 /**
  * Descriptor of a lv_task
  */
-typedef struct
-{
+typedef struct {
     uint32_t period;
     uint32_t last_run;
     void (*task) (void*);

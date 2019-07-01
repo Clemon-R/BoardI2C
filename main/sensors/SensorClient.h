@@ -19,8 +19,7 @@ typedef struct SensorData_s {
     pressure_temp_sensor_t	pressureData;
 }				SensorData_t;
 
-typedef struct  SensorValues_s
-{
+typedef struct  SensorValues_s {
     float     temperature;
     float     humidity;
     float     pressure;

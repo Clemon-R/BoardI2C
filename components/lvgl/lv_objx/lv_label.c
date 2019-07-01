@@ -482,7 +482,7 @@ void lv_label_get_letter_pos(const lv_obj_t * label, uint16_t index, lv_point_t 
 
     /*Calculate the x coordinate*/
     lv_coord_t x = lv_txt_get_width(&txt[line_start], index - line_start,
-                            font, style->text.letter_space, flag);
+                                    font, style->text.letter_space, flag);
 
     if(index != line_start) x += style->text.letter_space;
 
@@ -699,7 +699,7 @@ static bool lv_label_design(lv_obj_t * label, const lv_area_t * mask, lv_design_
         /* In ROLL mode the CENTER and RIGHT are pointless so remove them.
          * (In addition they will result mis-alignment is this case)*/
         if((ext->long_mode == LV_LABEL_LONG_ROLL) &&
-                (ext->align == LV_LABEL_ALIGN_CENTER || ext->align == LV_LABEL_ALIGN_RIGHT)) {
+           (ext->align == LV_LABEL_ALIGN_CENTER || ext->align == LV_LABEL_ALIGN_RIGHT)) {
             lv_point_t size;
             lv_txt_get_size(&size, ext->text, style->text.font, style->text.letter_space, style->text.line_space, LV_COORD_MAX, flag);
             if(size.x > lv_obj_get_width(label)) {
@@ -743,7 +743,7 @@ static lv_res_t lv_label_signal(lv_obj_t * label, lv_signal_t sign, void * param
         lv_label_refr_text(label);
     } else if(sign == LV_SIGNAL_CORD_CHG) {
         if(lv_area_get_width(&label->coords) != lv_area_get_width(param) ||
-                lv_area_get_height(&label->coords) != lv_area_get_height(param)) {
+           lv_area_get_height(&label->coords) != lv_area_get_height(param)) {
             lv_label_revert_dots(label);
             lv_label_refr_text(label);
         }
@@ -792,7 +792,7 @@ static void lv_label_refr_text(lv_obj_t * label)
 
     /*If the width will be expanded set the max length to very big */
     if(ext->long_mode == LV_LABEL_LONG_EXPAND ||
-            ext->long_mode == LV_LABEL_LONG_SCROLL) {
+       ext->long_mode == LV_LABEL_LONG_SCROLL) {
         max_w = LV_COORD_MAX;
     }
 

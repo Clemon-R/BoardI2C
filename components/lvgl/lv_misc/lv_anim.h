@@ -40,8 +40,7 @@ typedef int32_t(*lv_anim_path_t)(const struct _lv_anim_t*);
 typedef void (*lv_anim_fp_t)(void *, int32_t);
 typedef void (*lv_anim_cb_t)(void *);
 
-typedef struct _lv_anim_t
-{
+typedef struct _lv_anim_t {
     void * var;                     /*Variable to animate*/
     lv_anim_fp_t fp;                /*Animator function*/
     lv_anim_cb_t end_cb;            /*Call it when the animation is ready*/

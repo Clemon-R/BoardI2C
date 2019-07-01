@@ -192,20 +192,20 @@ void lv_btn_toggle(lv_obj_t * btn)
 {
     lv_btn_ext_t * ext = lv_obj_get_ext_attr(btn);
     switch(ext->state) {
-        case LV_BTN_STATE_REL:
-            lv_btn_set_state(btn, LV_BTN_STATE_TGL_REL);
-            break;
-        case LV_BTN_STATE_PR:
-            lv_btn_set_state(btn, LV_BTN_STATE_TGL_PR);
-            break;
-        case LV_BTN_STATE_TGL_REL:
-            lv_btn_set_state(btn, LV_BTN_STATE_REL);
-            break;
-        case LV_BTN_STATE_TGL_PR:
-            lv_btn_set_state(btn, LV_BTN_STATE_PR);
-            break;
-        default:
-            break;
+    case LV_BTN_STATE_REL:
+        lv_btn_set_state(btn, LV_BTN_STATE_TGL_REL);
+        break;
+    case LV_BTN_STATE_PR:
+        lv_btn_set_state(btn, LV_BTN_STATE_TGL_PR);
+        break;
+    case LV_BTN_STATE_TGL_REL:
+        lv_btn_set_state(btn, LV_BTN_STATE_REL);
+        break;
+    case LV_BTN_STATE_TGL_PR:
+        lv_btn_set_state(btn, LV_BTN_STATE_PR);
+        break;
+    default:
+        break;
     }
 }
 
@@ -285,21 +285,21 @@ void lv_btn_set_style(lv_obj_t * btn, lv_btn_style_t type, lv_style_t * style)
     lv_btn_ext_t * ext = lv_obj_get_ext_attr(btn);
 
     switch(type) {
-        case LV_BTN_STYLE_REL:
-            ext->styles[LV_BTN_STATE_REL] = style;
-            break;
-        case LV_BTN_STYLE_PR:
-            ext->styles[LV_BTN_STATE_PR] = style;
-            break;
-        case LV_BTN_STYLE_TGL_REL:
-            ext->styles[LV_BTN_STATE_TGL_REL] = style;
-            break;
-        case LV_BTN_STYLE_TGL_PR:
-            ext->styles[LV_BTN_STATE_TGL_PR] = style;
-            break;
-        case LV_BTN_STYLE_INA:
-            ext->styles[LV_BTN_STATE_INA] = style;
-            break;
+    case LV_BTN_STYLE_REL:
+        ext->styles[LV_BTN_STATE_REL] = style;
+        break;
+    case LV_BTN_STYLE_PR:
+        ext->styles[LV_BTN_STATE_PR] = style;
+        break;
+    case LV_BTN_STYLE_TGL_REL:
+        ext->styles[LV_BTN_STATE_TGL_REL] = style;
+        break;
+    case LV_BTN_STYLE_TGL_PR:
+        ext->styles[LV_BTN_STATE_TGL_PR] = style;
+        break;
+    case LV_BTN_STYLE_INA:
+        ext->styles[LV_BTN_STATE_INA] = style;
+        break;
     }
 
     /*Refresh the object with the new style*/
@@ -407,24 +407,24 @@ lv_style_t * lv_btn_get_style(const lv_obj_t * btn, lv_btn_style_t type)
     lv_btn_ext_t * ext = lv_obj_get_ext_attr(btn);
 
     switch(type) {
-        case LV_BTN_STYLE_REL:
-            style = ext->styles[LV_BTN_STATE_REL];
-            break;
-        case LV_BTN_STYLE_PR:
-            style = ext->styles[LV_BTN_STATE_PR];
-            break;
-        case LV_BTN_STYLE_TGL_REL:
-            style = ext->styles[LV_BTN_STATE_TGL_REL];
-            break;
-        case LV_BTN_STYLE_TGL_PR:
-            style = ext->styles[LV_BTN_STATE_TGL_PR];
-            break;
-        case LV_BTN_STYLE_INA:
-            style = ext->styles[LV_BTN_STATE_INA];
-            break;
-        default:
-            style = NULL;
-            break;
+    case LV_BTN_STYLE_REL:
+        style = ext->styles[LV_BTN_STATE_REL];
+        break;
+    case LV_BTN_STYLE_PR:
+        style = ext->styles[LV_BTN_STATE_PR];
+        break;
+    case LV_BTN_STYLE_TGL_REL:
+        style = ext->styles[LV_BTN_STATE_TGL_REL];
+        break;
+    case LV_BTN_STYLE_TGL_PR:
+        style = ext->styles[LV_BTN_STATE_TGL_PR];
+        break;
+    case LV_BTN_STYLE_INA:
+        style = ext->styles[LV_BTN_STATE_INA];
+        break;
+    default:
+        style = NULL;
+        break;
     }
 
     return style;

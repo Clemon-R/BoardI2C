@@ -135,8 +135,7 @@ extern "C" {
 #define _SYMBOL_VALUE3(x, y, z) (0x ## z ## y ## x)
 #define _SYMBOL_NUMSTR(sym) LV_ ## sym ## _NUMSTR = sym
 
-enum
-{
+enum {
     _SYMBOL_NUMSTR(SYMBOL_AUDIO),
     _SYMBOL_NUMSTR(SYMBOL_VIDEO),
     _SYMBOL_NUMSTR(SYMBOL_LIST),

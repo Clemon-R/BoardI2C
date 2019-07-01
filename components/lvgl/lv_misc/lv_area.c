@@ -118,7 +118,7 @@ bool lv_area_intersect(lv_area_t * res_p, const lv_area_t * a1_p, const lv_area_
     /*If x1 or y1 greater then x2 or y2 then the areas union is empty*/
     bool union_ok = true;
     if((res_p->x1 > res_p->x2) ||
-            (res_p->y1 > res_p->y2)) {
+       (res_p->y1 > res_p->y2)) {
         union_ok = false;
     }
 
@@ -149,7 +149,7 @@ bool lv_area_is_point_on(const lv_area_t * a_p, const lv_point_t * p_p)
     bool is_on = false;
 
     if((p_p->x >= a_p->x1 && p_p->x <= a_p->x2) &&
-            ((p_p->y >= a_p->y1 && p_p->y <= a_p->y2))) {
+       ((p_p->y >= a_p->y1 && p_p->y <= a_p->y2))) {
         is_on = true;
     }
 
@@ -165,9 +165,9 @@ bool lv_area_is_point_on(const lv_area_t * a_p, const lv_point_t * p_p)
 bool lv_area_is_on(const lv_area_t * a1_p, const lv_area_t * a2_p)
 {
     if((a1_p->x1 <= a2_p->x2) &&
-            (a1_p->x2 >= a2_p->x1) &&
-            (a1_p->y1 <= a2_p->y2) &&
-            (a1_p->y2 >= a2_p->y1)) {
+       (a1_p->x2 >= a2_p->x1) &&
+       (a1_p->y1 <= a2_p->y2) &&
+       (a1_p->y2 >= a2_p->y1)) {
         return true;
     } else {
         return false;
@@ -186,9 +186,9 @@ bool lv_area_is_in(const lv_area_t * ain_p, const lv_area_t * aholder_p)
     bool is_in = false;
 
     if(ain_p->x1  >= aholder_p->x1 &&
-            ain_p->y1  >= aholder_p->y1 &&
-            ain_p->x2  <= aholder_p->x2 &&
-            ain_p->y2  <= aholder_p->y2) {
+       ain_p->y1  >= aholder_p->y1 &&
+       ain_p->x2  <= aholder_p->x2 &&
+       ain_p->y2  <= aholder_p->y2) {
         is_in = true;
     }
 

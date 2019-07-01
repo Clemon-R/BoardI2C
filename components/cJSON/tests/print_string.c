@@ -50,14 +50,13 @@ static void print_string_should_print_ascii(void)
     size_t i = 1;
 
     /* create ascii table */
-    for (i = 1; i < 0x7F; i++)
-    {
+    for (i = 1; i < 0x7F; i++) {
         ascii[i-1] = (char)i;
     }
     ascii[0x7F-1] = '\0';
 
     assert_print_string("\"\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\\\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\"",
-            ascii);
+                        ascii);
 }
 
 static void print_string_should_print_utf8(void)

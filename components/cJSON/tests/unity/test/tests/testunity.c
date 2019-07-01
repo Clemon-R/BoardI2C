@@ -66,14 +66,12 @@ void setUp(void)
 void tearDown(void)
 {
     endPutcharSpy(); /* Stop suppressing test output */
-    if (SetToOneToFailInTearDown == 1)
-    {
+    if (SetToOneToFailInTearDown == 1) {
         /* These will be skipped internally if already failed/ignored */
         TEST_FAIL_MESSAGE("<= Failed in tearDown");
         TEST_IGNORE_MESSAGE("<= Ignored in tearDown");
     }
-    if ((SetToOneMeanWeAlreadyCheckedThisGuy == 0) && (Unity.CurrentTestFailed > 0))
-    {
+    if ((SetToOneMeanWeAlreadyCheckedThisGuy == 0) && (Unity.CurrentTestFailed > 0)) {
         UnityPrint(": [[[[ Test Should Have Passed But Did Not ]]]]");
         UNITY_OUTPUT_CHAR('\n');
     }
@@ -85,8 +83,8 @@ void testUnitySizeInitializationReminder(void)
      * test breaks, go look at the initialization of the Unity global variable
      * in unity.c and make sure we're filling in the proper fields. */
     const char* message = "Unexpected size for UNITY_STORAGE_T struct. Please check that "
-                     "the initialization of the Unity symbol in unity.c is "
-                     "still correct.";
+                          "the initialization of the Unity symbol in unity.c is "
+                          "still correct.";
 
     /* Define a structure with all the same fields as `struct UNITY_STORAGE_T`. */
 #ifdef UNITY_EXCLUDE_DETAILS
@@ -3271,13 +3269,10 @@ void testProtection(void)
 {
     volatile int mask = 0;
 
-    if (TEST_PROTECT())
-    {
+    if (TEST_PROTECT()) {
         mask |= 1;
         TEST_ABORT();
-    }
-    else
-    {
+    } else {
         Unity.CurrentTestFailed = 0;
         mask |= 2;
     }
@@ -3298,7 +3293,7 @@ void testIgnoredAndThenFailInTearDown(void)
 #define EXPAND_AND_USE_2ND(a, b)  SECOND_PARAM(a, b, throwaway)
 #define SECOND_PARAM(a, b, ...)   b
 #if USING_SPY_AS(UNITY_OUTPUT_CHAR)
-  #define USING_OUTPUT_SPY // true only if UNITY_OUTPUT_CHAR = putcharSpy
+#define USING_OUTPUT_SPY // true only if UNITY_OUTPUT_CHAR = putcharSpy
 #endif
 
 #ifdef USING_OUTPUT_SPY
@@ -3309,9 +3304,16 @@ static char putcharSpyBuffer[SPY_BUFFER_MAX];
 static int indexSpyBuffer;
 static int putcharSpyEnabled;
 
-void startPutcharSpy(void) {indexSpyBuffer = 0; putcharSpyEnabled = 1;}
+void startPutcharSpy(void)
+{
+    indexSpyBuffer = 0;
+    putcharSpyEnabled = 1;
+}
 
-void endPutcharSpy(void) {putcharSpyEnabled = 0;}
+void endPutcharSpy(void)
+{
+    putcharSpyEnabled = 0;
+}
 
 char* getBufferPutcharSpy(void)
 {
@@ -3326,8 +3328,7 @@ char* getBufferPutcharSpy(void)
 void putcharSpy(int c)
 {
 #ifdef USING_OUTPUT_SPY
-    if (putcharSpyEnabled)
-    {
+    if (putcharSpyEnabled) {
         if (indexSpyBuffer < SPY_BUFFER_MAX - 1)
             putcharSpyBuffer[indexSpyBuffer++] = (char)c;
     } else
@@ -3419,14 +3420,14 @@ void testPrintNumbersInt64(void)
 #ifndef UNITY_SUPPORT_64
     TEST_IGNORE();
 #else
-  #ifndef USING_OUTPUT_SPY
+#ifndef USING_OUTPUT_SPY
     TEST_IGNORE();
-  #else
+#else
     TEST_ASSERT_EQUAL_PRINT_NUMBERS("0", 0);
     TEST_ASSERT_EQUAL_PRINT_NUMBERS("10000000000", 10000000000);
     TEST_ASSERT_EQUAL_PRINT_NUMBERS("-9223372036854775808", (UNITY_INT)0x8000000000000000);
     TEST_ASSERT_EQUAL_PRINT_NUMBERS("-1", (UNITY_INT)0xFFFFFFFFFFFFFFFF);
-  #endif
+#endif
 #endif
 }
 
@@ -3435,14 +3436,14 @@ void testPrintNumbersUInt64(void)
 #ifndef UNITY_SUPPORT_64
     TEST_IGNORE();
 #else
-  #ifndef USING_OUTPUT_SPY
+#ifndef USING_OUTPUT_SPY
     TEST_IGNORE();
-  #else
+#else
     TEST_ASSERT_EQUAL_PRINT_UNSIGNED_NUMBERS("0", 0);
     TEST_ASSERT_EQUAL_PRINT_UNSIGNED_NUMBERS("70000000000", 70000000000);
     TEST_ASSERT_EQUAL_PRINT_UNSIGNED_NUMBERS("9223372036854775808",  (UNITY_UINT)0x8000000000000000);
     TEST_ASSERT_EQUAL_PRINT_UNSIGNED_NUMBERS("18446744073709551615", (UNITY_UINT)0xFFFFFFFFFFFFFFFF);
-  #endif
+#endif
 #endif
 }
 
@@ -4541,13 +4542,14 @@ static void printFloatValue(float f)
     double lower = (double)f * 0.9999995;
     double higher = (double)f * 1.0000005;
 
-    if (isfinite(lower)) sprintf(expected_lower, "%.6g", lower); else strcpy(expected_lower, expected);
-    if (isfinite(higher)) sprintf(expected_higher, "%.6g", higher); else strcpy(expected_higher, expected);
+    if (isfinite(lower)) sprintf(expected_lower, "%.6g", lower);
+    else strcpy(expected_lower, expected);
+    if (isfinite(higher)) sprintf(expected_higher, "%.6g", higher);
+    else strcpy(expected_higher, expected);
 
     if (strcmp(expected, getBufferPutcharSpy()) != 0 &&
         strcmp(expected_lower, getBufferPutcharSpy()) != 0 &&
-        strcmp(expected_higher, getBufferPutcharSpy()) != 0)
-    {
+        strcmp(expected_higher, getBufferPutcharSpy()) != 0) {
         /* Fail with diagnostic printing */
         TEST_ASSERT_EQUAL_PRINT_FLOATING(expected, f);
     }
@@ -4559,23 +4561,31 @@ void testFloatPrintingRandomSamples(void)
 #if !defined(UNITY_TEST_ALL_FLOATS_PRINT_OK) || !defined(USING_OUTPUT_SPY)
     TEST_IGNORE();
 #else
-    union { float f_value; uint32_t int_value; } u;
+    union {
+        float f_value;
+        uint32_t int_value;
+    } u;
 
     /* These values are not covered by the MINSTD generator */
-    u.int_value = 0x00000000; printFloatValue(u.f_value);
-    u.int_value = 0x80000000; printFloatValue(u.f_value);
-    u.int_value = 0x7fffffff; printFloatValue(u.f_value);
-    u.int_value = 0xffffffff; printFloatValue(u.f_value);
+    u.int_value = 0x00000000;
+    printFloatValue(u.f_value);
+    u.int_value = 0x80000000;
+    printFloatValue(u.f_value);
+    u.int_value = 0x7fffffff;
+    printFloatValue(u.f_value);
+    u.int_value = 0xffffffff;
+    printFloatValue(u.f_value);
 
     uint32_t a = 1;
-    for(int num_tested = 0; num_tested < 1000000; num_tested++)
-    {
+    for(int num_tested = 0; num_tested < 1000000; num_tested++) {
         /* MINSTD pseudo-random number generator */
         a = (uint32_t)(((uint64_t)a * 48271u) % 2147483647u);
 
         /* MINSTD does not set the highest bit; test both possibilities */
-        u.int_value = a;              printFloatValue(u.f_value);
-        u.int_value = a | 0x80000000; printFloatValue(u.f_value);
+        u.int_value = a;
+        printFloatValue(u.f_value);
+        u.int_value = a | 0x80000000;
+        printFloatValue(u.f_value);
     }
 #endif
 }

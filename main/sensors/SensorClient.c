@@ -13,8 +13,8 @@ static char _working = false;
 static QueueHandle_t	_datas;
 static SensorData_t		*_config = NULL;
 
-static TickType_t	refreshDelai = pdMS_TO_TICKS(1000);
-static SensorValues_t   _values = {0,0,0,(color_rgb_t){0,0,0},false};
+static TickType_t	refreshDelai = pdMS_TO_TICKS(500);
+static SensorValues_t   _values = {0,0,0,(color_rgb_t){0,0,0},0};
 
 static esp_err_t	nordicI2CInit()
 {
@@ -85,13 +85,10 @@ static void	taskSensor(void *args)
     while (_running) {
         vTaskDelay(refreshDelai);
         if (!_values.initiated) {
-            if (setupAllSensors(&data) != ESP_OK)
-            {
+            if (setupAllSensors(&data) != ESP_OK) {
                 _config = NULL;
                 ESP_LOGE(TAG, "Impossible to notify and callibrate sensors");
-            }
-            else
-            {
+            } else {
                 _config = &data;
             }
         }
@@ -107,34 +104,31 @@ static void	taskSensor(void *args)
         _working = _values.initiated;
         gpio_set_level(RGB_3, _values.initiated);
         cJSON	*monitor = cJSON_CreateObject();
-        if (!monitor)
+        if (!monitor || xQueueIsQueueFullFromISR(_datas) == pdTRUE)
             continue;
 
         cJSON	*sensors = cJSON_CreateObject();
 
         //Température
         cJSON	*raw = cJSON_CreateNumber(_values.temperature);
-        cJSON_AddItemReferenceToObject(sensors, "temperature", raw);
+        cJSON_AddItemToObject(sensors, "temperature", raw);
 
         //Humidité
         raw = cJSON_CreateNumber(_values.humidity);
-        cJSON_AddItemReferenceToObject(sensors, "humidity", raw);
+        cJSON_AddItemToObject(sensors, "humidity", raw);
 
         //Pression
         raw = cJSON_CreateNumber(_values.pressure);
-        cJSON_AddItemReferenceToObject(sensors, "pressure", raw);
+        cJSON_AddItemToObject(sensors, "pressure", raw);
 
         //Color
         sprintf(buffer, "0X%02X,0X%02X,0X%02X", _values.color.r & 0XFF, _values.color.g & 0XFF, _values.color.b & 0XFF);
         raw = cJSON_CreateString(buffer);
-        cJSON_AddItemReferenceToObject(sensors, "color", raw);
+        cJSON_AddItemToObject(sensors, "color", raw);
 
-        cJSON_AddItemReferenceToObject(monitor, "sensors", sensors);
+        cJSON_AddItemToObject(monitor, "sensors", sensors);
 
-        while (xQueueIsQueueFullFromISR(_datas) == pdTRUE) {
-            vTaskDelay(waitingTicks);
-        }
-        xQueueSend(_datas, &monitor, waitingTicks);
+        xQueueSend(_datas, &monitor, 10);
     }
     nordicI2CDeinit();
     _config = NULL;
@@ -151,7 +145,7 @@ esp_err_t	startSensorClient()
     _datas = getQueueDatas();
     _running = true;
     _working = false;
-    return xTaskCreate(taskSensor, "sensorTask", 10240, NULL, tskIDLE_PRIORITY, &sensorTask);;
+    return xTaskCreate(taskSensor, "sensorTask", 4096, NULL, tskIDLE_PRIORITY, &sensorTask);;
 }
 
 esp_err_t	stopSensorClient()

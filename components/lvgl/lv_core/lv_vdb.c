@@ -115,7 +115,7 @@ void lv_vdb_flush(void)
 
     /*If the screen is transparent initialize it when the new VDB is selected*/
 #  if LV_COLOR_SCREEN_TRANSP
-        memset(vdb[vdb_active].buf, 0x00, LV_VDB_SIZE_IN_BYTES);
+    memset(vdb[vdb_active].buf, 0x00, LV_VDB_SIZE_IN_BYTES);
 #  endif  /*LV_COLOR_SCREEN_TRANSP*/
 
 #endif  /*#if LV_VDB_DOUBLE*/

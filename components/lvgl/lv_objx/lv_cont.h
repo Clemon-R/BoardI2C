@@ -32,8 +32,7 @@ extern "C" {
  **********************/
 
 /*Layout options*/
-enum
-{
+enum {
     LV_LAYOUT_OFF = 0,
     LV_LAYOUT_CENTER,
     LV_LAYOUT_COL_L,    /*Column left align*/
@@ -47,8 +46,7 @@ enum
 };
 typedef uint8_t lv_layout_t;
 
-typedef struct
-{
+typedef struct {
     /*Inherited from 'base_obj' so no inherited ext. */ /*Ext. of ancestor*/
     /*New data for this type */
     uint8_t layout  :4;     /*A layout from 'lv_cont_layout_t' enum*/

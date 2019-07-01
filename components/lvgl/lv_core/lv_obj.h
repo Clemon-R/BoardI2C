@@ -66,8 +66,7 @@ extern "C" {
 
 struct _lv_obj_t;
 
-enum
-{
+enum {
     LV_DESIGN_DRAW_MAIN,
     LV_DESIGN_DRAW_POST,
     LV_DESIGN_COVER_CHK,
@@ -76,15 +75,13 @@ typedef uint8_t lv_design_mode_t;
 
 typedef bool (* lv_design_func_t) (struct _lv_obj_t * obj, const lv_area_t * mask_p, lv_design_mode_t mode);
 
-enum
-{
+enum {
     LV_RES_INV = 0,      /*Typically indicates that the object is deleted (become invalid) in the action function or an operation was failed*/
     LV_RES_OK,           /*The object is valid (no deleted) after the action*/
 };
 typedef uint8_t lv_res_t;
 
-enum
-{
+enum {
     /*General signals*/
     LV_SIGNAL_CLEANUP,
     LV_SIGNAL_CHILD_CHG,
@@ -94,7 +91,7 @@ enum
     LV_SIGNAL_LANG_CHG,
     LV_SIGNAL_GET_TYPE,
 
-	_LV_SIGNAL_FEEDBACK_SECTION_START,
+    _LV_SIGNAL_FEEDBACK_SECTION_START,
     /*Input device related*/
     LV_SIGNAL_PRESSED,
     LV_SIGNAL_PRESSING,
@@ -116,8 +113,7 @@ typedef uint8_t lv_signal_t;
 
 typedef lv_res_t (* lv_signal_func_t) (struct _lv_obj_t * obj, lv_signal_t sign, void * param);
 
-enum
-{
+enum {
     LV_ALIGN_CENTER = 0,
     LV_ALIGN_IN_TOP_LEFT,
     LV_ALIGN_IN_TOP_MID,
@@ -150,12 +146,11 @@ typedef struct {
     lv_align_t align;
     uint8_t auto_realign :1;
     uint8_t origo_align  :1;        /*1: the oigo (center of the object) was aligned with `lv_obj_align_origo`*/
-}lv_reailgn_t;
+} lv_reailgn_t;
 #endif
 
 
-typedef struct _lv_obj_t
-{
+typedef struct _lv_obj_t {
     struct _lv_obj_t * par;    /*Pointer to the parent object*/
     lv_ll_t child_ll;          /*Linked list to store the children objects*/
 
@@ -198,8 +193,7 @@ typedef struct _lv_obj_t
 typedef lv_res_t (*lv_action_t) (struct _lv_obj_t * obj);
 
 /*Protect some attributes (max. 8 bit)*/
-enum
-{
+enum {
     LV_PROTECT_NONE      = 0x00,
     LV_PROTECT_CHILD_CHG = 0x01, /*Disable the child change signal. Used by the library*/
     LV_PROTECT_PARENT    = 0x02, /*Prevent automatic parent change (e.g. in lv_page)*/
@@ -216,8 +210,7 @@ typedef struct {
     const char * type[LV_MAX_ANCESTOR_NUM];   /*[0]: the actual type, [1]: ancestor, [2] #1's ancestor ... [x]: "lv_obj" */
 } lv_obj_type_t;
 
-enum
-{
+enum {
     LV_ANIM_NONE = 0,
     LV_ANIM_FLOAT_TOP,      /*Float from/to the top*/
     LV_ANIM_FLOAT_LEFT,     /*Float from/to the left*/

@@ -42,8 +42,7 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 /*Data of drop down list*/
-typedef struct
-{
+typedef struct {
     lv_page_ext_t page; /*Ext. of ancestor*/
     /*New data for this type */
     lv_obj_t *label;                     /*Label for the options*/

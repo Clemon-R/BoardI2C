@@ -33,8 +33,7 @@ extern "C" {
 /**********************
  *      TYPEDEFS
  **********************/
-enum
-{
+enum {
     LV_FS_RES_OK = 0,
     LV_FS_RES_HW_ERR,      /*Low level hardware error*/
     LV_FS_RES_FS_ERR,      /*Error in the file system structure */
@@ -53,28 +52,24 @@ typedef uint8_t lv_fs_res_t;
 
 struct __lv_fs_drv_t;
 
-typedef struct
-{
+typedef struct {
     void * file_d;
     struct __lv_fs_drv_t* drv;
 } lv_fs_file_t;
 
 
-typedef struct
-{
+typedef struct {
     void * dir_d;
     struct __lv_fs_drv_t * drv;
 } lv_fs_dir_t;
 
-enum
-{
+enum {
     LV_FS_MODE_WR = 0x01,
     LV_FS_MODE_RD = 0x02,
 };
 typedef uint8_t lv_fs_mode_t;
 
-typedef struct __lv_fs_drv_t
-{
+typedef struct __lv_fs_drv_t {
     char letter;
     uint16_t file_size;
     uint16_t rddir_size;

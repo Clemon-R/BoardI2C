@@ -100,8 +100,7 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 #define cJSON_StringIsConst 512
 
 /* The cJSON structure: */
-typedef struct cJSON
-{
+typedef struct cJSON {
     /* next/prev allow you to walk array/object chains. Alternatively, use GetArraySize/GetArrayItem/GetObjectItem */
     struct cJSON *next;
     struct cJSON *prev;
@@ -122,11 +121,10 @@ typedef struct cJSON
     char *string;
 } cJSON;
 
-typedef struct cJSON_Hooks
-{
-      /* malloc/free are CDECL on Windows regardless of the default calling convention of the compiler, so ensure the hooks allow passing those functions directly. */
-      void *(CJSON_CDECL *malloc_fn)(size_t sz);
-      void (CJSON_CDECL *free_fn)(void *ptr);
+typedef struct cJSON_Hooks {
+    /* malloc/free are CDECL on Windows regardless of the default calling convention of the compiler, so ensure the hooks allow passing those functions directly. */
+    void *(CJSON_CDECL *malloc_fn)(size_t sz);
+    void (CJSON_CDECL *free_fn)(void *ptr);
 } cJSON_Hooks;
 
 typedef int cJSON_bool;

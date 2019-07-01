@@ -138,13 +138,11 @@ void lv_canvas_set_px(lv_obj_t * canvas, lv_coord_t x, lv_coord_t y, lv_color_t 
     uint8_t * buf_u8 = (uint8_t *) ext->dsc.data;
 
     if(ext->dsc.header.cf == LV_IMG_CF_TRUE_COLOR ||
-            ext->dsc.header.cf == LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED)
-    {
+       ext->dsc.header.cf == LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED) {
         uint32_t px = ext->dsc.header.w * y * sizeof(lv_color_t) + x * sizeof(lv_color_t);
 
         memcpy(&buf_u8[px], &c, sizeof(lv_color_t));
-    }
-    else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_1BIT) {
+    } else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_1BIT) {
         buf_u8 += 4 * 2;
         uint8_t bit = x & 0x7;
         x = x >> 3;
@@ -152,8 +150,7 @@ void lv_canvas_set_px(lv_obj_t * canvas, lv_coord_t x, lv_coord_t y, lv_color_t 
         uint32_t px = (ext->dsc.header.w >> 3) * y + x;
         buf_u8[px] = buf_u8[px] & ~(1 << (7 - bit));
         buf_u8[px] = buf_u8[px] | ((c.full & 0x1) << (7 - bit));
-    }
-    else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_2BIT) {
+    } else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_2BIT) {
         buf_u8 += 4 * 4;
         uint8_t bit = (x & 0x3) * 2;
         x = x >> 2;
@@ -162,8 +159,7 @@ void lv_canvas_set_px(lv_obj_t * canvas, lv_coord_t x, lv_coord_t y, lv_color_t 
 
         buf_u8[px] = buf_u8[px] & ~(3 << (6 - bit));
         buf_u8[px] = buf_u8[px] | ((c.full & 0x3) << (6 - bit));
-    }
-    else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_4BIT) {
+    } else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_4BIT) {
         buf_u8 += 4 * 16;
         uint8_t bit = (x & 0x1) * 4;
         x = x >> 1;
@@ -172,8 +168,7 @@ void lv_canvas_set_px(lv_obj_t * canvas, lv_coord_t x, lv_coord_t y, lv_color_t 
 
         buf_u8[px] = buf_u8[px] & ~(0xF << (4 - bit));
         buf_u8[px] = buf_u8[px] | ((c.full & 0xF) << (4 - bit));
-    }
-    else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_8BIT) {
+    } else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_8BIT) {
         buf_u8 += 4 * 256;
         uint32_t px = ext->dsc.header.w * y + x;
         buf_u8[px] = c.full;
@@ -218,36 +213,31 @@ lv_color_t lv_canvas_get_px(lv_obj_t * canvas, lv_coord_t x, lv_coord_t y)
     uint8_t * buf_u8 = (uint8_t *) ext->dsc.data;
 
     if(ext->dsc.header.cf == LV_IMG_CF_TRUE_COLOR ||
-            ext->dsc.header.cf == LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED)
-    {
+       ext->dsc.header.cf == LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED) {
         uint32_t px = ext->dsc.header.w * y * sizeof(lv_color_t) + x * sizeof(lv_color_t);
         memcpy(&p_color, &buf_u8[px], sizeof(lv_color_t));
-    }
-    else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_1BIT) {
+    } else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_1BIT) {
         buf_u8 += 4 * 2;
         uint8_t bit = x & 0x7;
         x = x >> 3;
 
         uint32_t px = (ext->dsc.header.w >> 3) * y + x;
         p_color.full = (buf_u8[px] & (1 << (7 - bit))) >> (7 - bit);
-    }
-    else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_2BIT) {
+    } else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_2BIT) {
         buf_u8 += 4 * 4;
         uint8_t bit = (x & 0x3) * 2;
         x = x >> 2;
 
         uint32_t px = (ext->dsc.header.w >> 2) * y + x;
         p_color.full = (buf_u8[px] & (3 << (6 - bit))) >> (6 - bit);
-    }
-    else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_4BIT) {
+    } else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_4BIT) {
         buf_u8 += 4 * 16;
         uint8_t bit = (x & 0x1) * 4;
         x = x >> 1;
 
         uint32_t px = (ext->dsc.header.w >> 1) * y + x;
         p_color.full = (buf_u8[px] & (0xF << (4 - bit))) >> (4 - bit);
-    }
-    else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_8BIT) {
+    } else if(ext->dsc.header.cf == LV_IMG_CF_INDEXED_8BIT) {
         buf_u8 += 4 * 256;
         uint32_t px = ext->dsc.header.w * y + x;
         p_color.full = buf_u8[px];
@@ -363,8 +353,7 @@ void lv_canvas_draw_circle(lv_obj_t * canvas, lv_coord_t x0, lv_coord_t y0, lv_c
     int y = 0;
     int err = 0;
 
-    while (x >= y)
-    {
+    while (x >= y) {
         lv_canvas_set_px(canvas, x0 + x, y0 + y, color);
         lv_canvas_set_px(canvas, x0 + y, y0 + x, color);
         lv_canvas_set_px(canvas, x0 - y, y0 + x, color);
@@ -374,14 +363,12 @@ void lv_canvas_draw_circle(lv_obj_t * canvas, lv_coord_t x0, lv_coord_t y0, lv_c
         lv_canvas_set_px(canvas, x0 + y, y0 - x, color);
         lv_canvas_set_px(canvas, x0 + x, y0 - y, color);
 
-        if (err <= 0)
-        {
+        if (err <= 0) {
             y += 1;
             err += 2*y + 1;
         }
 
-        if (err > 0)
-        {
+        if (err > 0) {
             x -= 1;
             err -= 2*x + 1;
         }
@@ -402,25 +389,31 @@ void lv_canvas_draw_circle(lv_obj_t * canvas, lv_coord_t x0, lv_coord_t y0, lv_c
  */
 void lv_canvas_draw_line(lv_obj_t * canvas, lv_point_t point1, lv_point_t point2, lv_color_t color)
 {
-  lv_coord_t x0, y0, x1, y1;
+    lv_coord_t x0, y0, x1, y1;
 
-  x0 = point1.x;
-  y0 = point1.y;
-  x1 = point2.x;
-  y1 = point2.y;
+    x0 = point1.x;
+    y0 = point1.y;
+    x1 = point2.x;
+    y1 = point2.y;
 
-  int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
-  int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1; 
-  int err = (dx>dy ? dx : -dy)/2, e2;
- 
-  for(;;){    
-    lv_canvas_set_px(canvas, x0, y0, color);
+    int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
+    int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
+    int err = (dx>dy ? dx : -dy)/2, e2;
 
-    if (x0==x1 && y0==y1) break;
-    e2 = err;
-    if (e2 >-dx) { err -= dy; x0 += sx; }
-    if (e2 < dy) { err += dx; y0 += sy; }
-  }
+    for(;;) {
+        lv_canvas_set_px(canvas, x0, y0, color);
+
+        if (x0==x1 && y0==y1) break;
+        e2 = err;
+        if (e2 >-dx) {
+            err -= dy;
+            x0 += sx;
+        }
+        if (e2 < dy) {
+            err += dx;
+            y0 += sy;
+        }
+    }
 }
 
 /**
@@ -430,8 +423,8 @@ void lv_canvas_draw_line(lv_obj_t * canvas, lv_point_t point1, lv_point_t point2
  * @param color line color of the triangle
  */
 void lv_canvas_draw_triangle(lv_obj_t * canvas, lv_point_t * points, lv_color_t color)
-{ 
-  lv_canvas_draw_polygon(canvas, points, 3, color);
+{
+    lv_canvas_draw_polygon(canvas, points, 3, color);
 }
 
 /**
@@ -441,8 +434,8 @@ void lv_canvas_draw_triangle(lv_obj_t * canvas, lv_point_t * points, lv_color_t 
  * @param color line color of the rectangle
  */
 void lv_canvas_draw_rect(lv_obj_t * canvas, lv_point_t * points, lv_color_t color)
-{ 
-  lv_canvas_draw_polygon(canvas, points, 4, color);
+{
+    lv_canvas_draw_polygon(canvas, points, 4, color);
 }
 
 /**
@@ -453,14 +446,14 @@ void lv_canvas_draw_rect(lv_obj_t * canvas, lv_point_t * points, lv_color_t colo
  * @param color line color of the polygon
  */
 void lv_canvas_draw_polygon(lv_obj_t * canvas, lv_point_t * points, size_t size, lv_color_t color)
-{ 
-  uint8_t i;
+{
+    uint8_t i;
 
-  for(i=0; i < (size - 1); i++) {
-    lv_canvas_draw_line(canvas, points[i], points[i + 1], color);
-  }
+    for(i=0; i < (size - 1); i++) {
+        lv_canvas_draw_line(canvas, points[i], points[i + 1], color);
+    }
 
-  lv_canvas_draw_line(canvas, points[size - 1], points[0], color);
+    lv_canvas_draw_line(canvas, points[size - 1], points[0], color);
 }
 
 /**
@@ -473,18 +466,18 @@ void lv_canvas_draw_polygon(lv_obj_t * canvas, lv_point_t * points, size_t size,
  */
 void lv_canvas_fill_polygon(lv_obj_t * canvas, lv_point_t * points, size_t size, lv_color_t boundary_color, lv_color_t fill_color)
 {
-  uint32_t x = 0, y = 0;
-  uint8_t i;
+    uint32_t x = 0, y = 0;
+    uint8_t i;
 
-  for(i=0; i<size; i++) {
-    x += points[i].x;
-    y += points[i].y;
-  }
+    for(i=0; i<size; i++) {
+        x += points[i].x;
+        y += points[i].y;
+    }
 
-  x = x / size;
-  y = y / size;
+    x = x / size;
+    y = y / size;
 
-  lv_canvas_boundary_fill4(canvas, (lv_coord_t) x, (lv_coord_t) y, boundary_color, fill_color);
+    lv_canvas_boundary_fill4(canvas, (lv_coord_t) x, (lv_coord_t) y, boundary_color, fill_color);
 }
 
 /**
@@ -493,7 +486,7 @@ void lv_canvas_fill_polygon(lv_obj_t * canvas, lv_point_t * points, size_t size,
  * @param x x coordinate of the start position (seed)
  * @param y y coordinate of the start position (seed)
  * @param boundary_color edge/boundary color of the area
- * @param fill_color fill color of the area 
+ * @param fill_color fill color of the area
  */
 void lv_canvas_boundary_fill4(lv_obj_t * canvas, lv_coord_t x, lv_coord_t y, lv_color_t boundary_color, lv_color_t fill_color)
 {
@@ -502,14 +495,13 @@ void lv_canvas_boundary_fill4(lv_obj_t * canvas, lv_coord_t x, lv_coord_t y, lv_
     c = lv_canvas_get_px(canvas, x, y);
 
     if(c.full != boundary_color.full &&
-       c.full != fill_color.full)
-    {
-      lv_canvas_set_px(canvas, x, y, fill_color);
+       c.full != fill_color.full) {
+        lv_canvas_set_px(canvas, x, y, fill_color);
 
-      lv_canvas_boundary_fill4(canvas, x + 1,     y, boundary_color, fill_color);
-      lv_canvas_boundary_fill4(canvas,     x, y + 1, boundary_color, fill_color);
-      lv_canvas_boundary_fill4(canvas, x - 1,     y, boundary_color, fill_color);
-      lv_canvas_boundary_fill4(canvas,     x, y - 1, boundary_color, fill_color);
+        lv_canvas_boundary_fill4(canvas, x + 1,     y, boundary_color, fill_color);
+        lv_canvas_boundary_fill4(canvas,     x, y + 1, boundary_color, fill_color);
+        lv_canvas_boundary_fill4(canvas, x - 1,     y, boundary_color, fill_color);
+        lv_canvas_boundary_fill4(canvas,     x, y - 1, boundary_color, fill_color);
     }
 }
 
@@ -523,19 +515,18 @@ void lv_canvas_boundary_fill4(lv_obj_t * canvas, lv_coord_t x, lv_coord_t y, lv_
  */
 void lv_canvas_flood_fill(lv_obj_t * canvas, lv_coord_t x, lv_coord_t y, lv_color_t fill_color, lv_color_t bg_color)
 {
-  lv_color_t c;
+    lv_color_t c;
 
-  c = lv_canvas_get_px(canvas, x, y);
+    c = lv_canvas_get_px(canvas, x, y);
 
-  if(c.full == bg_color.full)
-  {
-    lv_canvas_set_px(canvas, x, y, fill_color);
+    if(c.full == bg_color.full) {
+        lv_canvas_set_px(canvas, x, y, fill_color);
 
-    lv_canvas_flood_fill(canvas, x+1,   y, fill_color, bg_color);
-    lv_canvas_flood_fill(canvas,   x, y+1, fill_color, bg_color);
-    lv_canvas_flood_fill(canvas, x-1,   y, fill_color, bg_color);
-    lv_canvas_flood_fill(canvas,   x, y-1, fill_color, bg_color);
-  }
+        lv_canvas_flood_fill(canvas, x+1,   y, fill_color, bg_color);
+        lv_canvas_flood_fill(canvas,   x, y+1, fill_color, bg_color);
+        lv_canvas_flood_fill(canvas, x-1,   y, fill_color, bg_color);
+        lv_canvas_flood_fill(canvas,   x, y-1, fill_color, bg_color);
+    }
 }
 
 /**********************

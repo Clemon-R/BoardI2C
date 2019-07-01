@@ -92,7 +92,7 @@ lv_obj_t * lv_list_create(lv_obj_t * par, const lv_obj_t * copy)
     ext->anim_time = LV_LIST_FOCUS_TIME;
     ext->single_mode = false;
     ext->size = 0;
-    
+
 #if USE_LV_GROUP
     ext->last_sel = NULL;
     ext->selected_btn = NULL;
@@ -341,47 +341,47 @@ void lv_list_set_style(lv_obj_t * list, lv_list_style_t type, lv_style_t * style
     lv_obj_t * btn;
 
     switch(type) {
-        case LV_LIST_STYLE_BG:
-            lv_page_set_style(list, LV_PAGE_STYLE_BG, style);
-            /*style change signal will call 'refr_btn_width' */
-            break;
-        case LV_LIST_STYLE_SCRL:
-            lv_page_set_style(list, LV_PAGE_STYLE_SCRL, style);
-            refr_btn_width(list);
-            break;
-        case LV_LIST_STYLE_SB:
-            lv_page_set_style(list, LV_PAGE_STYLE_SB, style);
-            break;
-        case LV_LIST_STYLE_EDGE_FLASH:
-            lv_page_set_style(list, LV_PAGE_STYLE_EDGE_FLASH, style);
-            break;
-        case LV_LIST_STYLE_BTN_REL:
-            ext->styles_btn[LV_BTN_STATE_REL] = style;
-            btn_style_refr = LV_BTN_STYLE_REL;
-            break;
-        case LV_LIST_STYLE_BTN_PR:
-            ext->styles_btn[LV_BTN_STATE_PR] = style;
-            btn_style_refr = LV_BTN_STYLE_PR;
-            break;
-        case LV_LIST_STYLE_BTN_TGL_REL:
-            ext->styles_btn[LV_BTN_STATE_TGL_REL] = style;
-            btn_style_refr = LV_BTN_STYLE_TGL_REL;
-            break;
-        case LV_LIST_STYLE_BTN_TGL_PR:
-            ext->styles_btn[LV_BTN_STATE_TGL_PR] = style;
-            btn_style_refr = LV_BTN_STYLE_TGL_PR;
-            break;
-        case LV_LIST_STYLE_BTN_INA:
-            ext->styles_btn[LV_BTN_STATE_INA] = style;
-            btn_style_refr = LV_BTN_STYLE_INA;
-            break;
+    case LV_LIST_STYLE_BG:
+        lv_page_set_style(list, LV_PAGE_STYLE_BG, style);
+        /*style change signal will call 'refr_btn_width' */
+        break;
+    case LV_LIST_STYLE_SCRL:
+        lv_page_set_style(list, LV_PAGE_STYLE_SCRL, style);
+        refr_btn_width(list);
+        break;
+    case LV_LIST_STYLE_SB:
+        lv_page_set_style(list, LV_PAGE_STYLE_SB, style);
+        break;
+    case LV_LIST_STYLE_EDGE_FLASH:
+        lv_page_set_style(list, LV_PAGE_STYLE_EDGE_FLASH, style);
+        break;
+    case LV_LIST_STYLE_BTN_REL:
+        ext->styles_btn[LV_BTN_STATE_REL] = style;
+        btn_style_refr = LV_BTN_STYLE_REL;
+        break;
+    case LV_LIST_STYLE_BTN_PR:
+        ext->styles_btn[LV_BTN_STATE_PR] = style;
+        btn_style_refr = LV_BTN_STYLE_PR;
+        break;
+    case LV_LIST_STYLE_BTN_TGL_REL:
+        ext->styles_btn[LV_BTN_STATE_TGL_REL] = style;
+        btn_style_refr = LV_BTN_STYLE_TGL_REL;
+        break;
+    case LV_LIST_STYLE_BTN_TGL_PR:
+        ext->styles_btn[LV_BTN_STATE_TGL_PR] = style;
+        btn_style_refr = LV_BTN_STYLE_TGL_PR;
+        break;
+    case LV_LIST_STYLE_BTN_INA:
+        ext->styles_btn[LV_BTN_STATE_INA] = style;
+        btn_style_refr = LV_BTN_STYLE_INA;
+        break;
     }
 
 
     /*Refresh existing buttons' style*/
     if(type == LV_LIST_STYLE_BTN_PR || type == LV_LIST_STYLE_BTN_REL ||
-            type == LV_LIST_STYLE_BTN_TGL_REL || type == LV_LIST_STYLE_BTN_TGL_PR ||
-            type == LV_LIST_STYLE_BTN_INA) {
+       type == LV_LIST_STYLE_BTN_TGL_REL || type == LV_LIST_STYLE_BTN_TGL_PR ||
+       type == LV_LIST_STYLE_BTN_INA) {
         btn = lv_list_get_prev_btn(list, NULL);
         while(btn != NULL) {
             lv_btn_set_style(btn, btn_style_refr, ext->styles_btn[btn_style_refr]);
@@ -484,12 +484,12 @@ lv_obj_t * lv_list_get_prev_btn(const lv_obj_t * list, lv_obj_t * prev_btn)
 
 
 
- /**
- * Get the next button from list. (Starts from the bottom button)
- * @param list pointer to a list object
- * @param prev_btn pointer to button. Search the next after it.
- * @return pointer to the next button or NULL when no more buttons
- */
+/**
+* Get the next button from list. (Starts from the bottom button)
+* @param list pointer to a list object
+* @param prev_btn pointer to button. Search the next after it.
+* @return pointer to the next button or NULL when no more buttons
+*/
 lv_obj_t * lv_list_get_next_btn(const lv_obj_t * list, lv_obj_t * prev_btn)
 {
     /* Not a good practice but user can add/create objects to the lists manually.
@@ -518,7 +518,7 @@ lv_obj_t * lv_list_get_next_btn(const lv_obj_t * list, lv_obj_t * prev_btn)
 int32_t lv_list_get_btn_index(const lv_obj_t * list, const lv_obj_t * btn)
 {
     int index = 0;
-    if( list == NULL ){
+    if( list == NULL ) {
         /* no list provided, assuming btn is part of a list */
         list = lv_obj_get_parent(lv_obj_get_parent(btn));
     }
@@ -581,36 +581,36 @@ lv_style_t * lv_list_get_style(const lv_obj_t * list, lv_list_style_t type)
     lv_list_ext_t * ext = lv_obj_get_ext_attr(list);
 
     switch(type) {
-        case LV_LIST_STYLE_BG:
-            style = lv_page_get_style(list, LV_PAGE_STYLE_BG);
-            break;
-        case LV_LIST_STYLE_SCRL:
-            style = lv_page_get_style(list, LV_PAGE_STYLE_SB);
-            break;
-        case LV_LIST_STYLE_SB:
-            style = lv_page_get_style(list, LV_PAGE_STYLE_SCRL);
-            break;
-        case LV_LIST_STYLE_EDGE_FLASH:
-            style = lv_page_get_style(list, LV_PAGE_STYLE_EDGE_FLASH);
-            break;
-        case LV_LIST_STYLE_BTN_REL:
-            style = ext->styles_btn[LV_BTN_STATE_REL];
-            break;
-        case LV_LIST_STYLE_BTN_PR:
-            style = ext->styles_btn[LV_BTN_STATE_PR];
-            break;
-        case LV_LIST_STYLE_BTN_TGL_REL:
-            style = ext->styles_btn[LV_BTN_STATE_TGL_REL];
-            break;
-        case LV_LIST_STYLE_BTN_TGL_PR:
-            style = ext->styles_btn[LV_BTN_STATE_TGL_PR];
-            break;
-        case LV_LIST_STYLE_BTN_INA:
-            style = ext->styles_btn[LV_BTN_STATE_INA];
-            break;
-        default:
-            style = NULL;
-            break;
+    case LV_LIST_STYLE_BG:
+        style = lv_page_get_style(list, LV_PAGE_STYLE_BG);
+        break;
+    case LV_LIST_STYLE_SCRL:
+        style = lv_page_get_style(list, LV_PAGE_STYLE_SB);
+        break;
+    case LV_LIST_STYLE_SB:
+        style = lv_page_get_style(list, LV_PAGE_STYLE_SCRL);
+        break;
+    case LV_LIST_STYLE_EDGE_FLASH:
+        style = lv_page_get_style(list, LV_PAGE_STYLE_EDGE_FLASH);
+        break;
+    case LV_LIST_STYLE_BTN_REL:
+        style = ext->styles_btn[LV_BTN_STATE_REL];
+        break;
+    case LV_LIST_STYLE_BTN_PR:
+        style = ext->styles_btn[LV_BTN_STATE_PR];
+        break;
+    case LV_LIST_STYLE_BTN_TGL_REL:
+        style = ext->styles_btn[LV_BTN_STATE_TGL_REL];
+        break;
+    case LV_LIST_STYLE_BTN_TGL_PR:
+        style = ext->styles_btn[LV_BTN_STATE_TGL_PR];
+        break;
+    case LV_LIST_STYLE_BTN_INA:
+        style = ext->styles_btn[LV_BTN_STATE_INA];
+        break;
+    default:
+        style = NULL;
+        break;
     }
 
     return style;
@@ -763,8 +763,7 @@ static lv_res_t lv_list_signal(lv_obj_t * list, lv_signal_t sign, void * param)
                 if(NULL != ext->last_sel) {
                     /* Select the    last used button */
                     lv_list_set_btn_selected(list, ext->last_sel);
-                }
-                else {
+                } else {
                     /*Get the first button and mark it as selected*/
                     lv_list_set_btn_selected(list, lv_list_get_next_btn(list, NULL));
                 }
@@ -782,8 +781,7 @@ static lv_res_t lv_list_signal(lv_obj_t * list, lv_signal_t sign, void * param)
                 if(NULL != ext->last_sel) {
                     /* Select the last used button */
                     lv_list_set_btn_selected(list, ext->last_sel);
-                }
-                else {
+                } else {
                     /*Get the first button and mark it as selected*/
                     lv_list_set_btn_selected(list, lv_list_get_next_btn(list, NULL));
                 }
@@ -901,17 +899,14 @@ static lv_res_t lv_list_btn_signal(lv_obj_t * btn, lv_signal_t sign, void * para
          * to mark it as selected (pressed state)*/
         last_clicked_btn = btn;
 #endif
-        if(lv_indev_is_dragging(lv_indev_get_act()) == false && ext->single_mode)
-        {
+        if(lv_indev_is_dragging(lv_indev_get_act()) == false && ext->single_mode) {
             lv_list_btn_single_selected(btn);
         }
-    }
-    else if(sign == LV_SIGNAL_PRESS_LOST) {
+    } else if(sign == LV_SIGNAL_PRESS_LOST) {
         lv_obj_t * list = lv_obj_get_parent(lv_obj_get_parent(btn));
         lv_list_ext_t * ext = lv_obj_get_ext_attr(list);
         ext->page.scroll_prop_ip = 0;
-    }
-    else if(sign == LV_SIGNAL_CLEANUP) {
+    } else if(sign == LV_SIGNAL_CLEANUP) {
 
 #if USE_LV_GROUP
         lv_obj_t * list = lv_obj_get_parent(lv_obj_get_parent(btn));
@@ -954,14 +949,10 @@ static void lv_list_btn_single_selected(lv_obj_t *btn)
     lv_obj_t *list = lv_obj_get_parent(lv_obj_get_parent(btn));
 
     lv_obj_t * e = lv_list_get_next_btn(list, NULL);
-    do
-    {
-        if(e == btn)
-        {
+    do {
+        if(e == btn) {
             lv_btn_set_state(e, LV_BTN_STATE_TGL_REL);
-        }
-        else
-        {
+        } else {
             lv_btn_set_state(e, LV_BTN_STATE_REL);
         }
         e = lv_list_get_next_btn(list, e);

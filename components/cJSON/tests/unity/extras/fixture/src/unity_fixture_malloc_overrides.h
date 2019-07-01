@@ -16,9 +16,9 @@
  * This internal unity_malloc() provides allocated memory deterministically from
  * the end of an array only, unity_free() only releases from end-of-array,
  * blocks are not coalesced, and memory not freed in LIFO order is stranded. */
-    #ifndef UNITY_INTERNAL_HEAP_SIZE_BYTES
-    #define UNITY_INTERNAL_HEAP_SIZE_BYTES 256
-    #endif
+#ifndef UNITY_INTERNAL_HEAP_SIZE_BYTES
+#define UNITY_INTERNAL_HEAP_SIZE_BYTES 256
+#endif
 #endif
 
 /* These functions are used by the Unity Fixture to allocate and release memory
@@ -26,12 +26,12 @@
  * For example, when using FreeRTOS UNITY_FIXTURE_MALLOC becomes pvPortMalloc()
  * and UNITY_FIXTURE_FREE becomes vPortFree(). */
 #if !defined(UNITY_FIXTURE_MALLOC) || !defined(UNITY_FIXTURE_FREE)
-    #include <stdlib.h>
-    #define UNITY_FIXTURE_MALLOC(size) malloc(size)
-    #define UNITY_FIXTURE_FREE(ptr)    free(ptr)
+#include <stdlib.h>
+#define UNITY_FIXTURE_MALLOC(size) malloc(size)
+#define UNITY_FIXTURE_FREE(ptr)    free(ptr)
 #else
-    extern void* UNITY_FIXTURE_MALLOC(size_t size);
-    extern void UNITY_FIXTURE_FREE(void* ptr);
+extern void* UNITY_FIXTURE_MALLOC(size_t size);
+extern void UNITY_FIXTURE_FREE(void* ptr);
 #endif
 
 #define malloc  unity_malloc

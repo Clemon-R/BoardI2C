@@ -336,11 +336,13 @@ void lv_group_set_click_focus(lv_group_t * group, bool en)
     group->click_focus = en ? 1 : 0;
 }
 
-void lv_group_set_refocus_policy(lv_group_t * group, lv_group_refocus_policy_t policy) {
+void lv_group_set_refocus_policy(lv_group_t * group, lv_group_refocus_policy_t policy)
+{
     group->refocus_policy = policy & 0x01;
 }
 
-static void lv_group_refocus(lv_group_t *g) {
+static void lv_group_refocus(lv_group_t *g)
+{
     /*Refocus must temporarily allow wrapping to work correctly*/
     uint8_t temp_wrap = g->wrap;
     g->wrap = 1;

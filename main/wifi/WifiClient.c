@@ -119,7 +119,7 @@ esp_err_t    startWifiClient(WifiConfig_t   *config)
     memcpy(tmp, config, sizeof(WifiConfig_t));
     if (!_wifiEventGroup)
         _wifiEventGroup = xEventGroupCreate();
-    return xTaskCreate(taskWifi, "wifiTask", 10240, tmp, tskIDLE_PRIORITY, &wifiTask);
+    return xTaskCreate(taskWifi, "wifiTask", 4096, tmp, tskIDLE_PRIORITY, &wifiTask);
 }
 
 esp_err_t   stopWifiClient()

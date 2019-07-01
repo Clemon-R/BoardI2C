@@ -37,8 +37,7 @@ typedef struct {
     int8_t day;
 } lv_calendar_date_t;
 
-enum
-{
+enum {
     LV_CALENDAR_ACTION_CLICK,
     LV_CALENDAR_ACTION_PR,
     LV_CALENDAR_ACTION_LONG_PR,

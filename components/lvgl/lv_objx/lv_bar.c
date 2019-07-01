@@ -207,13 +207,13 @@ void lv_bar_set_style(lv_obj_t * bar, lv_bar_style_t type, lv_style_t * style)
     lv_bar_ext_t * ext = lv_obj_get_ext_attr(bar);
 
     switch(type) {
-        case LV_BAR_STYLE_BG:
-            lv_obj_set_style(bar, style);
-            break;
-        case LV_BAR_STYLE_INDIC:
-            ext->style_indic = style;
-            lv_obj_refresh_ext_size(bar);
-            break;
+    case LV_BAR_STYLE_BG:
+        lv_obj_set_style(bar, style);
+        break;
+    case LV_BAR_STYLE_INDIC:
+        ext->style_indic = style;
+        lv_obj_refresh_ext_size(bar);
+        break;
     }
 }
 
@@ -277,15 +277,15 @@ lv_style_t * lv_bar_get_style(const lv_obj_t * bar, lv_bar_style_t type)
     lv_bar_ext_t * ext = lv_obj_get_ext_attr(bar);
 
     switch(type) {
-        case LV_BAR_STYLE_BG:
-            style = lv_obj_get_style(bar);
-            break;
-        case LV_BAR_STYLE_INDIC:
-            style = ext->style_indic;
-            break;
-        default:
-            style = NULL;
-            break;
+    case LV_BAR_STYLE_BG:
+        style = lv_obj_get_style(bar);
+        break;
+    case LV_BAR_STYLE_INDIC:
+        style = ext->style_indic;
+        break;
+    default:
+        style = NULL;
+        break;
     }
 
     return style;

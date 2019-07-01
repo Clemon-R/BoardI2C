@@ -30,8 +30,7 @@
 #include "../cJSON_Utils.h"
 
 /* JSON Apply Merge tests: */
-static const char *merges[15][3] =
-{
+static const char *merges[15][3] = {
     {"{\"a\":\"b\"}", "{\"a\":\"c\"}", "{\"a\":\"c\"}"},
     {"{\"a\":\"b\"}", "{\"b\":\"c\"}", "{\"a\":\"b\",\"b\":\"c\"}"},
     {"{\"a\":\"b\"}", "{\"a\":null}", "{}"},
@@ -126,8 +125,7 @@ static void sort_tests(void)
 
     /* JSON Sort test: */
     sortme = cJSON_CreateObject();
-    for (i = 0; i < 26; i++)
-    {
+    for (i = 0; i < 26; i++) {
         buf[0] = random[i];
         cJSON_AddItemToObject(sortme, buf, cJSON_CreateNumber(1));
     }
@@ -136,8 +134,7 @@ static void sort_tests(void)
 
     /* check sorting */
     current_element = sortme->child->next;
-    for (i = 1; (i < 26) && (current_element != NULL) && (current_element->prev != NULL); i++)
-    {
+    for (i = 1; (i < 26) && (current_element != NULL) && (current_element->prev != NULL); i++) {
         TEST_ASSERT_TRUE(current_element->string[0] >= current_element->prev->string[0]);
         current_element = current_element->next;
     }
@@ -153,8 +150,7 @@ static void merge_tests(void)
 
     /* Merge tests: */
     printf("JSON Merge Patch tests\n");
-    for (i = 0; i < 15; i++)
-    {
+    for (i = 0; i < 15; i++) {
         cJSON *object_to_be_merged = cJSON_Parse(merges[i][0]);
         cJSON *patch = cJSON_Parse(merges[i][1]);
         patchtext = cJSON_PrintUnformatted(patch);
@@ -175,8 +171,7 @@ static void generate_merge_tests(void)
     char *patchedtext = NULL;
 
     /* Generate Merge tests: */
-    for (i = 0; i < 15; i++)
-    {
+    for (i = 0; i < 15; i++) {
         cJSON *from = cJSON_Parse(merges[i][0]);
         cJSON *to = cJSON_Parse(merges[i][2]);
         cJSON *patch = cJSONUtils_GenerateMergePatch(from,to);

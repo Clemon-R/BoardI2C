@@ -68,36 +68,36 @@ lv_color_t lv_color_hsv_to_rgb(uint16_t h, uint8_t s, uint8_t v)
     t = (v * (255 - ((s * (255 - remainder)) >> 8))) >> 8;
 
     switch(region) {
-        case 0:
-            r = v;
-            g = t;
-            b = p;
-            break;
-        case 1:
-            r = q;
-            g = v;
-            b = p;
-            break;
-        case 2:
-            r = p;
-            g = v;
-            b = t;
-            break;
-        case 3:
-            r = p;
-            g = q;
-            b = v;
-            break;
-        case 4:
-            r = t;
-            g = p;
-            b = v;
-            break;
-        default:
-            r = v;
-            g = p;
-            b = q;
-            break;
+    case 0:
+        r = v;
+        g = t;
+        b = p;
+        break;
+    case 1:
+        r = q;
+        g = v;
+        b = p;
+        break;
+    case 2:
+        r = p;
+        g = v;
+        b = t;
+        break;
+    case 3:
+        r = p;
+        g = q;
+        b = v;
+        break;
+    case 4:
+        r = t;
+        g = p;
+        b = v;
+        break;
+    default:
+        r = v;
+        g = p;
+        b = q;
+        break;
     }
 
     lv_color_t result = LV_COLOR_MAKE(r, g, b);

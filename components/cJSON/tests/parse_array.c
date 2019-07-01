@@ -115,8 +115,7 @@ static void parse_array_should_parse_arrays_with_multiple_elements(void)
     {
         size_t i = 0;
         cJSON *node = NULL;
-        int expected_types[7] =
-        {
+        int expected_types[7] = {
             cJSON_Number,
             cJSON_NULL,
             cJSON_True,
@@ -129,11 +128,10 @@ static void parse_array_should_parse_arrays_with_multiple_elements(void)
 
         node = item->child;
         for (
-                i = 0;
-                (i < (sizeof(expected_types)/sizeof(int)))
-                && (node != NULL);
-                (void)i++, node = node->next)
-        {
+            i = 0;
+            (i < (sizeof(expected_types)/sizeof(int)))
+            && (node != NULL);
+            (void)i++, node = node->next) {
             TEST_ASSERT_BITS(0xFF, expected_types[i], node->type);
         }
         TEST_ASSERT_EQUAL_INT(i, 7);

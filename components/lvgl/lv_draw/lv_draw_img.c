@@ -150,36 +150,36 @@ uint8_t lv_img_color_format_get_px_size(lv_img_cf_t cf)
     uint8_t px_size = 0;
 
     switch(cf) {
-        case LV_IMG_CF_UNKOWN:
-        case LV_IMG_CF_RAW:
-            px_size = 0;
-            break;
-        case LV_IMG_CF_TRUE_COLOR:
-        case LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED:
-            px_size = LV_COLOR_SIZE;
-            break;
-        case LV_IMG_CF_TRUE_COLOR_ALPHA:
-            px_size = LV_IMG_PX_SIZE_ALPHA_BYTE << 3;
-            break;
-        case LV_IMG_CF_INDEXED_1BIT:
-        case LV_IMG_CF_ALPHA_1BIT:
-            px_size = 1;
-            break;
-        case LV_IMG_CF_INDEXED_2BIT:
-        case LV_IMG_CF_ALPHA_2BIT:
-            px_size = 2;
-            break;
-        case LV_IMG_CF_INDEXED_4BIT:
-        case LV_IMG_CF_ALPHA_4BIT:
-            px_size = 4;
-            break;
-        case LV_IMG_CF_INDEXED_8BIT:
-        case LV_IMG_CF_ALPHA_8BIT:
-            px_size = 8;
-            break;
-        default:
-            px_size = 0;
-            break;
+    case LV_IMG_CF_UNKOWN:
+    case LV_IMG_CF_RAW:
+        px_size = 0;
+        break;
+    case LV_IMG_CF_TRUE_COLOR:
+    case LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED:
+        px_size = LV_COLOR_SIZE;
+        break;
+    case LV_IMG_CF_TRUE_COLOR_ALPHA:
+        px_size = LV_IMG_PX_SIZE_ALPHA_BYTE << 3;
+        break;
+    case LV_IMG_CF_INDEXED_1BIT:
+    case LV_IMG_CF_ALPHA_1BIT:
+        px_size = 1;
+        break;
+    case LV_IMG_CF_INDEXED_2BIT:
+    case LV_IMG_CF_ALPHA_2BIT:
+        px_size = 2;
+        break;
+    case LV_IMG_CF_INDEXED_4BIT:
+    case LV_IMG_CF_ALPHA_4BIT:
+        px_size = 4;
+        break;
+    case LV_IMG_CF_INDEXED_8BIT:
+    case LV_IMG_CF_ALPHA_8BIT:
+        px_size = 8;
+        break;
+    default:
+        px_size = 0;
+        break;
     }
 
     return px_size;
@@ -190,17 +190,17 @@ bool lv_img_color_format_is_chroma_keyed(lv_img_cf_t cf)
     bool is_chroma_keyed = false;
 
     switch(cf) {
-        case LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED:
-        case LV_IMG_CF_RAW_CHROMA_KEYED:
-        case LV_IMG_CF_INDEXED_1BIT:
-        case LV_IMG_CF_INDEXED_2BIT:
-        case LV_IMG_CF_INDEXED_4BIT:
-        case LV_IMG_CF_INDEXED_8BIT:
-            is_chroma_keyed = true;
-            break;
-        default:
-            is_chroma_keyed = false;
-            break;
+    case LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED:
+    case LV_IMG_CF_RAW_CHROMA_KEYED:
+    case LV_IMG_CF_INDEXED_1BIT:
+    case LV_IMG_CF_INDEXED_2BIT:
+    case LV_IMG_CF_INDEXED_4BIT:
+    case LV_IMG_CF_INDEXED_8BIT:
+        is_chroma_keyed = true;
+        break;
+    default:
+        is_chroma_keyed = false;
+        break;
     }
 
     return is_chroma_keyed;
@@ -212,17 +212,17 @@ bool lv_img_color_format_has_alpha(lv_img_cf_t cf)
     bool has_alpha = false;
 
     switch(cf) {
-        case LV_IMG_CF_TRUE_COLOR_ALPHA:
-        case LV_IMG_CF_RAW_ALPHA:
-        case LV_IMG_CF_ALPHA_1BIT:
-        case LV_IMG_CF_ALPHA_2BIT:
-        case LV_IMG_CF_ALPHA_4BIT:
-        case LV_IMG_CF_ALPHA_8BIT:
-            has_alpha = true;
-            break;
-        default:
-            has_alpha = false;
-            break;
+    case LV_IMG_CF_TRUE_COLOR_ALPHA:
+    case LV_IMG_CF_RAW_ALPHA:
+    case LV_IMG_CF_ALPHA_1BIT:
+    case LV_IMG_CF_ALPHA_2BIT:
+    case LV_IMG_CF_ALPHA_4BIT:
+    case LV_IMG_CF_ALPHA_8BIT:
+        has_alpha = true;
+        break;
+    default:
+        has_alpha = false;
+        break;
     }
 
     return has_alpha;
@@ -399,8 +399,8 @@ static const uint8_t * lv_img_decoder_open(const void * src, const lv_style_t * 
     /*Process the different color formats*/
     lv_img_cf_t cf = decoder_header.cf;
     if(cf == LV_IMG_CF_TRUE_COLOR ||
-            cf == LV_IMG_CF_TRUE_COLOR_ALPHA ||
-            cf == LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED) {
+       cf == LV_IMG_CF_TRUE_COLOR_ALPHA ||
+       cf == LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED) {
         if(decoder_src_type == LV_IMG_SRC_VARIABLE) {
             /*In case of uncompressed formats if the image stored in the ROM/RAM simply give it's pointer*/
             return ((lv_img_dsc_t *)decoder_src)->data;
@@ -484,8 +484,8 @@ static lv_res_t lv_img_decoder_read_line(lv_coord_t x, lv_coord_t y, lv_coord_t 
         lv_fs_res_t res;
 
         if(decoder_header.cf == LV_IMG_CF_TRUE_COLOR ||
-                decoder_header.cf == LV_IMG_CF_TRUE_COLOR_ALPHA ||
-                decoder_header.cf == LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED) {
+           decoder_header.cf == LV_IMG_CF_TRUE_COLOR_ALPHA ||
+           decoder_header.cf == LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED) {
             uint32_t pos = ((y * decoder_header.w + x) * px_size) >> 3;
             pos += 4;    /*Skip the header*/
             res = lv_fs_seek(&decoder_file, pos);
@@ -523,9 +523,9 @@ static lv_res_t lv_img_decoder_read_line(lv_coord_t x, lv_coord_t y, lv_coord_t 
         const lv_img_dsc_t * img_dsc = decoder_src;
 
         if(img_dsc->header.cf == LV_IMG_CF_ALPHA_1BIT ||
-                img_dsc->header.cf == LV_IMG_CF_ALPHA_2BIT ||
-                img_dsc->header.cf == LV_IMG_CF_ALPHA_4BIT ||
-                img_dsc->header.cf == LV_IMG_CF_ALPHA_8BIT) {
+           img_dsc->header.cf == LV_IMG_CF_ALPHA_2BIT ||
+           img_dsc->header.cf == LV_IMG_CF_ALPHA_4BIT ||
+           img_dsc->header.cf == LV_IMG_CF_ALPHA_8BIT) {
             lv_img_built_in_decoder_line_alpha(x, y, len, buf);
         } else if(img_dsc->header.cf == LV_IMG_CF_INDEXED_1BIT ||
                   img_dsc->header.cf == LV_IMG_CF_INDEXED_2BIT ||
@@ -598,32 +598,32 @@ static lv_res_t lv_img_built_in_decoder_line_alpha(lv_coord_t x, lv_coord_t y, l
     uint32_t ofs = 0;
     int8_t pos = 0;
     switch(decoder_header.cf) {
-        case LV_IMG_CF_ALPHA_1BIT:
-            w = (decoder_header.w >> 3);        /*E.g. w = 20 -> w = 2 + 1*/
-            if(decoder_header.w & 0x7) w++;
-            ofs += w * y + (x >> 3);      /*First pixel*/
-            pos = 7 - (x & 0x7);
-            opa_table = alpha1_opa_table;
-            break;
-        case LV_IMG_CF_ALPHA_2BIT:
-            w = (decoder_header.w >> 2);       /*E.g. w = 13 -> w = 3 + 1 (bytes)*/
-            if(decoder_header.w & 0x3) w++;
-            ofs += w * y + (x >> 2);      /*First pixel*/
-            pos = 6 - ((x & 0x3) * 2);
-            opa_table = alpha2_opa_table;
-            break;
-        case LV_IMG_CF_ALPHA_4BIT:
-            w = (decoder_header.w >> 1);       /*E.g. w = 13 -> w = 6 + 1 (bytes)*/
-            if(decoder_header.w & 0x1) w++;
-            ofs += w * y + (x >> 1);      /*First pixel*/
-            pos = 4 - ((x & 0x1) * 4);
-            opa_table = alpha4_opa_table;
-            break;
-        case LV_IMG_CF_ALPHA_8BIT:
-            w = decoder_header.w;              /*E.g. x = 7 -> w = 7 (bytes)*/
-            ofs += w * y + x;      /*First pixel*/
-            pos = 0;
-            break;
+    case LV_IMG_CF_ALPHA_1BIT:
+        w = (decoder_header.w >> 3);        /*E.g. w = 20 -> w = 2 + 1*/
+        if(decoder_header.w & 0x7) w++;
+        ofs += w * y + (x >> 3);      /*First pixel*/
+        pos = 7 - (x & 0x7);
+        opa_table = alpha1_opa_table;
+        break;
+    case LV_IMG_CF_ALPHA_2BIT:
+        w = (decoder_header.w >> 2);       /*E.g. w = 13 -> w = 3 + 1 (bytes)*/
+        if(decoder_header.w & 0x3) w++;
+        ofs += w * y + (x >> 2);      /*First pixel*/
+        pos = 6 - ((x & 0x3) * 2);
+        opa_table = alpha2_opa_table;
+        break;
+    case LV_IMG_CF_ALPHA_4BIT:
+        w = (decoder_header.w >> 1);       /*E.g. w = 13 -> w = 6 + 1 (bytes)*/
+        if(decoder_header.w & 0x1) w++;
+        ofs += w * y + (x >> 1);      /*First pixel*/
+        pos = 4 - ((x & 0x1) * 4);
+        opa_table = alpha4_opa_table;
+        break;
+    case LV_IMG_CF_ALPHA_8BIT:
+        w = decoder_header.w;              /*E.g. x = 7 -> w = 7 (bytes)*/
+        ofs += w * y + x;      /*First pixel*/
+        pos = 0;
+        break;
     }
 
 #if USE_LV_FILESYSTEM
@@ -684,33 +684,33 @@ static lv_res_t lv_img_built_in_decoder_line_indexed(lv_coord_t x, lv_coord_t y,
     int8_t pos = 0;
     uint32_t ofs = 0;
     switch(decoder_header.cf) {
-        case LV_IMG_CF_INDEXED_1BIT:
-            w = (decoder_header.w >> 3);       /*E.g. w = 20 -> w = 2 + 1*/
-            if(decoder_header.w & 0x7) w++;
-            ofs += w * y + (x >> 3);      /*First pixel*/
-            ofs += 8;                    /*Skip the palette*/
-            pos = 7 - (x & 0x7);
-            break;
-        case LV_IMG_CF_INDEXED_2BIT:
-            w = (decoder_header.w >> 2);       /*E.g. w = 13 -> w = 3 + 1 (bytes)*/
-            if(decoder_header.w & 0x3) w++;
-            ofs += w * y + (x >> 2);      /*First pixel*/
-            ofs += 16;                    /*Skip the palette*/
-            pos = 6 - ((x & 0x3) * 2);
-            break;
-        case LV_IMG_CF_INDEXED_4BIT:
-            w = (decoder_header.w >> 1);       /*E.g. w = 13 -> w = 6 + 1 (bytes)*/
-            if(decoder_header.w & 0x1) w++;
-            ofs += w * y + (x >> 1);      /*First pixel*/
-            ofs += 64;                    /*Skip the palette*/
-            pos = 4 - ((x & 0x1) * 4);
-            break;
-        case LV_IMG_CF_INDEXED_8BIT:
-            w = decoder_header.w;              /*E.g. x = 7 -> w = 7 (bytes)*/
-            ofs += w * y + x;              /*First pixel*/
-            ofs += 1024;                    /*Skip the palette*/
-            pos = 0;
-            break;
+    case LV_IMG_CF_INDEXED_1BIT:
+        w = (decoder_header.w >> 3);       /*E.g. w = 20 -> w = 2 + 1*/
+        if(decoder_header.w & 0x7) w++;
+        ofs += w * y + (x >> 3);      /*First pixel*/
+        ofs += 8;                    /*Skip the palette*/
+        pos = 7 - (x & 0x7);
+        break;
+    case LV_IMG_CF_INDEXED_2BIT:
+        w = (decoder_header.w >> 2);       /*E.g. w = 13 -> w = 3 + 1 (bytes)*/
+        if(decoder_header.w & 0x3) w++;
+        ofs += w * y + (x >> 2);      /*First pixel*/
+        ofs += 16;                    /*Skip the palette*/
+        pos = 6 - ((x & 0x3) * 2);
+        break;
+    case LV_IMG_CF_INDEXED_4BIT:
+        w = (decoder_header.w >> 1);       /*E.g. w = 13 -> w = 6 + 1 (bytes)*/
+        if(decoder_header.w & 0x1) w++;
+        ofs += w * y + (x >> 1);      /*First pixel*/
+        ofs += 64;                    /*Skip the palette*/
+        pos = 4 - ((x & 0x1) * 4);
+        break;
+    case LV_IMG_CF_INDEXED_8BIT:
+        w = decoder_header.w;              /*E.g. x = 7 -> w = 7 (bytes)*/
+        ofs += w * y + x;              /*First pixel*/
+        ofs += 1024;                    /*Skip the palette*/
+        pos = 0;
+        break;
     }
 
 #if USE_LV_FILESYSTEM

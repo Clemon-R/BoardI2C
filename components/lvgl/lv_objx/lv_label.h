@@ -37,8 +37,7 @@ extern "C" {
  **********************/
 
 /*Long mode behaviors. Used in 'lv_label_ext_t' */
-enum
-{
+enum {
     LV_LABEL_LONG_EXPAND,   /*Expand the object size to the text size*/
     LV_LABEL_LONG_BREAK,    /*Keep the object width, break the too long lines and expand the object height*/
     LV_LABEL_LONG_SCROLL,   /*Expand the object size and scroll the text on the parent (move the label object)*/
@@ -57,8 +56,7 @@ enum {
 typedef uint8_t lv_label_align_t;
 
 /*Data of label*/
-typedef struct
-{
+typedef struct {
     /*Inherited from 'base_obj' so no inherited ext.*/  /*Ext. of ancestor*/
     /*New data for this type */
     char * text;                            /*Text of the label*/

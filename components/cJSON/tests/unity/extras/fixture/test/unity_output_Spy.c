@@ -35,13 +35,10 @@ void UnityOutputCharSpy_Destroy(void)
 
 void UnityOutputCharSpy_OutputChar(int c)
 {
-    if (spy_enable)
-    {
+    if (spy_enable) {
         if (count < (size-1))
             buffer[count++] = (char)c;
-    }
-    else
-    {
+    } else {
         putchar(c);
     }
 }

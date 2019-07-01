@@ -185,7 +185,7 @@ void lv_draw_label(const lv_area_t * coords, const lv_area_t * mask, const lv_st
             letter_fp(&pos, mask, font, letter, color, opa);
             letter_w = lv_font_get_width(font, letter);
 
-            if(letter_w > 0){
+            if(letter_w > 0) {
                 pos.x += letter_w + style->text.letter_space;
             }
         }
@@ -231,32 +231,31 @@ static uint8_t hex_char_to_num(char hex)
 
     if(hex >= '0' && hex <= '9') {
         result = hex - '0';
-    }
-    else {
+    } else {
         if(hex >= 'a') hex -= 'a' - 'A';    /*Convert to upper case*/
 
         switch(hex) {
-            case 'A':
-                result = 10;
-                break;
-            case 'B':
-                result = 11;
-                break;
-            case 'C':
-                result = 12;
-                break;
-            case 'D':
-                result = 13;
-                break;
-            case 'E':
-                result = 14;
-                break;
-            case 'F':
-                result = 15;
-                break;
-            default:
-                result = 0;
-                break;
+        case 'A':
+            result = 10;
+            break;
+        case 'B':
+            result = 11;
+            break;
+        case 'C':
+            result = 12;
+            break;
+        case 'D':
+            result = 13;
+            break;
+        case 'E':
+            result = 14;
+            break;
+        case 'F':
+            result = 15;
+            break;
+        default:
+            result = 0;
+            break;
         }
     }
 

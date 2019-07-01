@@ -38,8 +38,7 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 /*Data of switch*/
-typedef struct
-{
+typedef struct {
     lv_slider_ext_t slider;         /*Ext. of ancestor*/
     /*New data for this type */
     lv_style_t *style_knob_off;     /*Style of the knob when the switch is OFF*/

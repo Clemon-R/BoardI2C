@@ -131,17 +131,17 @@ void lv_img_set_src(lv_obj_t * img, const void * src_img)
 
 #if LV_LOG_LEVEL >= LV_LOG_LEVEL_INFO
     switch(src_type) {
-        case LV_IMG_SRC_FILE:
-            LV_LOG_TRACE("lv_img_set_src: `LV_IMG_SRC_FILE` type found");
-            break;
-        case LV_IMG_SRC_VARIABLE:
-            LV_LOG_TRACE("lv_img_set_src: `LV_IMG_SRC_VARIABLE` type found");
-            break;
-        case LV_IMG_SRC_SYMBOL:
-            LV_LOG_TRACE("lv_img_set_src: `LV_IMG_SRC_SYMBOL` type found");
-            break;
-        default:
-            LV_LOG_WARN("lv_img_set_src: unknown type");
+    case LV_IMG_SRC_FILE:
+        LV_LOG_TRACE("lv_img_set_src: `LV_IMG_SRC_FILE` type found");
+        break;
+    case LV_IMG_SRC_VARIABLE:
+        LV_LOG_TRACE("lv_img_set_src: `LV_IMG_SRC_VARIABLE` type found");
+        break;
+    case LV_IMG_SRC_SYMBOL:
+        LV_LOG_TRACE("lv_img_set_src: `LV_IMG_SRC_SYMBOL` type found");
+        break;
+    default:
+        LV_LOG_WARN("lv_img_set_src: unknown type");
     }
 #endif
 
@@ -173,11 +173,11 @@ void lv_img_set_src(lv_obj_t * img, const void * src_img)
     } else if(src_type == LV_IMG_SRC_FILE || src_type == LV_IMG_SRC_SYMBOL) {
         /* If the new and the old src are the same then it was only a refresh.*/
         if(ext->src != src_img) {
-        	/*If memory was allocated because of the previous `src_type` then free it*/
+            /*If memory was allocated because of the previous `src_type` then free it*/
             if(ext->src_type == LV_IMG_SRC_FILE || ext->src_type == LV_IMG_SRC_SYMBOL) {
                 lv_mem_free(ext->src);
             }
-        	char * new_str = lv_mem_alloc(strlen(src_img) + 1);
+            char * new_str = lv_mem_alloc(strlen(src_img) + 1);
             lv_mem_assert(new_str);
             if(new_str == NULL) return;
             strcpy(new_str, src_img);

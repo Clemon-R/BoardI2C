@@ -39,8 +39,7 @@ extern "C" {
 
 /* Button states
  * It can be used not only by buttons but other button-like objects too*/
-enum
-{
+enum {
     LV_BTN_STATE_REL,
     LV_BTN_STATE_PR,
     LV_BTN_STATE_TGL_REL,
@@ -50,8 +49,7 @@ enum
 };
 typedef uint8_t lv_btn_state_t;
 
-enum
-{
+enum {
     LV_BTN_ACTION_CLICK,
     LV_BTN_ACTION_PR,
     LV_BTN_ACTION_LONG_PR,
@@ -62,8 +60,7 @@ typedef uint8_t lv_btn_action_t;
 
 
 /*Data of button*/
-typedef struct
-{
+typedef struct {
     lv_cont_ext_t cont; /*Ext. of ancestor*/
     /*New data for this type */
     lv_action_t actions[LV_BTN_ACTION_NUM];

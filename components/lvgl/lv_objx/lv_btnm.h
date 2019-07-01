@@ -50,8 +50,7 @@ extern "C" {
 typedef lv_res_t (*lv_btnm_action_t) (lv_obj_t *, const char *txt);
 
 /*Data of button matrix*/
-typedef struct
-{
+typedef struct {
     /*No inherited ext.*/ /*Ext. of ancestor*/
     /*New data for this type */
     const char ** map_p;                        /*Pointer to the current map*/

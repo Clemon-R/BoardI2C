@@ -152,12 +152,12 @@ void lv_sw_off(lv_obj_t * sw)
  * @param sw pointer to a switch object
  * @return resulting state of the switch.
  */
-bool lv_sw_toggle(lv_obj_t *sw) {
+bool lv_sw_toggle(lv_obj_t *sw)
+{
     bool state = lv_sw_get_state(sw);
     if(state) {
         lv_sw_off(sw);
-    }
-    else {
+    } else {
         lv_sw_on(sw);
     }
     return !state;
@@ -194,12 +194,12 @@ void lv_sw_off_anim(lv_obj_t * sw)
  * @param sw pointer to a switch object
  * @return resulting state of the switch.
  */
-bool lv_sw_toggle_anim(lv_obj_t *sw) {
+bool lv_sw_toggle_anim(lv_obj_t *sw)
+{
     bool state = lv_sw_get_state(sw);
     if(state) {
         lv_sw_off_anim(sw);
-    }
-    else {
+    } else {
         lv_sw_on_anim(sw);
     }
     return !state;
@@ -216,20 +216,20 @@ void lv_sw_set_style(lv_obj_t * sw, lv_sw_style_t type, lv_style_t * style)
     lv_sw_ext_t * ext = lv_obj_get_ext_attr(sw);
 
     switch(type) {
-        case LV_SLIDER_STYLE_BG:
-            lv_slider_set_style(sw, LV_SLIDER_STYLE_BG, style);
-            break;
-        case LV_SLIDER_STYLE_INDIC:
-            lv_bar_set_style(sw, LV_SLIDER_STYLE_INDIC, style);
-            break;
-        case LV_SW_STYLE_KNOB_OFF:
-            ext->style_knob_off = style;
-            if(lv_sw_get_state(sw) == 0) lv_slider_set_style(sw, LV_SLIDER_STYLE_KNOB, style);
-            break;
-        case LV_SW_STYLE_KNOB_ON:
-            ext->style_knob_on = style;
-            if(lv_sw_get_state(sw) != 0) lv_slider_set_style(sw, LV_SLIDER_STYLE_KNOB, style);
-            break;
+    case LV_SLIDER_STYLE_BG:
+        lv_slider_set_style(sw, LV_SLIDER_STYLE_BG, style);
+        break;
+    case LV_SLIDER_STYLE_INDIC:
+        lv_bar_set_style(sw, LV_SLIDER_STYLE_INDIC, style);
+        break;
+    case LV_SW_STYLE_KNOB_OFF:
+        ext->style_knob_off = style;
+        if(lv_sw_get_state(sw) == 0) lv_slider_set_style(sw, LV_SLIDER_STYLE_KNOB, style);
+        break;
+    case LV_SW_STYLE_KNOB_ON:
+        ext->style_knob_on = style;
+        if(lv_sw_get_state(sw) != 0) lv_slider_set_style(sw, LV_SLIDER_STYLE_KNOB, style);
+        break;
     }
 }
 
@@ -258,21 +258,21 @@ lv_style_t * lv_sw_get_style(const lv_obj_t * sw, lv_sw_style_t type)
     lv_sw_ext_t * ext = lv_obj_get_ext_attr(sw);
 
     switch(type) {
-        case LV_SW_STYLE_BG:
-            style = lv_slider_get_style(sw, LV_SLIDER_STYLE_BG);
-            break;
-        case LV_SW_STYLE_INDIC:
-            style = lv_slider_get_style(sw, LV_SLIDER_STYLE_INDIC);
-            break;
-        case LV_SW_STYLE_KNOB_OFF:
-            style = ext->style_knob_off;
-            break;
-        case LV_SW_STYLE_KNOB_ON:
-            style = ext->style_knob_on;
-            break;
-        default:
-            style = NULL;
-            break;
+    case LV_SW_STYLE_BG:
+        style = lv_slider_get_style(sw, LV_SLIDER_STYLE_BG);
+        break;
+    case LV_SW_STYLE_INDIC:
+        style = lv_slider_get_style(sw, LV_SLIDER_STYLE_INDIC);
+        break;
+    case LV_SW_STYLE_KNOB_OFF:
+        style = ext->style_knob_off;
+        break;
+    case LV_SW_STYLE_KNOB_ON:
+        style = ext->style_knob_on;
+        break;
+    default:
+        style = NULL;
+        break;
     }
 
     return style;
@@ -282,10 +282,10 @@ uint16_t lv_sw_get_anim_time(const lv_obj_t *sw)
 {
 
 #if USE_LV_ANIMATION
-	lv_sw_ext_t * ext = lv_obj_get_ext_attr(sw);
-	return ext->anim_time;
+    lv_sw_ext_t * ext = lv_obj_get_ext_attr(sw);
+    return ext->anim_time;
 #else
-	return 0;
+    return 0;
 #endif
 }
 
@@ -321,8 +321,7 @@ static lv_res_t lv_sw_signal(lv_obj_t * sw, lv_signal_t sign, void * param)
 
     if(sign == LV_SIGNAL_CLEANUP) {
         /*Nothing to cleanup. (No dynamically allocated memory in 'ext')*/
-    }
-    else if(sign == LV_SIGNAL_PRESSED) {
+    } else if(sign == LV_SIGNAL_PRESSED) {
 
         /*Save the x coordinate of the pressed point to see if the switch was slid*/
         lv_indev_t * indev = lv_indev_get_act();
@@ -333,8 +332,7 @@ static lv_res_t lv_sw_signal(lv_obj_t * sw, lv_signal_t sign, void * param)
         }
         ext->slided = 0;
         ext->changed = 0;
-    }
-    else if(sign == LV_SIGNAL_PRESSING) {
+    } else if(sign == LV_SIGNAL_PRESSING) {
         /*See if the switch was slid*/
         lv_indev_t * indev = lv_indev_get_act();
         if(indev) {
@@ -352,26 +350,22 @@ static lv_res_t lv_sw_signal(lv_obj_t * sw, lv_signal_t sign, void * param)
         /*If explicitly changed (by slide) don't need to be toggled on release*/
         int16_t threshold  = LV_SWITCH_SLIDER_ANIM_MAX / 2;
         if((old_val < threshold && ext->slider.drag_value > threshold) ||
-                (old_val > threshold && ext->slider.drag_value < threshold))
-        {
+           (old_val > threshold && ext->slider.drag_value < threshold)) {
             ext->changed = 1;
         }
-    }
-    else if(sign == LV_SIGNAL_PRESS_LOST) {
+    } else if(sign == LV_SIGNAL_PRESS_LOST) {
         if(lv_sw_get_state(sw)) {
             lv_slider_set_style(sw, LV_SLIDER_STYLE_KNOB, ext->style_knob_on);
 #if USE_LV_ANIMATION
             lv_sw_anim_to_value(sw, LV_SWITCH_SLIDER_ANIM_MAX);
 #endif
-        }
-        else {
+        } else {
             lv_slider_set_style(sw, LV_SLIDER_STYLE_KNOB, ext->style_knob_off);
 #if USE_LV_ANIMATION
             lv_sw_anim_to_value(sw, 0);
 #endif
         }
-    }
-    else if(sign == LV_SIGNAL_RELEASED) {
+    } else if(sign == LV_SIGNAL_RELEASED) {
         /*If not dragged then toggle the switch*/
         if(ext->changed == 0) {
             if(lv_sw_get_state(sw)) lv_sw_off_anim(sw);

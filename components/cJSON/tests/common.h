@@ -26,17 +26,15 @@
 #include "../cJSON.c"
 
 void reset(cJSON *item);
-void reset(cJSON *item) {
-    if ((item != NULL) && (item->child != NULL))
-    {
+void reset(cJSON *item)
+{
+    if ((item != NULL) && (item->child != NULL)) {
         cJSON_Delete(item->child);
     }
-    if ((item->valuestring != NULL) && !(item->type & cJSON_IsReference))
-    {
+    if ((item->valuestring != NULL) && !(item->type & cJSON_IsReference)) {
         global_hooks.deallocate(item->valuestring);
     }
-    if ((item->string != NULL) && !(item->type & cJSON_StringIsConst))
-    {
+    if ((item->string != NULL) && !(item->type & cJSON_StringIsConst)) {
         global_hooks.deallocate(item->string);
     }
 
@@ -44,7 +42,8 @@ void reset(cJSON *item) {
 }
 
 char* read_file(const char *filename);
-char* read_file(const char *filename) {
+char* read_file(const char *filename)
+{
     FILE *file = NULL;
     long length = 0;
     char *content = NULL;
@@ -52,37 +51,31 @@ char* read_file(const char *filename) {
 
     /* open in read binary mode */
     file = fopen(filename, "rb");
-    if (file == NULL)
-    {
+    if (file == NULL) {
         goto cleanup;
     }
 
     /* get the length */
-    if (fseek(file, 0, SEEK_END) != 0)
-    {
+    if (fseek(file, 0, SEEK_END) != 0) {
         goto cleanup;
     }
     length = ftell(file);
-    if (length < 0)
-    {
+    if (length < 0) {
         goto cleanup;
     }
-    if (fseek(file, 0, SEEK_SET) != 0)
-    {
+    if (fseek(file, 0, SEEK_SET) != 0) {
         goto cleanup;
     }
 
     /* allocate content buffer */
     content = (char*)malloc((size_t)length + sizeof(""));
-    if (content == NULL)
-    {
+    if (content == NULL) {
         goto cleanup;
     }
 
     /* read the file into memory */
     read_chars = fread(content, sizeof(char), (size_t)length, file);
-    if ((long)read_chars != length)
-    {
+    if ((long)read_chars != length) {
         free(content);
         content = NULL;
         goto cleanup;
@@ -91,8 +84,7 @@ char* read_file(const char *filename) {
 
 
 cleanup:
-    if (file != NULL)
-    {
+    if (file != NULL) {
         fclose(file);
     }
 

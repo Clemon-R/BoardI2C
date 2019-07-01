@@ -40,8 +40,7 @@ extern "C" {
  **********************/
 
 /*Data of gauge*/
-typedef struct
-{
+typedef struct {
     lv_lmeter_ext_t lmeter;     /*Ext. of ancestor*/
     /*New data for this type */
     int16_t * values;               /*Array of the set values (for needles) */

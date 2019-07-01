@@ -97,51 +97,52 @@ static void cjson_minify_should_not_modify_strings(void)
     free(minified);
 }
 
-static void cjson_minify_should_minify_json(void) {
+static void cjson_minify_should_minify_json(void)
+{
     const char to_minify[] =
-            "{\n"
-            "    \"glossary\": { // comment\n"
-            "        \"title\": \"example glossary\",\n"
-            "  /* multi\n"
-            " line */\n"
-            "		\"GlossDiv\": {\n"
-            "            \"title\": \"S\",\n"
-            "			\"GlossList\": {\n"
-            "                \"GlossEntry\": {\n"
-            "                    \"ID\": \"SGML\",\n"
-            "					\"SortAs\": \"SGML\",\n"
-            "					\"Acronym\": \"SGML\",\n"
-            "					\"Abbrev\": \"ISO 8879:1986\",\n"
-            "					\"GlossDef\": {\n"
-            "						\"GlossSeeAlso\": [\"GML\", \"XML\"]\n"
-            "                    },\n"
-            "					\"GlossSee\": \"markup\"\n"
-            "                }\n"
-            "            }\n"
-            "        }\n"
-            "    }\n"
-            "}";
+        "{\n"
+        "    \"glossary\": { // comment\n"
+        "        \"title\": \"example glossary\",\n"
+        "  /* multi\n"
+        " line */\n"
+        "		\"GlossDiv\": {\n"
+        "            \"title\": \"S\",\n"
+        "			\"GlossList\": {\n"
+        "                \"GlossEntry\": {\n"
+        "                    \"ID\": \"SGML\",\n"
+        "					\"SortAs\": \"SGML\",\n"
+        "					\"Acronym\": \"SGML\",\n"
+        "					\"Abbrev\": \"ISO 8879:1986\",\n"
+        "					\"GlossDef\": {\n"
+        "						\"GlossSeeAlso\": [\"GML\", \"XML\"]\n"
+        "                    },\n"
+        "					\"GlossSee\": \"markup\"\n"
+        "                }\n"
+        "            }\n"
+        "        }\n"
+        "    }\n"
+        "}";
     const char* minified =
-            "{"
-            "\"glossary\":{"
-            "\"title\":\"example glossary\","
-            "\"GlossDiv\":{"
-            "\"title\":\"S\","
-            "\"GlossList\":{"
-            "\"GlossEntry\":{"
-            "\"ID\":\"SGML\","
-            "\"SortAs\":\"SGML\","
-            "\"Acronym\":\"SGML\","
-            "\"Abbrev\":\"ISO 8879:1986\","
-            "\"GlossDef\":{"
-            "\"GlossSeeAlso\":[\"GML\",\"XML\"]"
-            "},"
-            "\"GlossSee\":\"markup\""
-            "}"
-            "}"
-            "}"
-            "}"
-            "}";
+        "{"
+        "\"glossary\":{"
+        "\"title\":\"example glossary\","
+        "\"GlossDiv\":{"
+        "\"title\":\"S\","
+        "\"GlossList\":{"
+        "\"GlossEntry\":{"
+        "\"ID\":\"SGML\","
+        "\"SortAs\":\"SGML\","
+        "\"Acronym\":\"SGML\","
+        "\"Abbrev\":\"ISO 8879:1986\","
+        "\"GlossDef\":{"
+        "\"GlossSeeAlso\":[\"GML\",\"XML\"]"
+        "},"
+        "\"GlossSee\":\"markup\""
+        "}"
+        "}"
+        "}"
+        "}"
+        "}";
 
     char *buffer = (char*) malloc(sizeof(to_minify));
     strcpy(buffer, to_minify);
@@ -152,7 +153,8 @@ static void cjson_minify_should_minify_json(void) {
     free(buffer);
 }
 
-static void cjson_minify_should_not_loop_infinitely(void) {
+static void cjson_minify_should_not_loop_infinitely(void)
+{
     char string[] = { '8', ' ', '/', ' ', '5', '\n', '\0' };
     /* this should not be an infinite loop */
     cJSON_Minify(string);
