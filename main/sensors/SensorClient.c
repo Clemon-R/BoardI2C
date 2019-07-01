@@ -14,6 +14,7 @@ static QueueHandle_t	_datas;
 static SensorData_t		*_config = NULL;
 
 static TickType_t	refreshDelai = pdMS_TO_TICKS(1000);
+static SensorValues_t   _values = {0,0,0,(color_rgb_t){0,0,0},false};
 
 static esp_err_t	nordicI2CInit()
 {
@@ -77,14 +78,13 @@ static void	taskSensor(void *args)
     SensorData_t	data;
     char	buffer[BUFF_SIZE];
     TickType_t	waitingTicks = pdMS_TO_TICKS(3000);
-    char	state = 0;
 
     ESP_LOGI(TAG, "Initiating the task...");
     gpio_set_level(RGB_3, 0);
     ESP_ERROR_CHECK(nordicI2CInit());
     while (_running) {
         vTaskDelay(refreshDelai);
-        if (!state) {
+        if (!_values.initiated) {
             if (setupAllSensors(&data) != ESP_OK)
             {
                 _config = NULL;
@@ -92,20 +92,20 @@ static void	taskSensor(void *args)
             }
             else
             {
-                state = 1;
                 _config = &data;
             }
         }
-        float	temp, humidity, pressure;
-        color_rgb_t color = getColorRGB(I2C_MASTER_NUM);
-        temp = getTemperature(I2C_MASTER_NUM, &data.humidityData);
-        humidity = getHumidity(I2C_MASTER_NUM, &data.humidityData);
-        pressure = getPressure(I2C_MASTER_NUM);
-        if (temp == (float)-1 || humidity == (float)-1 || pressure == (float)-1 || color.available == 0)
-            state = 0;
-        ESP_LOGI(TAG, "temperature: %f, humidity: %f, pressure: %f, color: %d, state: %d", temp, humidity, pressure, color.available, state);
-        _working = state;
-        gpio_set_level(RGB_3, state);
+        _values.color = getColorRGB(I2C_MASTER_NUM);
+        _values.temperature = getTemperature(I2C_MASTER_NUM, &data.humidityData);
+        _values.humidity = getHumidity(I2C_MASTER_NUM, &data.humidityData);
+        _values.pressure = getPressure(I2C_MASTER_NUM);
+        if (_values.temperature == (float)-1 || _values.humidity == (float)-1 || _values.pressure == (float)-1 || _values.color.available == 0)
+            _values.initiated = false;
+        else
+            _values.initiated = true;
+        ESP_LOGI(TAG, "temperature: %f, humidity: %f, pressure: %f, color: %d, state: %d", _values.temperature, _values.humidity, _values.pressure, _values.color.available, _values.initiated);
+        _working = _values.initiated;
+        gpio_set_level(RGB_3, _values.initiated);
         cJSON	*monitor = cJSON_CreateObject();
         if (!monitor)
             continue;
@@ -113,19 +113,19 @@ static void	taskSensor(void *args)
         cJSON	*sensors = cJSON_CreateObject();
 
         //Température
-        cJSON	*raw = cJSON_CreateNumber(temp);
+        cJSON	*raw = cJSON_CreateNumber(_values.temperature);
         cJSON_AddItemReferenceToObject(sensors, "temperature", raw);
 
         //Humidité
-        raw = cJSON_CreateNumber(humidity);
+        raw = cJSON_CreateNumber(_values.humidity);
         cJSON_AddItemReferenceToObject(sensors, "humidity", raw);
 
         //Pression
-        raw = cJSON_CreateNumber(pressure);
+        raw = cJSON_CreateNumber(_values.pressure);
         cJSON_AddItemReferenceToObject(sensors, "pressure", raw);
 
         //Color
-        sprintf(buffer, "0X%02X,0X%02X,0X%02X", color.r & 0XFF, color.g & 0XFF, color.b & 0XFF);
+        sprintf(buffer, "0X%02X,0X%02X,0X%02X", _values.color.r & 0XFF, _values.color.g & 0XFF, _values.color.b & 0XFF);
         raw = cJSON_CreateString(buffer);
         cJSON_AddItemReferenceToObject(sensors, "color", raw);
 
@@ -180,4 +180,9 @@ char	isSensorWorking()
 SensorData_t	*getSensorConfig()
 {
     return _config;
+}
+
+SensorValues_t  getSensorValues()
+{
+    return _values;
 }

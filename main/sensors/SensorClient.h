@@ -19,6 +19,15 @@ typedef struct SensorData_s {
     pressure_temp_sensor_t	pressureData;
 }				SensorData_t;
 
+typedef struct  SensorValues_s
+{
+    float     temperature;
+    float     humidity;
+    float     pressure;
+    color_rgb_t color;
+    char        initiated:1;
+}               SensorValues_t;
+
 esp_err_t	startSensorClient();
 esp_err_t	stopSensorClient();
 
@@ -27,5 +36,7 @@ char	isSensorWorking();
 
 void	setRefreshDelai(TickType_t value);
 SensorData_t	*getSensorConfig();
+
+SensorValues_t  getSensorValues();
 
 #endif // !SENSORCLIENT_H_

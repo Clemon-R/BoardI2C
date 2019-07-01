@@ -441,9 +441,7 @@ static void	setupUI()
 
 static void taskLcd(void *args)
 {
-    SensorData_t	*config = NULL;
-    float	temp = -1, humidity = -1, pressure = -1;
-    color_rgb_t	color;
+    SensorValues_t  values;
 
     ESP_LOGI(TAG, "Initiating the task...");
     while(_running) {
@@ -454,60 +452,56 @@ static void taskLcd(void *args)
                 xSemaphoreGive(_semaphore);
             }
         }
-        config = getSensorConfig();
-        if (!config && (_index == 0 || _index == 2))
+        values = getSensorValues();
+        if (!values.initiated && (_index == 0 || _index == 2))
             continue;
-        temp = getTemperature(I2C_MASTER_NUM, &config->humidityData);
-        humidity = getHumidity(I2C_MASTER_NUM, &config->humidityData);
-        pressure = getPressure(I2C_MASTER_NUM);
-        color = getColorRGB(I2C_MASTER_NUM);
         switch (_index) {
         case 0:
-            if (temp != -1) {
+            if (values.temperature != -1) {
                 if (_temperature.value && _temperature.decimale && xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE) {
-                    sprintf(_buffer, "%d", (int)temp);
+                    sprintf(_buffer, "%.0f", values.temperature - 1);
                     lv_label_set_text(_temperature.value, _buffer);
-                    sprintf(_buffer, ",%d°C", (int)(temp * 100) % 100);
+                    sprintf(_buffer, ",%d°C", (int)(values.temperature * 100) % 100);
                     lv_label_set_text(_temperature.decimale, _buffer);
                     xSemaphoreGive(lcdGetSemaphore());
                 }
             }
-            if (humidity != -1) {
+            if (values.humidity != -1) {
                 if (_humidity.value && _humidity.decimale && xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE) {
-                    sprintf(_buffer, "%d", (int)humidity);
+                    sprintf(_buffer, "%.0f", values.humidity - 1);
                     lv_label_set_text(_humidity.value, _buffer);
-                    sprintf(_buffer, ",%d%c", (int)(humidity * 100) % 100, '%');
+                    sprintf(_buffer, ",%d%c", (int)(values.humidity * 100) % 100, '%');
                     lv_label_set_text(_humidity.decimale, _buffer);
                     xSemaphoreGive(lcdGetSemaphore());
                 }
             }
-            if (pressure != -1) {
+            if (values.pressure != -1) {
                 if (_pressure.value && _pressure.decimale && xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE) {
-                    sprintf(_buffer, "%d", (int)pressure);
+                    sprintf(_buffer, "%.0f", values.pressure - 1);
                     lv_label_set_text(_pressure.value, _buffer);
-                    sprintf(_buffer, ",%dhPa", (int)(pressure * 100) % 100);
+                    sprintf(_buffer, ",%dhPa", (int)(values.pressure * 100) % 100);
                     lv_label_set_text(_pressure.decimale, _buffer);
                     xSemaphoreGive(lcdGetSemaphore());
                 }
             }
 
-            uint32_t	total = color.r + color.g + color.b;
+            uint32_t	total = values.color.r + values.color.g + values.color.b;
             uint32_t	last = 270, tmp = 0;
-            if (color.available) {
+            if (values.color.available) {
                 if (xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE) {
                     if (_red) {
-                        lv_arc_set_angles(_red, (tmp = last - (90 * (color.r / (float)total))), last);
+                        lv_arc_set_angles(_red, (tmp = last - (90 * (values.color.r / (float)total))), last);
                         last = tmp;
                     }
                     if (_green) {
-                        lv_arc_set_angles(_green, (tmp = last - (90 * (color.g / (float)total))), last);
+                        lv_arc_set_angles(_green, (tmp = last - (90 * (values.color.g / (float)total))), last);
                         last = tmp;
                     }
                     if (_blue) {
-                        lv_arc_set_angles(_blue, (tmp = last - (90 * (color.b / (float)total))), last);
+                        lv_arc_set_angles(_blue, (tmp = last - (90 * (values.color.b / (float)total))), last);
                     }
                     if (_rgb) {
-                        lv_arc_get_style(_rgb, LV_ARC_STYLE_MAIN)->line.color = LV_COLOR_MAKE((int)(UINT8_MAX * (color.r / (float)UINT16_MAX)), (int)(UINT8_MAX * (color.g  / UINT16_MAX)), (int)(UINT8_MAX * (color.b  / UINT16_MAX)));
+                        lv_arc_get_style(_rgb, LV_ARC_STYLE_MAIN)->line.color = LV_COLOR_MAKE((int)(UINT8_MAX * (values.color.r / (float)UINT16_MAX)), (int)(UINT8_MAX * (values.color.g  / UINT16_MAX)), (int)(UINT8_MAX * (values.color.b  / UINT16_MAX)));
                     }
                     xSemaphoreGive(lcdGetSemaphore());
                 }
@@ -515,22 +509,22 @@ static void taskLcd(void *args)
             break;
         case 2:
             if (xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE) {
-                if (temp != -1)
+                if (values.temperature != -1)
                     lv_label_set_text(_lblTemperature, "Temperature "SYMBOL_OK);
                 else
                     lv_label_set_text(_lblTemperature, "Temperature "SYMBOL_CLOSE);
 
-                if (humidity != -1)
+                if (values.humidity != -1)
                     lv_label_set_text(_lblHumidity, "Humidity "SYMBOL_OK);
                 else
                     lv_label_set_text(_lblHumidity, "Humidity "SYMBOL_CLOSE);
 
-                if (pressure != -1)
+                if (values.pressure != -1)
                     lv_label_set_text(_lblPressure, "Pessure "SYMBOL_OK);
                 else
                     lv_label_set_text(_lblPressure, "Pessure "SYMBOL_CLOSE);
 
-                if (color.available)
+                if (values.color.available)
                     lv_label_set_text(_lblColor, "Color "SYMBOL_OK);
                 else
                     lv_label_set_text(_lblColor, "Color "SYMBOL_CLOSE);
@@ -544,9 +538,9 @@ static void taskLcd(void *args)
                 else
                     lv_led_off(_ledMqtt);
 
-                if (temp != -1 && humidity != -1 && pressure != -1 && color.available)
+                if (values.temperature != -1 && values.humidity != -1 && values.pressure != -1 && values.color.available)
                     lv_led_set_bright(_ledSensors, 255);
-                else if (temp != -1 || humidity != -1 || pressure != -1 || color.available)
+                else if (values.temperature != -1 || values.humidity != -1 || values.pressure != -1 || values.color.available)
                     lv_led_set_bright(_ledSensors, 150);
                 else
                     lv_led_set_bright(_ledSensors, 0);
