@@ -76,69 +76,70 @@ static void	taskSensor(void *args)
 {
     SensorData_t	data;
     char	buffer[BUFF_SIZE];
-    TickType_t	waitingTicks = pdMS_TO_TICKS(1000);
+    TickType_t	waitingTicks = pdMS_TO_TICKS(3000);
+    char	state = 0;
 
     ESP_LOGI(TAG, "Initiating the task...");
     gpio_set_level(RGB_3, 0);
     ESP_ERROR_CHECK(nordicI2CInit());
-    if (setupAllSensors(&data) != ESP_OK) {
-        ESP_LOGE(TAG, "Impossible to notify and callibrate sensors");
-        _running = false;
-    }
-    _config = &data;
     while (_running) {
+        vTaskDelay(refreshDelai);
+        if (!state) {
+            if (setupAllSensors(&data) != ESP_OK)
+            {
+                _config = NULL;
+                ESP_LOGE(TAG, "Impossible to notify and callibrate sensors");
+            }
+            else
+            {
+                state = 1;
+                _config = &data;
+            }
+        }
+        float	temp, humidity, pressure;
+        color_rgb_t color = getColorRGB(I2C_MASTER_NUM);
+        temp = getTemperature(I2C_MASTER_NUM, &data.humidityData);
+        humidity = getHumidity(I2C_MASTER_NUM, &data.humidityData);
+        pressure = getPressure(I2C_MASTER_NUM);
+        if (temp == (float)-1 || humidity == (float)-1 || pressure == (float)-1 || color.available == 0)
+            state = 0;
+        ESP_LOGI(TAG, "temperature: %f, humidity: %f, pressure: %f, color: %d, state: %d", temp, humidity, pressure, color.available, state);
+        _working = state;
+        gpio_set_level(RGB_3, state);
         cJSON	*monitor = cJSON_CreateObject();
-        float	result;
-        char	state = 1;
         if (!monitor)
             continue;
 
         cJSON	*sensors = cJSON_CreateObject();
 
         //Température
-        result = getTemperature(I2C_MASTER_NUM, &data.humidityData);
-        cJSON	*raw = cJSON_CreateNumber(result);
+        cJSON	*raw = cJSON_CreateNumber(temp);
         cJSON_AddItemReferenceToObject(sensors, "temperature", raw);
-        if (result == -1)
-            state = 0;
 
         //Humidité
-        result = getHumidity(I2C_MASTER_NUM, &data.humidityData);
-        raw = cJSON_CreateNumber(result);
+        raw = cJSON_CreateNumber(humidity);
         cJSON_AddItemReferenceToObject(sensors, "humidity", raw);
-        if (result == -1)
-            state = 0;
 
         //Pression
-        result = getPressure(I2C_MASTER_NUM);
-        raw = cJSON_CreateNumber(result);
+        raw = cJSON_CreateNumber(pressure);
         cJSON_AddItemReferenceToObject(sensors, "pressure", raw);
-        if (result == -1)
-            state = 0;
 
         //Color
-        color_rgb_t tmp = getColorRGB(I2C_MASTER_NUM);
-        sprintf(buffer, "0x%02X %02x %02x", tmp.r & 0XFF, tmp.g & 0XFF, tmp.b & 0XFF);
+        sprintf(buffer, "0X%02X,0X%02X,0X%02X", color.r & 0XFF, color.g & 0XFF, color.b & 0XFF);
         raw = cJSON_CreateString(buffer);
         cJSON_AddItemReferenceToObject(sensors, "color", raw);
-        if (!tmp.available)
-            state = 0;
 
         cJSON_AddItemReferenceToObject(monitor, "sensors", sensors);
 
-        _working = state;
-        gpio_set_level(RGB_3, state);
         while (xQueueIsQueueFullFromISR(_datas) == pdTRUE) {
             vTaskDelay(waitingTicks);
         }
         xQueueSend(_datas, &monitor, waitingTicks);
-
-        vTaskDelay(refreshDelai);
     }
     nordicI2CDeinit();
+    _config = NULL;
     _running = false;
     gpio_set_level(RGB_3, 0);
-    _config = NULL;
     sensorTask = NULL;
     vTaskDelete(NULL);
 }
@@ -150,7 +151,7 @@ esp_err_t	startSensorClient()
     _datas = getQueueDatas();
     _running = true;
     _working = false;
-    return xTaskCreate(taskSensor, "sensorTask", 4098, NULL, tskIDLE_PRIORITY, &sensorTask);;
+    return xTaskCreate(taskSensor, "sensorTask", 10240, NULL, tskIDLE_PRIORITY, &sensorTask);;
 }
 
 esp_err_t	stopSensorClient()

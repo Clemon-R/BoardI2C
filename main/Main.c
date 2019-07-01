@@ -78,8 +78,8 @@ void	app_main()
 
     startWifiClient(&dataWifi);
     startMqttClient(&dataMqtt);
-    startSensorClient();
     startLcd();
+    startSensorClient();
     while (1) {
         if (xSemaphoreTake(lcdGetSemaphore(), pdMS_TO_TICKS(100)) == pdTRUE) {
             lv_task_handler();

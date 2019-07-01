@@ -7,36 +7,32 @@ static esp_err_t	initTemperatureCalibration(i2c_port_t port, humidity_temp_senso
 {
 	int ret;
 	uint8_t	tmp = 0;
-	uint8_t *params;
 
 	if (args == NULL)
 		return ESP_FAIL;
 	ESP_LOGI(TAG, "Asking Temperature Calibration values...");
-	params = (uint8_t *)&args->T0_out;
 	ret = writeByte(port, I2C_SLAVE_HUMIDITYTEMP, HUMIDITYTEMP_BURST | 0x3c, NULL);
 	if (ret != ESP_OK)
 		return ESP_FAIL;
-	ret = readBytes(port, I2C_SLAVE_HUMIDITYTEMP, params, 2);
+	ret = readBytes(port, I2C_SLAVE_HUMIDITYTEMP, (uint8_t *)&args->T0_out, 2);
 	if (ret != ESP_OK)
 		return ESP_FAIL;
-
-	params = (uint8_t *)&args->T1_out;
 	ret = writeByte(port, I2C_SLAVE_HUMIDITYTEMP, HUMIDITYTEMP_BURST | 0x3e, NULL);
 	if (ret != ESP_OK)
 		return ESP_FAIL;
-	ret = readBytes(port, I2C_SLAVE_HUMIDITYTEMP, params, 2);
+	ret = readBytes(port, I2C_SLAVE_HUMIDITYTEMP, (uint8_t *)&args->T1_out, 2);
 	if (ret != ESP_OK)
 		return ESP_FAIL;
 
 	ret = writeByte(port, I2C_SLAVE_HUMIDITYTEMP, 0x32, NULL);
 	if (ret != ESP_OK)
 		return ESP_FAIL;
-	ret = readByte(port, I2C_SLAVE_HUMIDITYTEMP, (uint8_t *)&(args->T0_deg));
+	ret = readByte(port, I2C_SLAVE_HUMIDITYTEMP, (uint8_t *)&args->T0_deg);
 
 	ret = writeByte(port, I2C_SLAVE_HUMIDITYTEMP, 0x33, NULL);
 	if (ret != ESP_OK)
 		return ESP_FAIL;
-	ret = readByte(port, I2C_SLAVE_HUMIDITYTEMP, (uint8_t *)&(args->T1_deg));
+	ret = readByte(port, I2C_SLAVE_HUMIDITYTEMP, (uint8_t *)&args->T1_deg);
 	if (ret != ESP_OK)
 		return ESP_FAIL;
 
@@ -45,10 +41,10 @@ static esp_err_t	initTemperatureCalibration(i2c_port_t port, humidity_temp_senso
 		return ESP_FAIL;
 	ret = readByte(port, I2C_SLAVE_HUMIDITYTEMP, &tmp);
 
-	args->T0_deg /= 8;
-	args->T1_deg /= 8;
-	args->T0_deg += tmp & 0x03;
-	args->T1_deg += tmp & 0x0c;
+	args->T0_deg = args->T0_deg | ((tmp & 0x03) << 8);
+	args->T1_deg = args->T1_deg | ((tmp & 0x0c) << 6); //Offset of 2 already
+	args->T0_deg = args->T0_deg / 8;
+	args->T1_deg = args->T1_deg / 8;
 	return ESP_OK;
 }
 
@@ -146,7 +142,7 @@ float	getTemperature(i2c_port_t port, humidity_temp_sensor_t *args)
 	ret = readBytes(port, I2C_SLAVE_HUMIDITYTEMP, params, 2);
 	if (ret != ESP_OK)
 		return -1;
-	return ((args->T1_deg - args->T0_deg) * (T_out - args->T0_out)) / (float)(args->T1_out - args->T0_out) + args->T0_deg + 15;
+	return ((args->T1_deg - args->T0_deg) * (float)(T_out - args->T0_out)) / (float)(args->T1_out - args->T0_out) + args->T0_deg;
 }
 
 
@@ -165,5 +161,5 @@ float	getHumidity(i2c_port_t port, humidity_temp_sensor_t *args)
 	ret = readBytes(port, I2C_SLAVE_HUMIDITYTEMP, params, 2);
 	if (ret != ESP_OK)
 		return -1;
-	return ((args->H1_rh - args->H0_rh) * (H_out - args->H0_out)) / (float)(args->H1_out - args->H0_out) + args->H0_rh;
+	return ((args->H1_rh - args->H0_rh) * (float)(H_out - args->H0_out)) / (float)(args->H1_out - args->H0_out) + args->H0_rh;
 }

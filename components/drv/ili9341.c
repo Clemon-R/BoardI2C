@@ -126,7 +126,6 @@ void ili9341_init(void)
 	//Send all the commands
 	uint16_t cmd = 0;
 	while (ili_init_cmds[cmd].databytes!=0xff) {
-	ESP_LOGI(TAG, "Init2...");
 		ili9341_send_cmd(ili_init_cmds[cmd].cmd);
 		ili9341_send_data(ili_init_cmds[cmd].data, ili_init_cmds[cmd].databytes&0x1F);
 		if (ili_init_cmds[cmd].databytes & 0x80) {

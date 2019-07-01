@@ -442,12 +442,11 @@ static void	setupUI()
 static void taskLcd(void *args)
 {
     SensorData_t	*config = NULL;
-    float	temp, humidity, pressure;
+    float	temp = -1, humidity = -1, pressure = -1;
     color_rgb_t	color;
 
     ESP_LOGI(TAG, "Initiating the task...");
-    config = getSensorConfig();
-    while(_running && config) {
+    while(_running) {
         _working = true;
         if (lv_tabview_get_tab_act(_tv) != _index) {
             if (_tv != NULL && xSemaphoreTake(_semaphore, pdMS_TO_TICKS(0)) == pdTRUE) {
@@ -455,6 +454,9 @@ static void taskLcd(void *args)
                 xSemaphoreGive(_semaphore);
             }
         }
+        config = getSensorConfig();
+        if (!config && (_index == 0 || _index == 2))
+            continue;
         temp = getTemperature(I2C_MASTER_NUM, &config->humidityData);
         humidity = getHumidity(I2C_MASTER_NUM, &config->humidityData);
         pressure = getPressure(I2C_MASTER_NUM);
@@ -505,7 +507,6 @@ static void taskLcd(void *args)
                         lv_arc_set_angles(_blue, (tmp = last - (90 * (color.b / (float)total))), last);
                     }
                     if (_rgb) {
-                        ESP_LOGI(TAG, "%d / %d = %.2f * %d = %d", color.r, UINT16_MAX, color.r / (float)UINT16_MAX, UINT8_MAX, (int)(UINT8_MAX * (color.r / (float)UINT16_MAX)));
                         lv_arc_get_style(_rgb, LV_ARC_STYLE_MAIN)->line.color = LV_COLOR_MAKE((int)(UINT8_MAX * (color.r / (float)UINT16_MAX)), (int)(UINT8_MAX * (color.g  / UINT16_MAX)), (int)(UINT8_MAX * (color.b  / UINT16_MAX)));
                     }
                     xSemaphoreGive(lcdGetSemaphore());
@@ -553,7 +554,7 @@ static void taskLcd(void *args)
             }
             break;
         }
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
     _working = false;
     _running = false;

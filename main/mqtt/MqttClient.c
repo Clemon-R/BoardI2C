@@ -146,7 +146,7 @@ static void	taskMqtt(void *arg)
             if (xQueueReceive(_datas, (void *)&monitor, (TickType_t)pdMS_TO_TICKS(500)) == pdTRUE && monitor) {
                 char	*buff = cJSON_Print(monitor);
 
-                if (!buff) {
+                if (!buff || strlen(buff) <= 0) {
                     cJSON_Delete(monitor);
                     monitor = NULL;
                     continue;
@@ -156,7 +156,6 @@ static void	taskMqtt(void *arg)
                 monitor = NULL;
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(100));
     }
     stopMqtt(client);
     deinitMqttClient(client);
