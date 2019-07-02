@@ -100,7 +100,6 @@ static void	taskSensor(void *args)
             _values.initiated = false;
         else
             _values.initiated = true;
-        ESP_LOGI(TAG, "temperature: %f, humidity: %f, pressure: %f, color: %d, state: %d", _values.temperature, _values.humidity, _values.pressure, _values.color.available, _values.initiated);
         _working = _values.initiated;
         gpio_set_level(RGB_3, _values.initiated);
         cJSON	*monitor = cJSON_CreateObject();

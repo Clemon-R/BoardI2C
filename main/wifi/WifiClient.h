@@ -25,8 +25,10 @@
 typedef enum	WifiState_e {
     NONE = 0,
     DEINITIATIED,
+    DISCONNECTED,
     INITIATING,
-    INITIATIED
+    INITIATIED,
+    CONNECTED
 }				WifiState_t;
 
 typedef struct WifiConfig_s {

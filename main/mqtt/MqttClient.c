@@ -28,7 +28,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
     switch (event->event_id) {
     case MQTT_EVENT_CONNECTED:
-        _state = INITIATIED;
+        _state = CONNECTED;
         ESP_LOGI(TAG, "\033[4mClient is connected\033[0m");
 
         xEventGroupSetBits(_mqttEventGroup, CONNECTED_BIT);
@@ -42,10 +42,12 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
         ESP_LOGI(TAG, "Subscribed to /demo/rtone/esp32/datas");
         break;
     case MQTT_EVENT_DISCONNECTED:
-        _state = INITIATIED;
-        ESP_LOGE(TAG, "\033[5mClient was disMqttconnected\033[0m");
-        xEventGroupClearBits(_mqttEventGroup, CONNECTED_BIT);
-        gpio_set_level(RGB_2, 0);
+        if (_state == CONNECTED){
+            _state = DISCONNECTED;
+            ESP_LOGE(TAG, "\033[5mClient was disMqttconnected\033[0m");
+            xEventGroupClearBits(_mqttEventGroup, CONNECTED_BIT);
+            gpio_set_level(RGB_2, 0);
+        }
         break;
     case MQTT_EVENT_DATA:
         tmp = *event->data;
@@ -117,7 +119,7 @@ static esp_err_t	stopMqtt(esp_mqtt_client_handle_t client)
 
 char	isMqttConnected()
 {
-    return _state == INITIATIED && (xEventGroupWaitBits(_mqttEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT;
+    return _state == CONNECTED && (xEventGroupWaitBits(_mqttEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT;
 }
 
 static void	taskMqtt(void *arg)
@@ -135,10 +137,11 @@ static void	taskMqtt(void *arg)
     while (_running) {
         if (!isMqttConnected()) {
             if (_state <= DEINITIATIED && (xEventGroupWaitBits(_wifiEventGroup, WIFI_CONNECTED_BIT, false, true, pdMS_TO_TICKS(1000)) & WIFI_CONNECTED_BIT) == WIFI_CONNECTED_BIT) {
+                _state = INITIATING;
                 ESP_ERROR_CHECK((client = initMqttClient(data->url)) == NULL);
                 ESP_ERROR_CHECK(startMqtt(client));
-                _state = INITIATING;
-            } else if(client && _state == INITIATIED && !isMqttConnected()) {
+                _state = INITIATIED;
+            } else if(client && _state == DISCONNECTED && !isMqttConnected()) {
                 ESP_ERROR_CHECK(stopMqtt(client));
                 ESP_ERROR_CHECK(deinitMqttClient(client));
                 _state = DEINITIATIED;

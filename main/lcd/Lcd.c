@@ -453,13 +453,13 @@ static void taskLcd(void *args)
             }
         }
         values = getSensorValues();
-        if (!values.initiated && (_index == 0 || _index == 2))
+        if (!values.initiated && _index == 0)
             continue;
         switch (_index) {
         case 0:
             if (values.temperature != -1) {
                 if (_temperature.value && _temperature.decimale && xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE) {
-                    sprintf(_buffer, "%.0f", values.temperature - 1);
+                    sprintf(_buffer, "%d", (int)values.temperature);
                     lv_label_set_text(_temperature.value, _buffer);
                     sprintf(_buffer, ",%d°C", (int)(values.temperature * 100) % 100);
                     lv_label_set_text(_temperature.decimale, _buffer);
@@ -468,7 +468,7 @@ static void taskLcd(void *args)
             }
             if (values.humidity != -1) {
                 if (_humidity.value && _humidity.decimale && xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE) {
-                    sprintf(_buffer, "%.0f", values.humidity - 1);
+                    sprintf(_buffer, "%d", (int)values.humidity);
                     lv_label_set_text(_humidity.value, _buffer);
                     sprintf(_buffer, ",%d%c", (int)(values.humidity * 100) % 100, '%');
                     lv_label_set_text(_humidity.decimale, _buffer);
@@ -477,7 +477,7 @@ static void taskLcd(void *args)
             }
             if (values.pressure != -1) {
                 if (_pressure.value && _pressure.decimale && xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE) {
-                    sprintf(_buffer, "%.0f", values.pressure - 1);
+                    sprintf(_buffer, "%d", (int)values.pressure);
                     lv_label_set_text(_pressure.value, _buffer);
                     sprintf(_buffer, ",%dhPa", (int)(values.pressure * 100) % 100);
                     lv_label_set_text(_pressure.decimale, _buffer);
@@ -509,6 +509,7 @@ static void taskLcd(void *args)
             break;
         case 2:
             if (xSemaphoreTake(lcdGetSemaphore(), 0) == pdTRUE) {
+                ESP_LOGI(TAG, "temperature: %f, humidity: %f, pressure: %f, color: %d, state: %d", values.temperature, values.humidity, values.pressure, values.color.available, values.initiated);
                 if (values.temperature != -1)
                     lv_label_set_text(_lblTemperature, "Temperature "SYMBOL_OK);
                 else
@@ -541,14 +542,14 @@ static void taskLcd(void *args)
                 if (values.temperature != -1 && values.humidity != -1 && values.pressure != -1 && values.color.available)
                     lv_led_set_bright(_ledSensors, 255);
                 else if (values.temperature != -1 || values.humidity != -1 || values.pressure != -1 || values.color.available)
-                    lv_led_set_bright(_ledSensors, 150);
+                    lv_led_set_bright(_ledSensors, 170);
                 else
                     lv_led_set_bright(_ledSensors, 0);
                 xSemaphoreGive(lcdGetSemaphore());
             }
             break;
         }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
     _working = false;
     _running = false;

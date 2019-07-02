@@ -62,10 +62,10 @@ static void btnClicked(uint32_t io_num, TypeClick type)
 void	app_main()
 {
     WifiConfig_t	dataWifi = {
-        .ssid = "1234-6789-12345",
-        .password = "12345678"
-        //.ssid = "Honor Raphael",
-        //.password = "clemon69"
+        //.ssid = "1234-6789-12345",
+        //.password = "12345678"
+        .ssid = "Honor Raphael",
+        .password = "clemon69"
     };
     MqttConfig_t	dataMqtt = {
         .url = "tcp://iot.eclipse.org"
