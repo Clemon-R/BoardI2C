@@ -44,7 +44,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
     case MQTT_EVENT_DISCONNECTED:
         if (_state == CONNECTED){
             _state = DISCONNECTED;
-            ESP_LOGE(TAG, "\033[5mClient was disMqttconnected\033[0m");
+            ESP_LOGE(TAG, "\033[5mClient was disconnected\033[0m");
             xEventGroupClearBits(_mqttEventGroup, CONNECTED_BIT);
             gpio_set_level(RGB_2, 0);
         }

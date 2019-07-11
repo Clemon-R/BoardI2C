@@ -21,7 +21,7 @@ static void	taskCommandHandler(void *args)
     if (command) {
         switch (command->type) {
         case CHANGEWIFI:
-            ESP_LOGI(TAG, "Changing the current wifi...");
+            /*ESP_LOGI(TAG, "Changing the current wifi...");
             cJSON	*ssid = cJSON_GetObjectItem(command->data, "ssid");
             cJSON	*password = cJSON_GetObjectItem(command->data, "password");
             if (!ssid || !password || !cJSON_IsString(ssid) || !cJSON_IsString(password))
@@ -34,7 +34,7 @@ static void	taskCommandHandler(void *args)
             }
             dataWifi.ssid = ssid->valuestring;
             dataWifi.password = password->valuestring;
-            startWifiClient(&dataWifi);
+            startWifiClient(&dataWifi);*/
             break;
 
         case LED:

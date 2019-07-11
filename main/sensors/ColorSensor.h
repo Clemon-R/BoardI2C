@@ -30,7 +30,7 @@ typedef struct	color_rgb_s {
     uint16_t	r;
     uint16_t	g;
     uint16_t	b;
-    char		available;
+    char		available:1;
 }				color_rgb_t;
 
 esp_err_t	initColorSensor(i2c_port_t port);

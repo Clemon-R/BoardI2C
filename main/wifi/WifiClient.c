@@ -5,6 +5,10 @@
 
 static const char *TAG = "\033[1;35mWifiClient\033[0m";
 static TaskHandle_t	wifiTask = NULL;
+static char         _running = false;
+static char         _restart = false;
+static WifiConfig_t *_config = NULL;
+static wifi_config_t    _wifi_config;
 
 static EventGroupHandle_t _wifiEventGroup = NULL;
 const static int CONNECTED_BIT = BIT0;
@@ -13,7 +17,8 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
 {
     switch (event->event_id) {
     case SYSTEM_EVENT_STA_START:
-        esp_wifi_connect();
+        if (_running && !_restart)
+            esp_wifi_connect();
         break;
     case SYSTEM_EVENT_STA_GOT_IP:
         ESP_LOGI(TAG, "\033[4mWifi successfully connected\033[0m");
@@ -26,8 +31,10 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
             xEventGroupClearBits(_wifiEventGroup, CONNECTED_BIT);
             gpio_set_level(RGB_1, 0);
         }
-        ESP_LOGI(TAG, "Trying to connect again...");
-        esp_wifi_connect();
+        if (_running && !_restart){
+            ESP_LOGI(TAG, "Trying to connect again...");
+            esp_wifi_connect();
+        }
         break;
     default:
         break;
@@ -35,14 +42,19 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
     return ESP_OK;
 }
 
-static esp_err_t    initWifiClient(const char *ssid, const char *password)
+static void     setConfig(const uint8_t *ssid, const uint8_t *password)
 {
-    wifi_config_t wifi_config;
+    ESP_LOGI(TAG, "Setting information for the connection...");
+    ESP_LOGI(TAG, "Ssid: %s, password: %s", ssid, password);
+    memcpy(_wifi_config.sta.ssid, ssid, strlen((char *)ssid) + 1); // +1 pour copier le \0
+    memcpy(_wifi_config.sta.password, password, strlen((char *)password) + 1);
+}
+
+static esp_err_t    initWifiClient(const uint8_t *ssid, const uint8_t *password)
+{
     esp_err_t   ret;
 
-    ESP_LOGI(TAG, "Setting information for the connection...");
-    memcpy(wifi_config.sta.ssid, ssid, strlen(ssid) + 1); // +1 pour copier le \0
-    memcpy(wifi_config.sta.password, password, strlen(password) + 1);
+    setConfig(ssid, password);
 
     ESP_LOGI(TAG, "Initiating stack TCPIP...");
     tcpip_adapter_init();
@@ -59,7 +71,7 @@ static esp_err_t    initWifiClient(const char *ssid, const char *password)
     ret = esp_wifi_set_mode(WIFI_MODE_STA);
     if (ret != ESP_OK)
         return ret;
-    ret = esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
+    ret = esp_wifi_set_config(ESP_IF_WIFI_STA, &_wifi_config);
     return ret;
 }
 
@@ -78,6 +90,8 @@ static esp_err_t    startWifi()
 static esp_err_t    stopWifi()
 {
     ESP_LOGI(TAG, "Stopping the wifi...");
+    if (isWifiConnected())
+        esp_wifi_disconnect();
     return esp_wifi_stop();
 }
 
@@ -88,15 +102,25 @@ static void    taskWifi(void *arg)
     ESP_LOGI(TAG, "Initiating the task...");
     ESP_ERROR_CHECK(arg == NULL);
     data = (WifiConfig_t *)arg;
+    _config = data;
 
     ESP_ERROR_CHECK(initWifiClient(data->ssid, data->password));
     ESP_ERROR_CHECK(startWifi());
 
-    vTaskSuspend(NULL);
-
+    while (_running)
+    {
+        if (_restart && _config){
+            ESP_ERROR_CHECK(stopWifi());
+            setConfig(_config->ssid, _config->password);
+            ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &_wifi_config));
+            _restart = false;
+            ESP_ERROR_CHECK(startWifi());
+        }
+    }
     ESP_ERROR_CHECK(stopWifi());
     ESP_ERROR_CHECK(deinitWifiClient());
-    free(data);
+    free(_config);
+    _config = NULL;
     wifiTask = NULL;
     vTaskDelete(NULL);
 }
@@ -119,6 +143,7 @@ esp_err_t    startWifiClient(WifiConfig_t   *config)
     memcpy(tmp, config, sizeof(WifiConfig_t));
     if (!_wifiEventGroup)
         _wifiEventGroup = xEventGroupCreate();
+    _running = true;
     return xTaskCreate(taskWifi, "wifiTask", 4096, tmp, tskIDLE_PRIORITY, &wifiTask);
 }
 
@@ -128,7 +153,7 @@ esp_err_t   stopWifiClient()
     if (!wifiTask) {
         return ESP_FAIL;
     }
-    vTaskResume(wifiTask);
+    _running = false;
     return ESP_OK;
 }
 
@@ -140,4 +165,22 @@ EventGroupHandle_t  getWifiEventGroup()
 char	wifiIsUsed()
 {
     return wifiTask != NULL;
+}
+
+esp_err_t    restartWifiClient(WifiConfig_t *config)
+{
+    WifiConfig_t    *tmp;
+
+    if (!config || _restart)
+        return ESP_FAIL;
+    tmp = malloc(sizeof(WifiConfig_t));
+    if (!tmp)
+        return ESP_FAIL;
+    memcpy(tmp, config, sizeof(WifiConfig_t));
+    if (_config){
+        free(_config);
+    }
+    _config = tmp;
+    _restart = true;
+    return ESP_OK;
 }

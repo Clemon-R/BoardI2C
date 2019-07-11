@@ -1,1 +1,1 @@
-COMPONENT_SRCDIRS := . wifi mqtt sensors lcd
+COMPONENT_SRCDIRS := . wifi mqtt sensors lcd ble

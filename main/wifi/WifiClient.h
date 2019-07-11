@@ -32,8 +32,8 @@ typedef enum	WifiState_e {
 }				WifiState_t;
 
 typedef struct WifiConfig_s {
-    char	*ssid;
-    char	*password;
+    uint8_t	*ssid;
+    uint8_t	*password;
 }				WifiConfig_t;
 
 char	isWifiConnected();
@@ -43,5 +43,6 @@ esp_err_t	stopWifiClient();
 
 EventGroupHandle_t  getWifiEventGroup();
 char	wifiIsUsed();
+esp_err_t    restartWifiClient(WifiConfig_t *config);
 
 #endif // !WIFICLIENT_H_

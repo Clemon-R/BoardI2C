@@ -14,6 +14,8 @@
 #include "ButtonClient.h"
 #include "../../lvgl/lvgl.h"
 
+#include "ble/BleServer.h"
+
 static const char	TAG[] = "\033[1;39;100mMain\033[0m";
 
 static void setupLeds()
@@ -64,14 +66,23 @@ void	app_main()
     WifiConfig_t	dataWifi = {
         //.ssid = "1234-6789-12345",
         //.password = "12345678"
-        .ssid = "Honor Raphael",
-        .password = "clemon69"
+        .ssid = (uint8_t *)strdup("Honor Raphael"), //If changed
+        .password = (uint8_t *)strdup("clemon69")
     };
     MqttConfig_t	dataMqtt = {
         .url = "tcp://iot.eclipse.org"
     };
+    BleServerConfig_t   bleConfig = {
+        .wifiConfig = &dataWifi
+    };
+    esp_err_t   ret;
 
-    nvs_flash_init();
+    ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
     setupLeds();
     setButtonCallback(&btnClicked);
     startButtonClient();
@@ -80,6 +91,7 @@ void	app_main()
     startMqttClient(&dataMqtt);
     startLcd();
     startSensorClient();
+    startBleServer(&bleConfig);
     while (1) {
         if (xSemaphoreTake(lcdGetSemaphore(), pdMS_TO_TICKS(100)) == pdTRUE) {
             lv_task_handler();

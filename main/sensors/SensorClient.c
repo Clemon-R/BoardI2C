@@ -102,8 +102,10 @@ static void	taskSensor(void *args)
             _values.initiated = true;
         _working = _values.initiated;
         gpio_set_level(RGB_3, _values.initiated);
+        if (xQueueIsQueueFullFromISR(_datas) == pdTRUE)
+            continue;
         cJSON	*monitor = cJSON_CreateObject();
-        if (!monitor || xQueueIsQueueFullFromISR(_datas) == pdTRUE)
+        if (!monitor)
             continue;
 
         cJSON	*sensors = cJSON_CreateObject();

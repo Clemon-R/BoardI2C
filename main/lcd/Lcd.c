@@ -589,7 +589,7 @@ esp_err_t	startLcd()
     _running = true;
     ESP_ERROR_CHECK(initLcd());
     setupUI();
-    return xTaskCreate(&taskLcd, "lcdTask", 30720, NULL, tskIDLE_PRIORITY, &lcdTask);
+    return xTaskCreate(&taskLcd, "lcdTask", 4096, NULL, tskIDLE_PRIORITY, &lcdTask);
 }
 
 esp_err_t	stopLcd()

@@ -104,7 +104,7 @@ esp_err_t	startButtonClient()
     if (_running)
         return ESP_FAIL;
     _running = true;
-    return xTaskCreate(taskHandler, "buttonTask", 4096, NULL, tskIDLE_PRIORITY, NULL);
+    return xTaskCreate(taskHandler, "buttonTask", 2048, NULL, tskIDLE_PRIORITY, NULL);
 }
 
 esp_err_t	stopButtonClient()

@@ -51,7 +51,7 @@ static void ili9341_send_color(void * data, uint16_t length);
 
 void ili9341_init(void)
 {
-    DRAM_ATTR static const lcd_init_cmd_t ili_init_cmds[]= {
+    static const lcd_init_cmd_t ili_init_cmds[]= {
         /* Power contorl B, power control = 0, DC_ENA = 1 */
         {0xCF, {0x00, 0x83, 0X30}, 3},
         /* Power on sequence control,

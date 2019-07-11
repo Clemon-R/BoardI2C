@@ -22,7 +22,7 @@
 #define PIN_NUM_BCKL (gpio_num_t)5
 
 #ifndef	BUFF_SIZE
-#define	BUFF_SIZE 2048
+#define	BUFF_SIZE 512
 #endif
 
 typedef enum	LcdPageIndex_e {
