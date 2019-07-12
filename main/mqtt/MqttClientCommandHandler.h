@@ -14,11 +14,10 @@
 #include "cJSON.h"
 
 typedef enum	MqttClientCommandType_e {
-    CHANGEWIFI = 0,
-    LED,
+    LED = 0,
     SENSOR,
     REBOOT,
-    CHANGEPAGE
+    LCD
 }				MqttClientCommandType;
 
 typedef struct MqttClientCommand_s {

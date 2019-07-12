@@ -581,9 +581,9 @@ void	previousPage()
 
 esp_err_t	startLcd()
 {
-    ESP_LOGI(TAG, "Starting the %s task...", TAG);
     if (_running)
         return ESP_FAIL;
+    ESP_LOGI(TAG, "Starting the %s task...", TAG);
     if (!_semaphore)
         _semaphore = xSemaphoreCreateMutex();
     _running = true;
@@ -594,9 +594,9 @@ esp_err_t	startLcd()
 
 esp_err_t	stopLcd()
 {
-    ESP_LOGI(TAG, "Stopping the %s task...", TAG);
     if (!_running)
         return ESP_FAIL;
+    ESP_LOGI(TAG, "Stopping the %s task...", TAG);
     _running = false;
     return ESP_OK;
 }
