@@ -20,23 +20,6 @@ static void	taskCommandHandler(void *args)
     ESP_LOGI(TAG, "Starting the task for the command...");
     if (command) {
         switch (command->type) {
-        case CHANGEWIFI:
-            /*ESP_LOGI(TAG, "Changing the current wifi...");
-            cJSON	*ssid = cJSON_GetObjectItem(command->data, "ssid");
-            cJSON	*password = cJSON_GetObjectItem(command->data, "password");
-            if (!ssid || !password || !cJSON_IsString(ssid) || !cJSON_IsString(password))
-                break;
-            if (wifiIsUsed()) {
-                stopWifiClient();
-            }
-            while (wifiIsUsed()) {
-                vTaskDelay(pdMS_TO_TICKS(100));
-            }
-            dataWifi.ssid = ssid->valuestring;
-            dataWifi.password = password->valuestring;
-            startWifiClient(&dataWifi);*/
-            break;
-
         case LED:
             param = cJSON_GetObjectItem(command->data, "state");
             if (!param || !cJSON_IsBool(param))
@@ -65,14 +48,14 @@ static void	taskCommandHandler(void *args)
             esp_restart();
             break;
 
-        case CHANGEPAGE:
-            param = cJSON_GetObjectItem(command->data, "index");
-            if (param && cJSON_IsNumber(param)) {
-                if (!lcdIsRunning()) {
+        case LCD:
+            param = cJSON_GetObjectItem(command->data, "state");
+            if (param && cJSON_IsBool(param)) {
+                if (cJSON_IsTrue(param)) {
                     startLcd();
+                } else {
+                    stopLcd();
                 }
-                for (int i = 0; i < param->valueint; i++)
-                    nextPage();
             }
             break;
         }
