@@ -85,7 +85,6 @@ void	app_main()
     ESP_ERROR_CHECK(ret);
     setupLeds();
     setButtonCallback(&btnClicked);
-    startButtonClient();
 
     startWifiClient(&dataWifi);
     startMqttClient(&dataMqtt);

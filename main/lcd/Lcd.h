@@ -11,6 +11,10 @@
 
 #include "../../lvgl/lvgl.h"
 
+#include "Sensors.h"
+#include "Log.h"
+#include "State.h"
+
 //LCD
 #define PIN_NUM_MISO (gpio_num_t)25
 #define PIN_NUM_MOSI (gpio_num_t)23

@@ -14,7 +14,6 @@ static const char	*TAG = "\033[1;36mMqttClientCommandHandler\033[0m";
 static void	taskCommandHandler(void *args)
 {
     MqttClientCommand_t	*command = (MqttClientCommand_t *)args;
-    WifiConfig_t	dataWifi;
     cJSON	*param;
 
     ESP_LOGI(TAG, "Starting the task for the command...");
