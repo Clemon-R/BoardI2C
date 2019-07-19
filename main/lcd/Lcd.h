@@ -42,6 +42,7 @@ typedef struct	ValueContainer_s {
 
 void	nextPage();
 void	previousPage();
+int32_t getCurrentPage();
 
 esp_err_t	startLcd();
 esp_err_t	stopLcd();

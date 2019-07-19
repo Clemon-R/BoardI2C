@@ -1,5 +1,7 @@
 #include "Sensors.h"
 
+static const char   *TAG = "LcdSensors";
+
 static ValueContainer_t temperature = {.value = NULL, .decimale = NULL};
 static ValueContainer_t humidity = {.value = NULL, .decimale = NULL};
 static ValueContainer_t pressure = {.value = NULL, .decimale = NULL};
@@ -184,41 +186,133 @@ static void createSensorsTemperatureView(void *tab)
 	data.chartSerTemperature = lv_chart_add_series(data.chartTemperature, LV_COLOR_RED);
 	lv_chart_set_type(data.chartTemperature, LV_CHART_TYPE_LINE);
 	lv_chart_set_point_count(data.chartTemperature, 10);
-	lv_chart_set_range(data.chartTemperature, 0, 100);
-	lv_chart_set_div_line_count(data.chartTemperature, 4, 8);
+	lv_chart_set_range(data.chartTemperature, -100, 100);
+	lv_chart_set_div_line_count(data.chartTemperature, 5, 8);
 	lv_obj_set_width(data.chartTemperature, lv_obj_get_width(parent) - 100);
 	lv_obj_align(data.chartTemperature, parent, LV_ALIGN_IN_BOTTOM_RIGHT, -3, -5);
 	lv_chart_init_points(data.chartTemperature, data.chartSerTemperature, 1);
+    lv_obj_t    *init = lv_label_create(parent, NULL);
+    lv_label_set_text(init, "0°C");
+    lv_obj_align(init, data.chartTemperature, LV_ALIGN_OUT_LEFT_MID, 0, 0);
 
-	data.meterTemperature = lv_lmeter_create(parent, NULL);
-	lv_lmeter_set_scale(data.meterTemperature, 240, 31);
-	lv_lmeter_set_range(data.meterTemperature, 0, 100);
-	lv_lmeter_set_value(data.meterTemperature, 25);
-	lv_obj_align(data.meterTemperature, parent, LV_ALIGN_IN_TOP_MID, 50, 10);
+    data.meterTemperature = lv_gauge_create(parent, NULL);
+    static lv_style_t   styleMeter;
+    lv_style_copy(&styleMeter, lv_obj_get_style(data.meterTemperature));
+    styleMeter.body.main_color = LV_COLOR_AQUA;
+    styleMeter.body.grad_color = LV_COLOR_RED;
+    styleMeter.body.radius = lv_obj_get_height(parent) / 4;
+    lv_gauge_set_style(data.meterTemperature, &styleMeter);
+    lv_gauge_set_critical_value(data.meterTemperature, 45);
+    lv_gauge_set_scale(data.meterTemperature, 180, 31, 5);
+    lv_gauge_set_range(data.meterTemperature, -100, 100);
+    lv_gauge_set_needle_count(data.meterTemperature, 1, &LV_COLOR_BLACK);
+    lv_gauge_set_value(data.meterTemperature, 0, 0);
+    lv_obj_set_width(data.meterTemperature, (lv_obj_get_width(parent) - 100) * 0.80);
+	lv_obj_align(data.meterTemperature, parent, LV_ALIGN_IN_TOP_MID, 50, 0);
 
-	data.meterLblTemperature = lv_label_create(data.meterTemperature, NULL);
-	lv_obj_align(data.meterLblTemperature, data.meterTemperature, LV_ALIGN_CENTER, -12, 0);
-	lv_label_set_text(data.meterLblTemperature, "25,00°C");
+	data.meterLblTemperature = lv_label_create(parent, NULL);
+	lv_obj_align(data.meterLblTemperature, parent, LV_ALIGN_IN_TOP_LEFT, 102, 2);
+	lv_label_set_text(data.meterLblTemperature, "0,00°C");
 }
 
-static lv_res_t	changeTabview(uint8_t index, lv_obj_t * obj)
+static void createSensorsHumidityView(void *tab)
 {
-    if (data.oldView != NULL)
-        lv_btn_set_state(data.oldView, LV_BTN_STATE_REL);
+    lv_obj_t	*parent = (lv_obj_t *)tab;
+    lv_page_set_sb_mode(parent, LV_SB_MODE_HIDE);
+    lv_page_set_scrl_fit(parent, false, false);
+    lv_page_set_scrl_width(parent, lv_obj_get_width(parent));
+    lv_page_set_scrl_height(parent, lv_obj_get_height(parent));
+	lv_obj_set_height(parent, lv_obj_get_height(parent) - 40);
+    static lv_style_t	style;
+	lv_style_copy(&style, lv_obj_get_style(parent));
+    style.body.padding.hor = -10;
+    style.body.padding.ver = -10;
+    style.body.padding.inner = 0;
+	lv_obj_set_style(parent, &style);
+}
+static void createSensorsPressureView(void *tab)
+{
+    lv_obj_t	*parent = (lv_obj_t *)tab;
+    lv_page_set_sb_mode(parent, LV_SB_MODE_HIDE);
+    lv_page_set_scrl_fit(parent, false, false);
+    lv_page_set_scrl_width(parent, lv_obj_get_width(parent));
+    lv_page_set_scrl_height(parent, lv_obj_get_height(parent));
+	lv_obj_set_height(parent, lv_obj_get_height(parent) - 40);
+    static lv_style_t	style;
+	lv_style_copy(&style, lv_obj_get_style(parent));
+    style.body.padding.hor = -10;
+    style.body.padding.ver = -10;
+    style.body.padding.inner = 0;
+	lv_obj_set_style(parent, &style);
+}
+
+static lv_res_t	changeTabview(SensorsPage_t index, lv_obj_t * obj)
+{
+    if (data.oldBtn != NULL)
+        lv_btn_set_state(data.oldBtn, LV_BTN_STATE_REL);
 	lv_tabview_set_tab_act(data.nav, index, true);
     lv_btn_set_state(obj, LV_BTN_STATE_PR);
-    data.oldView = obj;
+    data.oldBtn = obj;
     return LV_RES_OK;
 }
 
 static lv_res_t	changeToTemperature(struct _lv_obj_t * obj)
 {
-    return changeTabview(1, obj);
+    ESP_LOGI(TAG, "Change to temperature");
+    return changeTabview(TEMPERATURE, obj);
 }
 
 static lv_res_t	changeToAll(struct _lv_obj_t * obj)
 {
-    return changeTabview(0, obj);
+    ESP_LOGI(TAG, "Change to all");
+    return changeTabview(ALL, obj);
+}
+
+static lv_res_t	changeToHumidity(struct _lv_obj_t * obj)
+{
+    ESP_LOGI(TAG, "Change to humidity");
+    return changeTabview(HUMIDITY, obj);
+}
+
+static lv_res_t	changeToPressure(struct _lv_obj_t * obj)
+{
+    ESP_LOGI(TAG, "Change to pressure");
+    return changeTabview(PRESSURE, obj);
+}
+
+static void    clickOnBtn(lv_obj_t *btn)
+{
+    if (btn != NULL){
+        lv_action_t action = lv_btn_get_action(btn, LV_BTN_ACTION_CLICK);
+        if (action != NULL)
+            (*action)(btn);
+        lv_list_set_btn_selected(data.navMenu, btn);
+    }
+}
+
+SensorsPage_t getSensorsCurrentPage()
+{
+    return (SensorsPage_t)lv_list_get_btn_index(data.navMenu, data.oldBtn);
+}
+
+void    nextSensorsPage()
+{
+    if (xSemaphoreTake(lcdGetSemaphore(), pdMS_TO_TICKS(100)) == pdTRUE) {
+        lv_obj_t *btn = lv_list_get_prev_btn(data.navMenu, data.oldBtn);
+        
+        clickOnBtn(btn);
+        xSemaphoreGive(lcdGetSemaphore());
+    }
+}
+
+void    previousSensorsPage()
+{
+    if (xSemaphoreTake(lcdGetSemaphore(), pdMS_TO_TICKS(100)) == pdTRUE) {
+        lv_obj_t *btn = lv_list_get_next_btn(data.navMenu, data.oldBtn);
+        
+        clickOnBtn(btn);
+        xSemaphoreGive(lcdGetSemaphore());
+    }
 }
 
 void	createSensorsView(void *tab)
@@ -244,13 +338,13 @@ void	createSensorsView(void *tab)
     paddingOff->body.padding.ver = 0;
     paddingOff->body.padding.hor = 0;
 
-    lv_obj_t * tab1 = lv_tabview_add_tab(data.nav, "All");
-    lv_obj_t * tab2 = lv_tabview_add_tab(data.nav, "Temperature");
-    lv_obj_t * tab3 = lv_tabview_add_tab(data.nav, "Humidity");
-    lv_obj_t * tab4 = lv_tabview_add_tab(data.nav, "Pressure");
-    lv_obj_t * tab5 = lv_tabview_add_tab(data.nav, "Color");
+    lv_obj_t *tab1 = lv_tabview_add_tab(data.nav, "All");
+    lv_obj_t *tab2 = lv_tabview_add_tab(data.nav, "Temperature");
+    lv_obj_t *tab3 = lv_tabview_add_tab(data.nav, "Humidity");
+    lv_obj_t *tab4 = lv_tabview_add_tab(data.nav, "Pressure");
+    lv_obj_t *tab5 = lv_tabview_add_tab(data.nav, "Color");
 
-    lv_obj_t	*listMenu = lv_list_create(parent, NULL);
+    data.navMenu = lv_list_create(parent, NULL);
 
     static lv_style_t style_btn_rel;
     lv_style_copy(&style_btn_rel, &lv_style_btn_rel);
@@ -262,24 +356,28 @@ void	createSensorsView(void *tab)
     style_btn_rel.body.radius = 0;
     style_btn_rel.body.padding.hor = 10;
 
-    lv_obj_set_size(listMenu, 100, lv_obj_get_height(parent) + 5);
-    lv_list_set_sb_mode(listMenu, LV_SB_MODE_AUTO);
-    lv_obj_align(listMenu, parent, LV_ALIGN_IN_TOP_LEFT, 0, -5);
+    lv_obj_set_size(data.navMenu, 100, lv_obj_get_height(parent) + 5);
+    lv_list_set_sb_mode(data.navMenu, LV_SB_MODE_AUTO);
+    lv_obj_align(data.navMenu, parent, LV_ALIGN_IN_TOP_LEFT, 0, -5);
 
-    lv_obj_t *tmp  = lv_list_add(listMenu, SYMBOL_LIST, "All", &changeToAll);
-    lv_list_add(listMenu, NULL, "Temperature", &changeToTemperature);
-    //lv_list_add(listMenu, NULL, "Humidity", NULL);
-    //lv_list_add(listMenu, NULL, "Pressure", NULL);
-    //lv_list_add(listMenu, NULL, "Color", NULL);
-
-    lv_list_set_style(listMenu, LV_LIST_STYLE_BG, &lv_style_transp_tight);
-    lv_list_set_style(listMenu, LV_LIST_STYLE_BTN_REL, &style_btn_rel);
-    lv_list_set_sb_mode(listMenu, LV_SB_MODE_HIDE);
-
+    lv_obj_t *tmp  = lv_list_add(data.navMenu, SYMBOL_LIST, "All", &changeToAll);
+    lv_list_add(data.navMenu, NULL, "Temperature", &changeToTemperature);
+    lv_list_add(data.navMenu, NULL, "Humidity", &changeToHumidity);
+    lv_list_add(data.navMenu, NULL, "Pressure", &changeToPressure);
+    lv_list_add(data.navMenu, NULL, "Color", NULL);
+    
+    lv_list_set_btn_selected(data.navMenu, tmp);
     lv_btn_set_state(tmp, LV_BTN_STATE_PR);
-    data.oldView = tmp;
+    data.oldBtn = tmp;
+
+    lv_list_set_style(data.navMenu, LV_LIST_STYLE_BG, &lv_style_transp_tight);
+    lv_list_set_style(data.navMenu, LV_LIST_STYLE_BTN_REL, &style_btn_rel);
+    lv_list_set_sb_mode(data.navMenu, LV_SB_MODE_HIDE);
+
     createSensorsAllView(tab1);
 	createSensorsTemperatureView(tab2);
+	createSensorsHumidityView(tab3);
+	createSensorsPressureView(tab4);
 }
 
 LcdSensors_t	*getSensorsData()

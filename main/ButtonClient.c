@@ -22,9 +22,10 @@ static esp_err_t	initButtonGpio()
 
     ESP_LOGI(TAG, "Initiating GPIO Buttons...");
     gpio_conf.intr_type = GPIO_INTR_ANYEDGE;
-    gpio_conf.pin_bit_mask = (1ULL<<BTN_1) | (1ULL<<BTN_2) ;
+    gpio_conf.pin_bit_mask = (1ULL<<BTN_LEFT) | (1ULL<<BTN_RIGHT) | (1ULL<<BTN_BOTTOM) | (1ULL<<BTN_TOP) | (1ULL<<BTN_CLICK);
     gpio_conf.mode = GPIO_MODE_INPUT;
     gpio_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    gpio_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     ret = gpio_config(&gpio_conf);
     if (ret != ESP_OK)
         return ret;
@@ -33,10 +34,23 @@ static esp_err_t	initButtonGpio()
     gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
     if (gpio_evt_queue == NULL)
         return ESP_FAIL;
-    ret = gpio_isr_handler_add(BTN_1, gpio_isr_handler, (void*) BTN_1);
+    ret = gpio_isr_handler_add(BTN_LEFT, gpio_isr_handler, (void*) BTN_LEFT);
     if (ret != ESP_OK)
         return ret;
-    ret = gpio_isr_handler_add(BTN_2, gpio_isr_handler, (void*) BTN_2);
+    ret = gpio_isr_handler_add(BTN_RIGHT, gpio_isr_handler, (void*) BTN_RIGHT);
+    if (ret != ESP_OK)
+        return ret;
+    ret = gpio_isr_handler_add(BTN_BOTTOM, gpio_isr_handler, (void*) BTN_BOTTOM);
+    if (ret != ESP_OK)
+        return ret;
+    ret = gpio_isr_handler_add(BTN_TOP, gpio_isr_handler, (void*) BTN_TOP);
+    if (ret != ESP_OK)
+        return ret;
+    if ((BTN_MASK & (1ULL<<26)) > 0)
+        gpio_set_pull_mode(GPIO_NUM_26, GPIO_PULLDOWN_ONLY);
+    if ((BTN_MASK & (1ULL<<27)) > 0)
+        gpio_set_pull_mode(GPIO_NUM_27, GPIO_PULLDOWN_ONLY);
+    ret = gpio_isr_handler_add(BTN_CLICK, gpio_isr_handler, (void*) BTN_CLICK);
     return ret;
 }
 
@@ -46,15 +60,24 @@ static esp_err_t	deinitButtonGpio()
     esp_err_t	ret;
 
     ESP_LOGI(TAG, "Deinitiating GPIO Buttons...");
-    gpio_conf.pin_bit_mask = (1ULL<<BTN_1) | (1ULL<<BTN_2) ;
+    gpio_conf.pin_bit_mask = BTN_MASK;
     gpio_conf.mode = GPIO_MODE_DISABLE;
     ret = gpio_config(&gpio_conf);
     if (ret != ESP_OK)
         return ret;
-    ret = gpio_isr_handler_remove(BTN_1);
+    ret = gpio_isr_handler_remove(BTN_LEFT);
     if (ret != ESP_OK)
         return ret;
-    ret = gpio_isr_handler_remove(BTN_2);
+    ret = gpio_isr_handler_remove(BTN_RIGHT);
+    if (ret != ESP_OK)
+        return ret;
+    ret = gpio_isr_handler_remove(BTN_BOTTOM);
+    if (ret != ESP_OK)
+        return ret;
+    ret = gpio_isr_handler_remove(BTN_TOP);
+    if (ret != ESP_OK)
+        return ret;
+    ret = gpio_isr_handler_remove(BTN_CLICK);
     gpio_uninstall_isr_service();
     return ret;
 }
@@ -74,13 +97,14 @@ static void taskHandler(void* arg) //Tache de traitement des trigger
             TickType_t tick = xTaskGetTickCount();
             current = (tick - last_click)  * portTICK_PERIOD_MS;
             uint32_t state = gpio_get_level((gpio_num_t)io_num);
-            if (clicked > 0 && clicked != io_num)
-                continue;
+            ESP_LOGI(TAG, "%d state %d", io_num, state);
+            /*if (clicked > 0 && clicked != io_num)
+                continue;*/
             if (state != BTN_CLICKED) {
                 clicked = 0;
                 continue;
             }
-            if (last_click > 0 && current <= 200) {
+            if (clicked && last_click > 0 && current <= 200) {
                 (*_callback)(io_num, Double);
             } else {
                 (*_callback)(io_num, Simple);
@@ -88,6 +112,11 @@ static void taskHandler(void* arg) //Tache de traitement des trigger
             clicked = io_num;
             last_click = tick;
         } else if (clicked > 0 && (current = (xTaskGetTickCount() - last_click)  * portTICK_PERIOD_MS) >= 1000) {
+            uint32_t state = gpio_get_level((gpio_num_t)io_num);
+            if (state != BTN_CLICKED) {
+                clicked = 0;
+                continue;
+            }
             if (current > 2000)
                 (*_callback)(clicked, VeryLong);
             else

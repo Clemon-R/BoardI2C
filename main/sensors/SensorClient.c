@@ -77,10 +77,10 @@ static void	taskSensor(void *args)
 {
     SensorData_t	data;
     char	buffer[BUFF_SIZE];
-    TickType_t	waitingTicks = pdMS_TO_TICKS(3000);
 
     ESP_LOGI(TAG, "Initiating the task...");
-    gpio_set_level(RGB_3, 0);
+    gpio_set_level(RGB_3_GREEN, 1);
+    gpio_set_level(RGB_3_RED, 1);
     ESP_ERROR_CHECK(nordicI2CInit());
     while (_running) {
         vTaskDelay(refreshDelai);
@@ -101,7 +101,8 @@ static void	taskSensor(void *args)
         else
             _values.initiated = true;
         _working = _values.initiated;
-        gpio_set_level(RGB_3, _values.initiated);
+        gpio_set_level(RGB_3_GREEN, !_values.initiated);
+        gpio_set_level(RGB_3_RED, _values.initiated);
         if (xQueueIsQueueFullFromISR(_datas) == pdTRUE)
             continue;
         cJSON	*monitor = cJSON_CreateObject();
@@ -134,7 +135,8 @@ static void	taskSensor(void *args)
     nordicI2CDeinit();
     _config = NULL;
     _running = false;
-    gpio_set_level(RGB_3, 0);
+    gpio_set_level(RGB_3_GREEN, 1);
+    gpio_set_level(RGB_3_RED, 1);
     sensorTask = NULL;
     vTaskDelete(NULL);
 }

@@ -6,6 +6,14 @@
 struct	ValueContainer_s;
 typedef	struct	ValueContainer_s	ValueContainer_t;
 
+typedef enum	SensorsPage_e
+{
+	ALL = 0,
+	TEMPERATURE,
+	HUMIDITY,
+	PRESSURE
+}				SensorsPage_t;
+
 typedef struct	LcdSensors_s
 {
 	lv_obj_t	*red;
@@ -24,11 +32,16 @@ typedef struct	LcdSensors_s
 	lv_obj_t *chartTemperature;
 	lv_chart_series_t *chartSerTemperature;
 
+	lv_obj_t	*navMenu;
 	lv_obj_t	*nav;
-	lv_obj_t	*oldView;  
+	lv_obj_t	*oldBtn;  
 }				LcdSensors_t;
 
 void	createSensorsView(void *tab);
 LcdSensors_t	*getSensorsData();
+
+SensorsPage_t getSensorsCurrentPage();
+void    previousSensorsPage();
+void    nextSensorsPage();
 
 #endif

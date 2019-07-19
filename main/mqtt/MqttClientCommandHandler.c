@@ -23,9 +23,9 @@ static void	taskCommandHandler(void *args)
             param = cJSON_GetObjectItem(command->data, "state");
             if (!param || !cJSON_IsBool(param))
                 break;
-            gpio_set_level(RGB_1, cJSON_IsTrue(param) ? 1 : 0);
+            /*gpio_set_level(RGB_1, cJSON_IsTrue(param) ? 1 : 0);
             gpio_set_level(RGB_2, cJSON_IsTrue(param) ? 1 : 0);
-            gpio_set_level(RGB_3, cJSON_IsTrue(param) ? 1 : 0);
+            gpio_set_level(RGB_3, cJSON_IsTrue(param) ? 1 : 0);*/
             break;
 
         case SENSOR:

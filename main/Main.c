@@ -24,40 +24,50 @@ static void setupLeds()
 
     ESP_LOGI(TAG, "Settings GPIO Leds...");
     gpio_conf.intr_type = GPIO_INTR_ANYEDGE;
-    gpio_conf.pin_bit_mask = (1ULL<<RGB_1) | (1ULL<<RGB_2) | (1ULL<<RGB_3);
+    gpio_conf.pin_bit_mask = RGB_MASK;
     gpio_conf.mode = GPIO_MODE_OUTPUT;
     gpio_config(&gpio_conf);
-    gpio_set_level(RGB_1, 0);
-    gpio_set_level(RGB_2, 0);
-    gpio_set_level(RGB_3, 0);
+    gpio_set_level(RGB_1_GREEN, 1);
+    gpio_set_level(RGB_2_GREEN, 1);
+    gpio_set_level(RGB_3_GREEN, 1);
+    gpio_set_level(RGB_3_RED, 1);
 }
 
 static void btnClicked(uint32_t io_num, TypeClick type)
 {
-    if (type == Simple && !lcdIsRunning()) {
-        startLcd();
-    }
     switch (io_num) {
-    case BTN_1:
-        if (type == Simple) {
-            previousPage();
-        }
-        if (type == Double) {
+    case BTN_LEFT:
+        ESP_LOGI(TAG, "Left");
+        if (type == Simple || type == Double) {
             previousPage();
         }
         break;
 
-    case BTN_2:
-        if (type == Simple) {
-            nextPage();
-        }
-        if (type == Double) {
+    case BTN_RIGHT:
+        ESP_LOGI(TAG, "Right");
+        if (type == Simple || type == Double) {
             nextPage();
         }
         break;
-    }
-    if (type == VeryLong) {
-        stopLcd();
+
+    case BTN_TOP:
+        ESP_LOGI(TAG, "Top");
+        if (getCurrentPage() == 0 && (type == Simple || type == Double)){
+            nextSensorsPage();
+        }
+        break;
+
+    case BTN_BOTTOM:
+        ESP_LOGI(TAG, "Bottom");
+        if (getCurrentPage() == 0 && (type == Simple || type == Double)){
+            previousSensorsPage();
+        }
+        break;
+
+    case BTN_CLICK:
+        ESP_LOGI(TAG, "Click");
+        break;
+    
     }
 }
 

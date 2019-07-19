@@ -23,13 +23,13 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
     case SYSTEM_EVENT_STA_GOT_IP:
         ESP_LOGI(TAG, "\033[4mWifi successfully connected\033[0m");
         xEventGroupSetBits(_wifiEventGroup, CONNECTED_BIT);
-        gpio_set_level(RGB_1, 1);
+        gpio_set_level(RGB_1_GREEN, 0);
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         if (isWifiConnected()) {
             ESP_LOGE(TAG, "\033[5mWifi was disconnected\033[0m");
             xEventGroupClearBits(_wifiEventGroup, CONNECTED_BIT);
-            gpio_set_level(RGB_1, 0);
+            gpio_set_level(RGB_1_GREEN, 1);
         }
         if (_running && !_restart){
             ESP_LOGI(TAG, "Trying to connect again...");

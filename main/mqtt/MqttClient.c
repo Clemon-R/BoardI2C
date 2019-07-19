@@ -32,7 +32,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
         ESP_LOGI(TAG, "\033[4mClient is connected\033[0m");
 
         xEventGroupSetBits(_mqttEventGroup, CONNECTED_BIT);
-        gpio_set_level(RGB_2, 1);
+        gpio_set_level(RGB_2_GREEN, 0);
 
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/status", 0);
         ESP_LOGI(TAG, "Subscribed to /demo/rtone/esp32/status");
@@ -46,7 +46,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             _state = DISCONNECTED;
             ESP_LOGE(TAG, "\033[5mClient was disconnected\033[0m");
             xEventGroupClearBits(_mqttEventGroup, CONNECTED_BIT);
-            gpio_set_level(RGB_2, 0);
+            gpio_set_level(RGB_2_GREEN, 1);
         }
         break;
     case MQTT_EVENT_DATA:

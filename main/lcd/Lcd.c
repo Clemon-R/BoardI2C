@@ -149,57 +149,82 @@ static void	setupUI()
 
 static void refreshSensors(SensorValues_t *values)
 {
-    if (values->temperature != -1) {
-        if (sensorsData->temperature->value && sensorsData->temperature->decimale && xSemaphoreTake(_semaphore, 0) == pdTRUE) {
-            lv_lmeter_set_value(sensorsData->meterTemperature, (int)values->temperature);
-            sprintf(_buffer, "%d", (int)values->temperature);
-            lv_label_set_text(sensorsData->temperature->value, _buffer);
-            sprintf(_buffer, ",%d°C", (int)(values->temperature * 100) % 100);
-            lv_label_set_text(sensorsData->temperature->decimale, _buffer);
-            sprintf(_buffer, "%d,%d°C", (int)values->temperature, (int)(values->temperature * 100) % 100);
-            lv_label_set_text(sensorsData->meterLblTemperature, _buffer);
-            xSemaphoreGive(_semaphore);
+    switch (getSensorsCurrentPage())
+    {
+        case ALL:
+        if (values->temperature != -1) {
+            if (sensorsData->temperature->value && sensorsData->temperature->decimale && xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+                sprintf(_buffer, "%d", (int)values->temperature);
+                lv_label_set_text(sensorsData->temperature->value, _buffer);
+                sprintf(_buffer, ",%d°C", (int)(values->temperature * 100) % 100);
+                lv_label_set_text(sensorsData->temperature->decimale, _buffer);
+                xSemaphoreGive(_semaphore);
+            }
         }
-    }
-    if (values->humidity != -1) {
-        if (sensorsData->humidity->value && sensorsData->humidity->decimale && xSemaphoreTake(_semaphore, 0) == pdTRUE) {
-            sprintf(_buffer, "%d", (int)values->humidity);
-            lv_label_set_text(sensorsData->humidity->value, _buffer);
-            sprintf(_buffer, ",%d%c", (int)(values->humidity * 100) % 100, '%');
-            lv_label_set_text(sensorsData->humidity->decimale, _buffer);
-            xSemaphoreGive(_semaphore);
+        if (values->humidity != -1) {
+            if (sensorsData->humidity->value && sensorsData->humidity->decimale && xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+                sprintf(_buffer, "%d", (int)values->humidity);
+                lv_label_set_text(sensorsData->humidity->value, _buffer);
+                sprintf(_buffer, ",%d%c", (int)(values->humidity * 100) % 100, '%');
+                lv_label_set_text(sensorsData->humidity->decimale, _buffer);
+                xSemaphoreGive(_semaphore);
+            }
         }
-    }
-    if (values->pressure != -1) {
-        if (sensorsData->pressure->value && sensorsData->pressure->decimale && xSemaphoreTake(_semaphore, 0) == pdTRUE) {
-            sprintf(_buffer, "%d", (int)values->pressure);
-            lv_label_set_text(sensorsData->pressure->value, _buffer);
-            sprintf(_buffer, ",%dhPa", (int)(values->pressure * 100) % 100);
-            lv_label_set_text(sensorsData->pressure->decimale, _buffer);
-            xSemaphoreGive(_semaphore);
+        if (values->pressure != -1) {
+            if (sensorsData->pressure->value && sensorsData->pressure->decimale && xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+                sprintf(_buffer, "%d", (int)values->pressure);
+                lv_label_set_text(sensorsData->pressure->value, _buffer);
+                sprintf(_buffer, ",%dhPa", (int)(values->pressure * 100) % 100);
+                lv_label_set_text(sensorsData->pressure->decimale, _buffer);
+                xSemaphoreGive(_semaphore);
+            }
         }
-    }
 
-    uint32_t	total = values->color.r + values->color.g + values->color.b;
-    uint32_t	last = 270, tmp = 0;
-    if (values->color.available) {
-        if (xSemaphoreTake(_semaphore, 0) == pdTRUE) {
-            if (sensorsData->red) {
-                lv_arc_set_angles(sensorsData->red, (tmp = last - (90 * (values->color.r / (float)total))), last);
-                last = tmp;
+        uint32_t	total = values->color.r + values->color.g + values->color.b;
+        uint32_t	last = 270, tmp = 0;
+        if (values->color.available) {
+            if (xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+                if (sensorsData->red) {
+                    lv_arc_set_angles(sensorsData->red, (tmp = last - (90 * (values->color.r / (float)total))), last);
+                    last = tmp;
+                }
+                if (sensorsData->green) {
+                    lv_arc_set_angles(sensorsData->green, (tmp = last - (90 * (values->color.g / (float)total))), last);
+                    last = tmp;
+                }
+                if (sensorsData->blue) {
+                    lv_arc_set_angles(sensorsData->blue, (tmp = last - (90 * (values->color.b / (float)total))), last);
+                }
+                if (sensorsData->rgb) {
+                    lv_arc_get_style(sensorsData->rgb, LV_ARC_STYLE_MAIN)->line.color = LV_COLOR_MAKE((int)(UINT8_MAX * (values->color.r / (float)UINT16_MAX)), (int)(UINT8_MAX * (values->color.g  / UINT16_MAX)), (int)(UINT8_MAX * (values->color.b  / UINT16_MAX)));
+                }
+                xSemaphoreGive(_semaphore);
             }
-            if (sensorsData->green) {
-                lv_arc_set_angles(sensorsData->green, (tmp = last - (90 * (values->color.g / (float)total))), last);
-                last = tmp;
-            }
-            if (sensorsData->blue) {
-                lv_arc_set_angles(sensorsData->blue, (tmp = last - (90 * (values->color.b / (float)total))), last);
-            }
-            if (sensorsData->rgb) {
-                lv_arc_get_style(sensorsData->rgb, LV_ARC_STYLE_MAIN)->line.color = LV_COLOR_MAKE((int)(UINT8_MAX * (values->color.r / (float)UINT16_MAX)), (int)(UINT8_MAX * (values->color.g  / UINT16_MAX)), (int)(UINT8_MAX * (values->color.b  / UINT16_MAX)));
-            }
-            xSemaphoreGive(_semaphore);
         }
+        break;
+
+        case TEMPERATURE:
+        if (values->temperature != -1) {
+            if (sensorsData->meterLblTemperature && 
+            sensorsData->meterTemperature && 
+            sensorsData->chartSerTemperature && 
+            sensorsData->chartTemperature && 
+            xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+                lv_gauge_set_value(sensorsData->meterTemperature, 0, (int)values->temperature);
+                sprintf(_buffer, "%d,%d°C", (int)values->temperature, (int)(values->temperature * 100) % 100);
+                lv_label_set_text(sensorsData->meterLblTemperature, _buffer);
+                for (int i = 0;i < 9;i++){
+                    sensorsData->chartSerTemperature->points[i] = sensorsData->chartSerTemperature->points[i + 1];
+                }
+                sensorsData->chartSerTemperature->points[9] = (int)values->temperature;
+                lv_chart_refresh(sensorsData->chartTemperature);
+                xSemaphoreGive(_semaphore);
+            }
+        }
+        break;
+
+        default:
+        break;
     }
 }
 
@@ -283,10 +308,6 @@ static void taskLcd(void *args)
     vTaskDelete(NULL);
 }
 
-/* 
- * Public function
-*/
-
 static void	changePage(int i)
 {
     _index += i;
@@ -294,6 +315,15 @@ static void	changePage(int i)
         _index = _index + 3;
     if (_index >= 3)
         _index = 0;
+}
+
+/* 
+ * Public function
+*/
+
+int32_t getCurrentPage()
+{
+    return _index;
 }
 
 void	nextPage()
