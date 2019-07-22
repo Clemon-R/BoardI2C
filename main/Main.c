@@ -27,10 +27,13 @@ static void setupLeds()
     gpio_conf.pin_bit_mask = RGB_MASK;
     gpio_conf.mode = GPIO_MODE_OUTPUT;
     gpio_config(&gpio_conf);
+    gpio_set_level(RGB_1_RED, 1);
     gpio_set_level(RGB_1_GREEN, 1);
+    gpio_set_level(RGB_2_RED, 1);
     gpio_set_level(RGB_2_GREEN, 1);
     gpio_set_level(RGB_3_GREEN, 1);
     gpio_set_level(RGB_3_RED, 1);
+    gpio_set_level(RGB_3_BLUE, 1);
 }
 
 static void btnClicked(uint32_t io_num, TypeClick type)

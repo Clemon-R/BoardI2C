@@ -26,11 +26,18 @@ typedef struct	LcdSensors_s
 	ValueContainer_t	*pressure;
 
 	lv_obj_t *meterTemperature;
+	lv_obj_t *meterHumidity;
 
 	lv_obj_t *meterLblTemperature;
+	lv_obj_t *meterLblHumidity;
+	lv_obj_t *meterLblPressure;
 
 	lv_obj_t *chartTemperature;
 	lv_chart_series_t *chartSerTemperature;
+	lv_obj_t *chartHumidity;
+	lv_chart_series_t *chartSerHumidity;
+	lv_obj_t *chartPressure;
+	lv_chart_series_t *chartSerPressure;
 
 	lv_obj_t	*navMenu;
 	lv_obj_t	*nav;

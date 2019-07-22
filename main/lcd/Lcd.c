@@ -204,20 +204,56 @@ static void refreshSensors(SensorValues_t *values)
         break;
 
         case TEMPERATURE:
-        if (values->temperature != -1) {
-            if (sensorsData->meterLblTemperature && 
+        if (sensorsData->meterLblTemperature && 
             sensorsData->meterTemperature && 
             sensorsData->chartSerTemperature && 
             sensorsData->chartTemperature && 
             xSemaphoreTake(_semaphore, 0) == pdTRUE) {
-                lv_gauge_set_value(sensorsData->meterTemperature, 0, (int)values->temperature);
-                sprintf(_buffer, "%d,%d°C", (int)values->temperature, (int)(values->temperature * 100) % 100);
-                lv_label_set_text(sensorsData->meterLblTemperature, _buffer);
+            lv_gauge_set_value(sensorsData->meterTemperature, 0, (int)values->temperature);
+            sprintf(_buffer, "%d,%d°C", (int)values->temperature, (int)(values->temperature * 100) % 100);
+            lv_label_set_text(sensorsData->meterLblTemperature, _buffer);
+            for (int i = 0;i < 9;i++){
+                sensorsData->chartSerTemperature->points[i] = sensorsData->chartSerTemperature->points[i + 1];
+            }
+            sensorsData->chartSerTemperature->points[9] = (int)values->temperature;
+            lv_chart_refresh(sensorsData->chartTemperature);
+            xSemaphoreGive(_semaphore);
+        }
+        break;
+
+        case HUMIDITY:
+        if (values->humidity != -1) {
+            if (sensorsData->meterLblHumidity && 
+            sensorsData->meterHumidity && 
+            sensorsData->chartSerHumidity && 
+            sensorsData->chartHumidity && 
+            xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+                lv_gauge_set_value(sensorsData->meterHumidity, 0, (int)values->humidity);
+                sprintf(_buffer, "%d,%d%c", (int)values->humidity, (int)(values->humidity * 100) % 100, '%');
+                lv_label_set_text(sensorsData->meterLblHumidity, _buffer);
                 for (int i = 0;i < 9;i++){
-                    sensorsData->chartSerTemperature->points[i] = sensorsData->chartSerTemperature->points[i + 1];
+                    sensorsData->chartSerHumidity->points[i] = sensorsData->chartSerHumidity->points[i + 1];
                 }
-                sensorsData->chartSerTemperature->points[9] = (int)values->temperature;
-                lv_chart_refresh(sensorsData->chartTemperature);
+                sensorsData->chartSerHumidity->points[9] = (int)values->humidity;
+                lv_chart_refresh(sensorsData->chartHumidity);
+                xSemaphoreGive(_semaphore);
+            }
+        }
+        break;
+
+        case PRESSURE:
+        if (values->pressure != -1) {
+            if (sensorsData->meterLblPressure && 
+            sensorsData->chartSerPressure && 
+            sensorsData->chartPressure && 
+            xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+                sprintf(_buffer, "%d,%dhPa", (int)values->pressure, (int)(values->pressure * 100) % 100);
+                lv_label_set_text(sensorsData->meterLblPressure, _buffer);
+                for (int i = 0;i < 29;i++){
+                    sensorsData->chartSerPressure->points[i] = sensorsData->chartSerPressure->points[i + 1];
+                }
+                sensorsData->chartSerPressure->points[29] = (int)(values->pressure * 100) % 100;
+                lv_chart_refresh(sensorsData->chartPressure);
                 xSemaphoreGive(_semaphore);
             }
         }

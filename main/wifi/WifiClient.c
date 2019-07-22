@@ -23,6 +23,7 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
     case SYSTEM_EVENT_STA_GOT_IP:
         ESP_LOGI(TAG, "\033[4mWifi successfully connected\033[0m");
         xEventGroupSetBits(_wifiEventGroup, CONNECTED_BIT);
+        gpio_set_level(RGB_1_RED, 1);
         gpio_set_level(RGB_1_GREEN, 0);
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
@@ -30,6 +31,7 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
             ESP_LOGE(TAG, "\033[5mWifi was disconnected\033[0m");
             xEventGroupClearBits(_wifiEventGroup, CONNECTED_BIT);
             gpio_set_level(RGB_1_GREEN, 1);
+            gpio_set_level(RGB_1_RED, 0);
         }
         if (_running && !_restart){
             ESP_LOGI(TAG, "Trying to connect again...");
@@ -100,6 +102,7 @@ static void    taskWifi(void *arg)
     WifiConfig_t   *data;
 
     ESP_LOGI(TAG, "Initiating the task...");
+    gpio_set_level(RGB_1_RED, 0);
     ESP_ERROR_CHECK(arg == NULL);
     data = (WifiConfig_t *)arg;
     _config = data;
@@ -122,6 +125,7 @@ static void    taskWifi(void *arg)
     free(_config);
     _config = NULL;
     wifiTask = NULL;
+    gpio_set_level(RGB_1_RED, 1);
     vTaskDelete(NULL);
 }
 

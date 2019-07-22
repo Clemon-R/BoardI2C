@@ -32,6 +32,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
         ESP_LOGI(TAG, "\033[4mClient is connected\033[0m");
 
         xEventGroupSetBits(_mqttEventGroup, CONNECTED_BIT);
+        gpio_set_level(RGB_2_RED, 1);
         gpio_set_level(RGB_2_GREEN, 0);
 
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/status", 0);
@@ -47,6 +48,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             ESP_LOGE(TAG, "\033[5mClient was disconnected\033[0m");
             xEventGroupClearBits(_mqttEventGroup, CONNECTED_BIT);
             gpio_set_level(RGB_2_GREEN, 1);
+            gpio_set_level(RGB_2_RED, 0);
         }
         break;
     case MQTT_EVENT_DATA:
@@ -130,6 +132,7 @@ static void	taskMqtt(void *arg)
     cJSON	*monitor = NULL;
 
     ESP_LOGI(TAG, "Initiating the task...");
+    gpio_set_level(RGB_2_RED, 0);
     ESP_ERROR_CHECK(arg == NULL);
     data = (MqttConfig_t *)arg;
 
@@ -163,6 +166,7 @@ static void	taskMqtt(void *arg)
     deinitMqttClient(client);
     free(data);
     mqttTask = NULL;
+    gpio_set_level(RGB_2_RED, 1);
     vTaskDelete(NULL);
 }
 

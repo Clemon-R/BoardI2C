@@ -229,7 +229,37 @@ static void createSensorsHumidityView(void *tab)
     style.body.padding.ver = -10;
     style.body.padding.inner = 0;
 	lv_obj_set_style(parent, &style);
+
+    data.chartHumidity = lv_chart_create(parent, NULL);
+	data.chartSerHumidity = lv_chart_add_series(data.chartHumidity, LV_COLOR_RED);
+	lv_chart_set_type(data.chartHumidity, LV_CHART_TYPE_COLUMN);
+	lv_chart_set_point_count(data.chartHumidity, 10);
+	lv_chart_set_range(data.chartHumidity, -2, 100);
+	lv_chart_set_div_line_count(data.chartHumidity, 5, 8);
+	lv_obj_set_width(data.chartHumidity, lv_obj_get_width(parent) - 100);
+	lv_obj_align(data.chartHumidity, parent, LV_ALIGN_IN_BOTTOM_RIGHT, -3, -5);
+	lv_chart_init_points(data.chartHumidity, data.chartSerHumidity, 1);
+
+	data.meterHumidity = lv_gauge_create(parent, NULL);
+    static lv_style_t   styleMeter;
+    lv_style_copy(&styleMeter, lv_obj_get_style(data.meterHumidity));
+    styleMeter.body.main_color = LV_COLOR_MAKE(0xcc, 0xff, 0xff);
+    styleMeter.body.grad_color = LV_COLOR_AQUA;
+    styleMeter.body.radius = lv_obj_get_height(parent) / 4;
+    lv_gauge_set_style(data.meterHumidity, &styleMeter);
+    lv_gauge_set_critical_value(data.meterHumidity, 100);
+    lv_gauge_set_scale(data.meterHumidity, 180, 31, 5);
+    lv_gauge_set_range(data.meterHumidity, 0, 100);
+    lv_gauge_set_needle_count(data.meterHumidity, 1, &LV_COLOR_BLACK);
+    lv_gauge_set_value(data.meterHumidity, 0, 0);
+    lv_obj_set_width(data.meterHumidity, (lv_obj_get_width(parent) - 100) * 0.80);
+	lv_obj_align(data.meterHumidity, parent, LV_ALIGN_IN_TOP_MID, 50, 0);
+
+	data.meterLblHumidity = lv_label_create(parent, NULL);
+	lv_obj_align(data.meterLblHumidity, parent, LV_ALIGN_IN_TOP_LEFT, 102, 2);
+	lv_label_set_text(data.meterLblHumidity, "0%");
 }
+
 static void createSensorsPressureView(void *tab)
 {
     lv_obj_t	*parent = (lv_obj_t *)tab;
@@ -244,6 +274,21 @@ static void createSensorsPressureView(void *tab)
     style.body.padding.ver = -10;
     style.body.padding.inner = 0;
 	lv_obj_set_style(parent, &style);
+
+    data.chartPressure = lv_chart_create(parent, NULL);
+	data.chartSerPressure = lv_chart_add_series(data.chartPressure, LV_COLOR_RED);
+	lv_chart_set_type(data.chartPressure, LV_CHART_TYPE_POINT);
+	lv_chart_set_point_count(data.chartPressure, 30);
+	lv_chart_set_range(data.chartPressure, 0, 100);
+	lv_chart_set_div_line_count(data.chartPressure, 0, 0);
+	lv_obj_set_width(data.chartPressure, lv_obj_get_width(parent) - 100);
+    lv_obj_set_height(data.chartPressure, lv_obj_get_height(parent));
+	lv_obj_align(data.chartPressure, parent, LV_ALIGN_IN_BOTTOM_RIGHT, 0, 0);
+	lv_chart_init_points(data.chartPressure, data.chartSerPressure, 1);
+
+    data.meterLblPressure = lv_label_create(parent, NULL);
+    lv_label_set_text(data.meterLblPressure, "0hPa");
+    lv_obj_align(data.meterLblPressure, data.chartPressure, LV_ALIGN_IN_TOP_LEFT, 2, 2);
 }
 
 static lv_res_t	changeTabview(SensorsPage_t index, lv_obj_t * obj)
@@ -342,7 +387,6 @@ void	createSensorsView(void *tab)
     lv_obj_t *tab2 = lv_tabview_add_tab(data.nav, "Temperature");
     lv_obj_t *tab3 = lv_tabview_add_tab(data.nav, "Humidity");
     lv_obj_t *tab4 = lv_tabview_add_tab(data.nav, "Pressure");
-    lv_obj_t *tab5 = lv_tabview_add_tab(data.nav, "Color");
 
     data.navMenu = lv_list_create(parent, NULL);
 
@@ -364,7 +408,6 @@ void	createSensorsView(void *tab)
     lv_list_add(data.navMenu, NULL, "Temperature", &changeToTemperature);
     lv_list_add(data.navMenu, NULL, "Humidity", &changeToHumidity);
     lv_list_add(data.navMenu, NULL, "Pressure", &changeToPressure);
-    lv_list_add(data.navMenu, NULL, "Color", NULL);
     
     lv_list_set_btn_selected(data.navMenu, tmp);
     lv_btn_set_state(tmp, LV_BTN_STATE_PR);
