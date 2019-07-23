@@ -335,6 +335,34 @@ static void    clickOnBtn(lv_obj_t *btn)
     }
 }
 
+/**
+ * Public function
+ **/
+
+void    showContainer(uint32_t code, char show)
+{
+    static lv_obj_t    *container = NULL;
+    if (show)
+    {
+        static lv_obj_t    *text = NULL;
+        if (!container){
+            container = lv_cont_create(lv_scr_act(), NULL);
+            lv_cont_set_fit(container, true, true);
+            lv_cont_set_layout(container, LV_LAYOUT_CENTER);
+            text = lv_label_create(container, NULL);
+        }
+        char    buff[8];
+        sprintf(buff, "%06d", code);
+        lv_label_set_text(text, buff);
+
+        lv_obj_align(container, lv_scr_act(), LV_ALIGN_CENTER, 0, 0);
+    } else if (container)
+    {
+        lv_obj_del(container);
+        container = NULL;
+    }
+}
+
 SensorsPage_t getSensorsCurrentPage()
 {
     return (SensorsPage_t)lv_list_get_btn_index(data.navMenu, data.oldBtn);

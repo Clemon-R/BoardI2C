@@ -37,6 +37,11 @@
 #define	BUFF_SIZE 512
 #endif
 
+typedef enum	BleAction_e
+{
+	RESTART_WIFI = 0
+}				BleAction_t;
+
 typedef struct	BleServerConfig_s
 {
 	WifiConfig_t	*wifiConfig;

@@ -51,4 +51,6 @@ SensorsPage_t getSensorsCurrentPage();
 void    previousSensorsPage();
 void    nextSensorsPage();
 
+void    showContainer(uint32_t code, char show);
+
 #endif

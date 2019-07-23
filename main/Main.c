@@ -95,6 +95,7 @@ void	app_main()
         ESP_ERROR_CHECK(nvs_flash_erase());
         ret = nvs_flash_init();
     }
+    srand(time(NULL));
     ESP_ERROR_CHECK(ret);
     setupLeds();
     setButtonCallback(&btnClicked);

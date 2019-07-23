@@ -1,10 +1,13 @@
 #include "BleServer.h"
 #include "freertos/task.h"
 
+#include "../lcd/Sensors.h"
+
 static const char	*TAG = "\033[1;91mBleServer\033[0m";
 
 static char			_running = false;
 static BleServerConfig_t    *_config = NULL;
+static uint32_t             _passkey;
 
 uint8_t char1_str[] = {0x11,0x22,0x33};
 static uint8_t adv_config_done = 0;
@@ -100,8 +103,8 @@ typedef struct {
 
 static prepare_type_env_t a_prepare_write_env = {.prepare_buf = NULL, .prepare_len = 0};
 
-void example_write_event_env(esp_gatt_if_t gatts_if, prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param);
-void example_exec_write_event_env(prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param);
+void write_event_env(esp_gatt_if_t gatts_if, prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param);
+void exec_write_event_env(prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param);
 
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
@@ -119,7 +122,6 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
         }
         break;
     case ESP_GAP_BLE_ADV_START_COMPLETE_EVT:
-        //advertising start complete event to indicate advertising start successfully or failed
         if (param->adv_start_cmpl.status != ESP_BT_STATUS_SUCCESS) {
             ESP_LOGE(TAG, "Advertising start failed\n");
         }
@@ -127,9 +129,6 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
     case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:
         if (param->adv_stop_cmpl.status != ESP_BT_STATUS_SUCCESS) {
             ESP_LOGE(TAG, "Advertising stop failed\n");
-        }
-        else {
-            ESP_LOGI(TAG, "Stop adv successfully\n");
         }
         break;
     case ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT:
@@ -144,62 +143,69 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
     case ESP_GAP_BLE_SEC_REQ_EVT:
         /* send the positive(true) security response to the peer device to accept the security request.
         If not accept the security request, should sent the security response with negative(false) accept value*/
+        ESP_LOGI(TAG, "Security gap");
         esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, true);
         break;
     case ESP_GAP_BLE_PASSKEY_NOTIF_EVT:  ///the app will receive this evt when the IO  has Output capability and the peer device IO has Input capability.
         ///show the passkey number to the user to input it in the peer deivce.
         ESP_LOGI(TAG, "The passkey Notify number:%06d", param->ble_security.key_notif.passkey);
+        showContainer(param->ble_security.key_notif.passkey, true);
+        break;
+    case ESP_GAP_BLE_AUTH_CMPL_EVT:
+        showContainer(0, false);
+        _passkey = (uint32_t)((rand() / (float)RAND_MAX) * UINT32_MAX);
         break;
     default:
+        ESP_LOGW(TAG, "Unknow event id %d", event);
         break;
     }
 }
 
-void example_write_event_env(esp_gatt_if_t gatts_if, prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param){
+static void write_event_env(esp_gatt_if_t gatts_if, prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param){
     esp_gatt_status_t status = ESP_GATT_OK;
-    if (param->write.need_rsp){
-        if (param->write.is_prep){
+    if (!param->write.need_rsp)
+        return;
+    if (param->write.is_prep){
+        if (prepare_write_env->prepare_buf == NULL) {
+            prepare_write_env->prepare_buf = (uint8_t *)malloc(BUFF_SIZE*sizeof(uint8_t));
+            prepare_write_env->prepare_len = 0;
             if (prepare_write_env->prepare_buf == NULL) {
-                prepare_write_env->prepare_buf = (uint8_t *)malloc(BUFF_SIZE*sizeof(uint8_t));
-                prepare_write_env->prepare_len = 0;
-                if (prepare_write_env->prepare_buf == NULL) {
-                    ESP_LOGE(TAG, "Gatt_server prep no mem\n");
-                    status = ESP_GATT_NO_RESOURCES;
-                }
-            } else {
-                if(param->write.offset > BUFF_SIZE) {
-                    status = ESP_GATT_INVALID_OFFSET;
-                } else if ((param->write.offset + param->write.len) > BUFF_SIZE) {
-                    status = ESP_GATT_INVALID_ATTR_LEN;
-                }
+                ESP_LOGE(TAG, "Gatt_server prep no mem\n");
+                status = ESP_GATT_NO_RESOURCES;
             }
-
-            esp_gatt_rsp_t *gatt_rsp = (esp_gatt_rsp_t *)malloc(sizeof(esp_gatt_rsp_t));
-            gatt_rsp->attr_value.len = param->write.len;
-            gatt_rsp->attr_value.handle = param->write.handle;
-            gatt_rsp->attr_value.offset = param->write.offset;
-            gatt_rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
-            memcpy(gatt_rsp->attr_value.value, param->write.value, param->write.len);
-            esp_err_t response_err = esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, status, gatt_rsp);
-            if (response_err != ESP_OK){
-               ESP_LOGE(TAG, "Send response error\n");
+        } else {
+            if(param->write.offset > BUFF_SIZE) {
+                status = ESP_GATT_INVALID_OFFSET;
+            } else if ((param->write.offset + param->write.len) > BUFF_SIZE) {
+                status = ESP_GATT_INVALID_ATTR_LEN;
             }
-            free(gatt_rsp);
-            if (status != ESP_GATT_OK){
-                return;
-            }
-            memcpy(prepare_write_env->prepare_buf + param->write.offset,
-                   param->write.value,
-                   param->write.len);
-            prepare_write_env->prepare_len += param->write.len;
-
-        }else{
-            esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, status, NULL);
         }
+
+        esp_gatt_rsp_t *gatt_rsp = (esp_gatt_rsp_t *)malloc(sizeof(esp_gatt_rsp_t));
+        gatt_rsp->attr_value.len = param->write.len;
+        gatt_rsp->attr_value.handle = param->write.handle;
+        gatt_rsp->attr_value.offset = param->write.offset;
+        gatt_rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
+        memcpy(gatt_rsp->attr_value.value, param->write.value, param->write.len);
+        esp_err_t response_err = esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, status, gatt_rsp);
+        if (response_err != ESP_OK){
+            ESP_LOGE(TAG, "Send response error\n");
+        }
+        free(gatt_rsp);
+        if (status != ESP_GATT_OK){
+            return;
+        }
+        memcpy(prepare_write_env->prepare_buf + param->write.offset,
+                param->write.value,
+                param->write.len);
+        prepare_write_env->prepare_len += param->write.len;
+
+    }else{
+        esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, status, NULL);
     }
 }
 
-void example_exec_write_event_env(prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param){
+static void exec_write_event_env(prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param){
     if (param->exec_write.exec_write_flag == ESP_GATT_PREP_WRITE_EXEC){
         esp_log_buffer_hex(TAG, prepare_write_env->prepare_buf, prepare_write_env->prepare_len);
     }else{
@@ -255,6 +261,7 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
                 memcpy(rsp.attr_value.value, _config->wifiConfig->ssid, rsp.attr_value.len);
                 ESP_LOGI(TAG, "Read ssid: %s", rsp.attr_value.value);
                 break;
+
                 case CHAR_PASSWORD:
                 rsp.attr_value.len = strlen((char *)_config->wifiConfig->password);
                 memcpy(rsp.attr_value.value, _config->wifiConfig->password, rsp.attr_value.len);
@@ -292,10 +299,10 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
                 break;
 
                 case CHAR_ACTION:
-                ESP_LOGI(TAG, "Action: %d", param->write.value[0]);
                 if (param->write.len == 1){
-                    switch (param->write.value[0]){
-                        case 0:
+                    ESP_LOGI(TAG, "Action: %d", param->write.value[0]);
+                    switch ((BleAction_t)param->write.value[0]){
+                        case RESTART_WIFI:
                         ESP_LOGI(TAG, "Restart wifi");
                         if (!wifiIsUsed()) {
                             startWifiClient(_config->wifiConfig);
@@ -303,23 +310,21 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
                             restartWifiClient(_config->wifiConfig);
                         }
                         break;
+
+                        default:
+                        break;
                     }
                 }
                 break;
             }
-            example_write_event_env(gatts_if, &a_prepare_write_env, param);
+            write_event_env(gatts_if, &a_prepare_write_env, param);
         }
         break;
     }
     case ESP_GATTS_EXEC_WRITE_EVT:
         ESP_LOGI(TAG,"ESP_GATTS_EXEC_WRITE_EVT");
         esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
-        example_exec_write_event_env(&a_prepare_write_env, param);
-        break;
-    case ESP_GATTS_MTU_EVT:
-        ESP_LOGI(TAG, "ESP_GATTS_MTU_EVT, MTU %d", param->mtu.mtu);
-        break;
-    case ESP_GATTS_UNREG_EVT:
+        exec_write_event_env(&a_prepare_write_env, param);
         break;
     case ESP_GATTS_CREATE_EVT:
         ESP_LOGI(TAG, "CREATE_SERVICE_EVT, status %d,  service_handle %d\n", param->create.status, param->create.service_handle);
@@ -369,8 +374,6 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
             ESP_LOGE(TAG, "add char action failed, error code =%x",add_char_ret);
         }
         break;
-    case ESP_GATTS_ADD_INCL_SRVC_EVT:
-        break;
     case ESP_GATTS_ADD_CHAR_EVT: {
         ESP_LOGI(TAG, "ADD_CHAR_EVT, status %d,  attr_handle %d, service_handle %d\n",
                 param->add_char.status, param->add_char.attr_handle, param->add_char.service_handle);
@@ -381,15 +384,13 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
         }
         break;
     }
-    case ESP_GATTS_ADD_CHAR_DESCR_EVT:
-        break;
-    case ESP_GATTS_DELETE_EVT:
-        break;
     case ESP_GATTS_START_EVT:
         ESP_LOGI(TAG, "SERVICE_START_EVT, status %d, service_handle %d\n",
                  param->start.status, param->start.service_handle);
         break;
     case ESP_GATTS_STOP_EVT:
+        ESP_LOGI(TAG, "SERVICE_STOP_EVT, status %d, service_handle %d\n",
+                 param->start.status, param->start.service_handle);
         break;
     case ESP_GATTS_CONNECT_EVT: {
         esp_ble_conn_update_params_t conn_params = {0};
@@ -419,11 +420,6 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
             esp_log_buffer_hex(TAG, param->conf.value, param->conf.len);
         }
         break;
-    case ESP_GATTS_OPEN_EVT:
-    case ESP_GATTS_CANCEL_OPEN_EVT:
-    case ESP_GATTS_CLOSE_EVT:
-    case ESP_GATTS_LISTEN_EVT:
-    case ESP_GATTS_CONGEST_EVT:
     default:
         break;
     }
@@ -511,9 +507,9 @@ static esp_err_t	init()
     uint8_t init_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
     uint8_t rsp_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
     //set static passkey
-    uint32_t passkey = 70519;
     uint8_t auth_option = ESP_BLE_ONLY_ACCEPT_SPECIFIED_AUTH_ENABLE;
-    esp_ble_gap_set_security_param(ESP_BLE_SM_SET_STATIC_PASSKEY, &passkey, sizeof(uint32_t));
+    _passkey = (uint32_t)((rand() / (float)RAND_MAX) * UINT32_MAX);
+    esp_ble_gap_set_security_param(ESP_BLE_SM_PASSKEY, &_passkey, sizeof(uint32_t));
     esp_ble_gap_set_security_param(ESP_BLE_SM_AUTHEN_REQ_MODE, &auth_req, sizeof(uint8_t));
     esp_ble_gap_set_security_param(ESP_BLE_SM_IOCAP_MODE, &iocap, sizeof(uint8_t));
     esp_ble_gap_set_security_param(ESP_BLE_SM_MAX_KEY_SIZE, &key_size, sizeof(uint8_t));
