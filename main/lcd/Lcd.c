@@ -110,7 +110,7 @@ static esp_err_t	deinitLcd()
         return ESP_FAIL;
     esp_log_set_vprintf(&vprintf);
     ili9341_deinit();
-    esp_deregister_freertos_idle_hook_for_cpu(lv_tick_task, xPortGetCoreID());
+    //esp_deregister_freertos_idle_hook_for_cpu(lv_tick_task, xPortGetCoreID());
     xSemaphoreGive(_semaphore);
     //return disp_spi_deinit();
     return ESP_OK;
@@ -387,7 +387,7 @@ esp_err_t	startLcd()
     if (!_semaphore)
         _semaphore = xSemaphoreCreateMutex();
     _running = true;
-    return xTaskCreate(&taskLcd, "lcdTask", 20000, NULL, tskIDLE_PRIORITY, &lcdTask);
+    return xTaskCreate(&taskLcd, "lcdTask", 15000, NULL, tskIDLE_PRIORITY, &lcdTask);
 }
 
 esp_err_t	stopLcd()
