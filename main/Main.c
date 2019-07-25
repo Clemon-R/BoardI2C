@@ -11,8 +11,11 @@
 #include "mqtt/MqttClient.h"
 #include "sensors/SensorClient.h"
 #include "lcd/Lcd.h"
+#include "../drv/disp_spi.h"
+#include "../drv/ili9341.h"
 #include "ButtonClient.h"
 #include "../../lvgl/lvgl.h"
+#include "esp_freertos_hooks.h"
 
 #include "ble/BleServer.h"
 
@@ -38,6 +41,9 @@ static void setupLeds()
 
 static void btnClicked(uint32_t io_num, TypeClick type)
 {
+    if (type == Simple && !lcdIsRunning()){
+        startLcd();
+    }
     switch (io_num) {
     case BTN_LEFT:
         ESP_LOGI(TAG, "Left");
@@ -69,9 +75,16 @@ static void btnClicked(uint32_t io_num, TypeClick type)
 
     case BTN_CLICK:
         ESP_LOGI(TAG, "Click");
-        break;
-    
+        break;    
     }
+    if (type == VeryLong && lcdIsRunning()){
+        stopLcd();
+    }
+}
+
+static void IRAM_ATTR lv_tick_task(void)
+{
+    lv_tick_inc(portTICK_RATE_MS);
 }
 
 void	app_main()
@@ -97,19 +110,26 @@ void	app_main()
     }
     srand(time(NULL));
     ESP_ERROR_CHECK(ret);
-    setupLeds();
     setButtonCallback(&btnClicked);
+    
+    startButtonClient();
 
+    setupLeds();
     startWifiClient(&dataWifi);
     startMqttClient(&dataMqtt);
-    startLcd();
+    //startLcd();
     startSensorClient();
     startBleServer(&bleConfig);
+    heap_caps_print_heap_info(MALLOC_CAP_8BIT);
+
+    lv_init(); //Not working without launching both in main
+    disp_spi_init();
     while (1) {
-        if (xSemaphoreTake(lcdGetSemaphore(), pdMS_TO_TICKS(100)) == pdTRUE) {
+        if (lcdGetSemaphore() == NULL || xSemaphoreTake(lcdGetSemaphore(), 10) == pdTRUE) {
             lv_task_handler();
-            xSemaphoreGive(lcdGetSemaphore());
-            vTaskDelay(1);
+            if (lcdGetSemaphore() != NULL)
+                xSemaphoreGive(lcdGetSemaphore());
         }
+        vTaskDelay(1);
     }
 }

@@ -13,6 +13,10 @@
 
 #include "esp_log.h"
 
+#include "../ClientState.h"
+
+#define STACK_QUEUE 10
+
 #ifndef	BUFF_SIZE
 #define	BUFF_SIZE 1024
 #endif

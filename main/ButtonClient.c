@@ -97,9 +97,7 @@ static void taskHandler(void* arg) //Tache de traitement des trigger
             TickType_t tick = xTaskGetTickCount();
             current = (tick - last_click)  * portTICK_PERIOD_MS;
             uint32_t state = gpio_get_level((gpio_num_t)io_num);
-            ESP_LOGI(TAG, "%d state %d", io_num, state);
-            /*if (clicked > 0 && clicked != io_num)
-                continue;*/
+            //ESP_LOGI(TAG, "%d state %d", io_num, state);
             if (state != BTN_CLICKED) {
                 clicked = 0;
                 continue;

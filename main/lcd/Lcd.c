@@ -37,11 +37,6 @@ static int32_t	_index = 0;
 
 static char	_buffer[BUFF_SIZE];
 
-static void IRAM_ATTR lv_tick_task(void)
-{
-    lv_tick_inc(portTICK_RATE_MS);
-}
-
 static int	customVPrintF(const char *str, va_list arg)
 {
     static char	**logs = NULL;
@@ -81,36 +76,44 @@ static int	customVPrintF(const char *str, va_list arg)
     }
     return vprintf(str, arg);
 }
+static void IRAM_ATTR lv_tick_task(void)
+{
+    lv_tick_inc(portTICK_RATE_MS);
+}
 
 static esp_err_t	initLcd()
 {
-    esp_err_t	ret;
+    esp_err_t	ret = ESP_OK;
 
     ESP_LOGI(TAG, "Initiating the LCD...");
-    lv_init();
-    ret = disp_spi_init();
-    if (ret != ESP_OK)
-        return ret;
+    if (xSemaphoreTake(_semaphore, 10) != pdTRUE)
+        return ESP_FAIL;
     ili9341_init();
+
+    esp_log_set_vprintf(&customVPrintF);
 
     lv_disp_drv_t disp;
     lv_disp_drv_init(&disp);
     disp.disp_flush = ili9341_flush;
     disp.disp_fill = ili9341_fill;
-    ret = lv_disp_drv_register(&disp) != NULL ? ESP_OK : ESP_FAIL;
-    if (ret != ESP_OK)
-        return ret;
-    esp_log_set_vprintf(&customVPrintF);
-    return esp_register_freertos_tick_hook(lv_tick_task);
+    disp.disp_map = ili9341_map;
+    ret = lv_disp_drv_register(&disp) != NULL ? ESP_OK : ESP_FAIL; 
+    esp_register_freertos_tick_hook(lv_tick_task);
+    xSemaphoreGive(_semaphore);   
+    return ret;
 }
 
 static esp_err_t	deinitLcd()
 {
     ESP_LOGI(TAG, "Deinitiating the LCD...");
+    if (xSemaphoreTake(_semaphore, 10) != pdTRUE)
+        return ESP_FAIL;
     esp_log_set_vprintf(&vprintf);
     ili9341_deinit();
-    lv_disp_set_active(NULL);
-    return disp_spi_deinit();
+    esp_deregister_freertos_idle_hook_for_cpu(lv_tick_task, xPortGetCoreID());
+    xSemaphoreGive(_semaphore);
+    //return disp_spi_deinit();
+    return ESP_OK;
 }
 
 /* 
@@ -122,6 +125,8 @@ static void	setupUI()
     ESP_LOGI(TAG, "Drawing general UI...");
 
     if (_first){
+        if (xSemaphoreTake(_semaphore, 10) != pdTRUE)
+            return;
         lv_theme_t	*th = lv_theme_material_init(0, NULL);
         lv_theme_set_current(th);
 
@@ -143,6 +148,7 @@ static void	setupUI()
         createStatesView(tab3);
         _tv = tv;
         _first = false;
+        xSemaphoreGive(_semaphore);
     } else
         ESP_LOGI(TAG, "Already drawed");
 }
@@ -316,6 +322,8 @@ static void taskLcd(void *args)
     SensorValues_t  values;
 
     ESP_LOGI(TAG, "Initiating the task...");
+    ESP_ERROR_CHECK(initLcd());
+    setupUI();
     while(_running) {
         _working = true;
         if (lv_tabview_get_tab_act(_tv) != _index) {
@@ -335,13 +343,12 @@ static void taskLcd(void *args)
             refreshState(&values);
             break;
         }
+        //getBatteryVoltage();
         vTaskDelay(pdMS_TO_TICKS(200));
     }
-    _working = false;
-    _running = false;
     deinitLcd();
-    lcdTask = NULL;
-    vTaskDelete(NULL);
+    _working = false;
+    vTaskDelete(lcdTask);
 }
 
 static void	changePage(int i)
@@ -376,22 +383,16 @@ esp_err_t	startLcd()
 {
     if (_running)
         return ESP_FAIL;
-    if (startButtonClient() == ESP_FAIL)
-        return ESP_FAIL;
     ESP_LOGI(TAG, "Starting the %s task...", TAG);
     if (!_semaphore)
         _semaphore = xSemaphoreCreateMutex();
     _running = true;
-    ESP_ERROR_CHECK(initLcd());
-    setupUI();
-    return xTaskCreate(&taskLcd, "lcdTask", 4096, NULL, tskIDLE_PRIORITY, &lcdTask);
+    return xTaskCreate(&taskLcd, "lcdTask", 20000, NULL, tskIDLE_PRIORITY, &lcdTask);
 }
 
 esp_err_t	stopLcd()
 {
     if (!_running)
-        return ESP_FAIL;
-    if (stopButtonClient() == ESP_FAIL)
         return ESP_FAIL;
     ESP_LOGI(TAG, "Stopping the %s task...", TAG);
     _running = false;

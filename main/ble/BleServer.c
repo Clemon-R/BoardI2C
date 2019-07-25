@@ -103,9 +103,6 @@ typedef struct {
 
 static prepare_type_env_t a_prepare_write_env = {.prepare_buf = NULL, .prepare_len = 0};
 
-void write_event_env(esp_gatt_if_t gatts_if, prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param);
-void exec_write_event_env(prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param);
-
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
     switch (event) {

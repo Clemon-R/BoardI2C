@@ -1,6 +1,8 @@
 #include "SensorClient.h"
 #include "../mqtt/MqttClient.h"
 #include "cJSON.h"
+#include "driver/adc.h"
+#include "esp_adc_cal.h"
 
 #include "../Main.h"
 #include "driver/gpio.h"
@@ -15,6 +17,7 @@ static SensorData_t		*_config = NULL;
 
 static TickType_t	refreshDelai = pdMS_TO_TICKS(500);
 static SensorValues_t   _values = {0,0,0,(color_rgb_t){0,0,0},0};
+static esp_adc_cal_characteristics_t    *_adc_chars = NULL;
 
 static esp_err_t	nordicI2CInit()
 {
@@ -70,6 +73,20 @@ static esp_err_t	setupAllSensors(SensorData_t *data)
     if (ret != ESP_OK)
         return ret;
     ret = setupColorSensor(I2C_MASTER_NUM);
+    if ((ret = esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP)) != ESP_OK) {
+        ESP_LOGE(TAG, "eFuse Two Point: NOT supported");
+        return ret;
+    }
+    if ((ret = esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_VREF)) != ESP_OK) {
+        ESP_LOGE(TAG, "eFuse Vref: NOT supported");
+        return ret;
+    }
+    ret = adc1_config_width(ADC_WIDTH_BIT_12);
+    if (ret != ESP_OK)
+        return ret;
+    ret = adc1_config_channel_atten((adc1_channel_t)ADC_CHANNEL, ADC_ATTEN);  
+    _adc_chars = (esp_adc_cal_characteristics_t *)calloc(1, sizeof(esp_adc_cal_characteristics_t));
+    esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN, ADC_WIDTH_BIT_12, DEFAULT_VREF, _adc_chars);
     return ret;
 }
 
@@ -135,9 +152,8 @@ static void	taskSensor(void *args)
     nordicI2CDeinit();
     _config = NULL;
     _running = false;
-    gpio_set_level(RGB_3_RED, 1);
-    sensorTask = NULL;
-    vTaskDelete(NULL);
+    gpio_set_level(RGB_3_RED, 0);
+    vTaskDelete(sensorTask);
 }
 
 esp_err_t	startSensorClient()
@@ -181,4 +197,18 @@ SensorData_t	*getSensorConfig()
 SensorValues_t  getSensorValues()
 {
     return _values;
+}
+
+void    getBatteryVoltage()
+{
+    uint32_t    adc_reading = 0;
+
+    //Multisampling
+    for (int i = 0; i < NO_OF_SAMPLES; i++) {
+        adc_reading += adc1_get_raw((adc1_channel_t)ADC_CHANNEL);
+    }
+    adc_reading /= NO_OF_SAMPLES;
+    //Convert adc_reading to voltage in mV
+    uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, _adc_chars);
+    printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
 }

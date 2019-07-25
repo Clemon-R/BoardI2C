@@ -19,15 +19,6 @@ static void	taskCommandHandler(void *args)
     ESP_LOGI(TAG, "Starting the task for the command...");
     if (command) {
         switch (command->type) {
-        case LED:
-            param = cJSON_GetObjectItem(command->data, "state");
-            if (!param || !cJSON_IsBool(param))
-                break;
-            /*gpio_set_level(RGB_1, cJSON_IsTrue(param) ? 1 : 0);
-            gpio_set_level(RGB_2, cJSON_IsTrue(param) ? 1 : 0);
-            gpio_set_level(RGB_3, cJSON_IsTrue(param) ? 1 : 0);*/
-            break;
-
         case SENSOR:
             param = cJSON_GetObjectItem(command->data, "state");
             if (param && cJSON_IsBool(param)) {
@@ -54,6 +45,14 @@ static void	taskCommandHandler(void *args)
                     startLcd();
                 } else {
                     stopLcd();
+                }
+            }
+            break;
+        case WIFI:
+            param = cJSON_GetObjectItem(command->data, "restart");
+            if (param && cJSON_IsBool(param)) {
+                if (cJSON_IsTrue(param)) {
+                    restartWifiClient(NULL);
                 }
             }
             break;

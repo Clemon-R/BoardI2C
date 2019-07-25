@@ -35,6 +35,7 @@ static void IRAM_ATTR spi_ready (spi_transaction_t *trans);
 static spi_device_handle_t spi;
 static volatile bool spi_trans_in_progress;
 static volatile bool spi_color_sent;
+static char _initiated = false;
 
 /**********************
  *      MACROS
@@ -65,6 +66,8 @@ esp_err_t   disp_spi_init(void)
         .post_cb=spi_ready,
     };
 
+    if (_initiated)
+        return ESP_OK;
     //Initialize the SPI bus
     ret=spi_bus_initialize(HSPI_HOST, &buscfg, 2);
     if (ret != ESP_OK)
@@ -72,6 +75,8 @@ esp_err_t   disp_spi_init(void)
 
     //Attach the LCD to the SPI bus
     ret=spi_bus_add_device(HSPI_HOST, &devcfg, &spi);
+    if (ret == ESP_OK)
+        _initiated = true;
     return ret;
 }
 

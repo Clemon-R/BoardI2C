@@ -12,12 +12,35 @@ static TaskHandle_t	mqttTask = NULL;
 static EventGroupHandle_t   _wifiEventGroup = NULL;
 static EventGroupHandle_t   _mqttEventGroup = NULL;
 static QueueHandle_t	_datas = NULL;
+static QueueHandle_t	_alerts = NULL;
 
-static WifiState_t	_state = NONE;
+static ClientState_t	_state = NONE;
 static char	_running = false;
 
 static const int WIFI_CONNECTED_BIT = BIT0;
 static const int CONNECTED_BIT = BIT0;
+
+static void refreshState(ClientState_t state)
+{
+    _state = state;
+    switch (state)
+    {
+        case CONNECTED:
+            gpio_set_level(RGB_2_RED, 1);
+            gpio_set_level(RGB_2_GREEN, 0);
+            xEventGroupSetBits(_mqttEventGroup, CONNECTED_BIT);
+            break;
+
+        case DISCONNECTED:
+            gpio_set_level(RGB_2_RED, 0);
+            gpio_set_level(RGB_2_GREEN, 1);
+            xEventGroupClearBits(_mqttEventGroup, CONNECTED_BIT);
+            break;    
+
+        default:
+            break;
+    }
+}
 
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
@@ -28,27 +51,18 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
     switch (event->event_id) {
     case MQTT_EVENT_CONNECTED:
-        _state = CONNECTED;
         ESP_LOGI(TAG, "\033[4mClient is connected\033[0m");
+        refreshState(CONNECTED);
 
-        xEventGroupSetBits(_mqttEventGroup, CONNECTED_BIT);
-        gpio_set_level(RGB_2_RED, 1);
-        gpio_set_level(RGB_2_GREEN, 0);
-
+        ESP_LOGI(TAG, "Subscribing to all the required channels...");
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/status", 0);
-        ESP_LOGI(TAG, "Subscribed to /demo/rtone/esp32/status");
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/commands", 0);
-        ESP_LOGI(TAG, "Subscribed to /demo/rtone/esp32/commands");
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/datas", 0);
-        ESP_LOGI(TAG, "Subscribed to /demo/rtone/esp32/datas");
         break;
     case MQTT_EVENT_DISCONNECTED:
         if (_state == CONNECTED){
-            _state = DISCONNECTED;
+            refreshState(DISCONNECTED);
             ESP_LOGE(TAG, "\033[5mClient was disconnected\033[0m");
-            xEventGroupClearBits(_mqttEventGroup, CONNECTED_BIT);
-            gpio_set_level(RGB_2_GREEN, 1);
-            gpio_set_level(RGB_2_RED, 0);
         }
         break;
     case MQTT_EVENT_DATA:
@@ -87,8 +101,8 @@ static esp_mqtt_client_handle_t	initMqttClient(const char *url)
     esp_mqtt_client_config_t mqtt_cfg = {
         .uri = url,
         .event_handle = mqtt_event_handler,
-        .port = 1883,
-        .transport = MQTT_TRANSPORT_OVER_TCP
+        .port = 1883, //for mqtt default port is 1883
+        .transport = MQTT_TRANSPORT_OVER_TCP //Using protocol tcp to connect
     };
 
     ESP_LOGI(TAG, "Initiating the mqtt...");
@@ -108,6 +122,7 @@ static esp_err_t	startMqtt(esp_mqtt_client_handle_t client)
     ESP_LOGI(TAG, "Starting the mqtt...");
     if (!client)
         return ESP_FAIL;
+    refreshState(CONNECTING);
     return esp_mqtt_client_start(client);
 }
 
@@ -116,8 +131,13 @@ static esp_err_t	stopMqtt(esp_mqtt_client_handle_t client)
     ESP_LOGI(TAG, "Stopping the mqtt...");
     if (!client)
         return ESP_FAIL;
+    refreshState(DISCONNECTING);
     return esp_mqtt_client_stop(client);
 }
+
+/**
+ * Public function
+ **/
 
 char	isMqttConnected()
 {
@@ -136,20 +156,21 @@ static void	taskMqtt(void *arg)
     ESP_ERROR_CHECK(arg == NULL);
     data = (MqttConfig_t *)arg;
 
-    _state = NONE;
+    refreshState(NONE);
     while (_running) {
-        if (!isMqttConnected()) {
-            if (_state <= DEINITIATIED && (xEventGroupWaitBits(_wifiEventGroup, WIFI_CONNECTED_BIT, false, true, pdMS_TO_TICKS(1000)) & WIFI_CONNECTED_BIT) == WIFI_CONNECTED_BIT) {
-                _state = INITIATING;
+        if (_state != CONNECTED) {
+            if (_state <= DEINITIATIED && (xEventGroupWaitBits(_wifiEventGroup, WIFI_CONNECTED_BIT, false, true, 10) & WIFI_CONNECTED_BIT) == WIFI_CONNECTED_BIT) {
+                refreshState(INITIATING);
                 ESP_ERROR_CHECK((client = initMqttClient(data->url)) == NULL);
                 ESP_ERROR_CHECK(startMqtt(client));
-                _state = INITIATIED;
-            } else if(client && _state == DISCONNECTED && !isMqttConnected()) {
+                refreshState(INITIATIED);
+            } else if(client && _state == DISCONNECTED) {
+                refreshState(DEINITIATING);
                 ESP_ERROR_CHECK(stopMqtt(client));
                 ESP_ERROR_CHECK(deinitMqttClient(client));
-                _state = DEINITIATIED;
+                refreshState(DEINITIATIED);
             }
-        } else {
+        } else if (_state == CONNECTED) {
             if (xQueueReceive(_datas, (void *)&monitor, 10) == pdTRUE && monitor) {
                 buff = cJSON_Print(monitor);
 
@@ -166,7 +187,6 @@ static void	taskMqtt(void *arg)
     deinitMqttClient(client);
     free(data);
     mqttTask = NULL;
-    gpio_set_level(RGB_2_RED, 1);
     vTaskDelete(NULL);
 }
 
@@ -186,9 +206,11 @@ esp_err_t	startMqttClient(MqttConfig_t *config)
     if (!_wifiEventGroup)
         _wifiEventGroup = getWifiEventGroup();
     if (!_datas)
-        _datas = xQueueCreate(10, sizeof(cJSON *));
-    if (!_wifiEventGroup) {
-        ESP_LOGE(TAG, "Missing eventGroup for wifi");
+        _datas = xQueueCreate(STACK_QUEUE, sizeof(cJSON *));
+    if (!_alerts)
+        _alerts = xQueueCreate(STACK_QUEUE, sizeof(cJSON *));
+    if (!_wifiEventGroup || !_mqttEventGroup || !_datas || !_alerts) {
+        ESP_LOGE(TAG, "Missing some parameters");
         return ESP_FAIL;
     }
     _running = true;

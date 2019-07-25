@@ -51,12 +51,5 @@ float	getPressure(i2c_port_t port)
     ret = readBytes(port, I2C_SLAVE_PRESSURETEMP, (uint8_t *)&result, 3);
     if (ret != ESP_OK)
         return -1;
-
-    ret = writeByte(port, I2C_SLAVE_PRESSURETEMP, 0x18, NULL);
-    if (ret != ESP_OK)
-        return -1;
-    ret = readBytes(port, I2C_SLAVE_PRESSURETEMP, (uint8_t *)&offset, 2);
-    if (ret != ESP_OK)
-        return -1;
     return result / 4096.0f;
 }
