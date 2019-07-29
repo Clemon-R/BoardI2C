@@ -82,11 +82,6 @@ static void btnClicked(uint32_t io_num, TypeClick type)
     }
 }
 
-static void IRAM_ATTR lv_tick_task(void)
-{
-    lv_tick_inc(portTICK_RATE_MS);
-}
-
 void	app_main()
 {
     WifiConfig_t	dataWifi = {
@@ -96,10 +91,12 @@ void	app_main()
         .password = (uint8_t *)strdup("clemon69")
     };
     MqttConfig_t	dataMqtt = {
-        .url = "tcp://iot.eclipse.org"
+        .url = (uint8_t *)strdup("tcp://iot.eclipse.org"),
+        .port = 1883
     };
     BleServerConfig_t   bleConfig = {
-        .wifiConfig = &dataWifi
+        .wifiConfig = &dataWifi,
+        .mqttConfig = &dataMqtt
     };
     esp_err_t   ret;
 
@@ -120,7 +117,6 @@ void	app_main()
     //startLcd();
     startSensorClient();
     startBleServer(&bleConfig);
-    heap_caps_print_heap_info(MALLOC_CAP_8BIT);
 
     lv_init(); //Not working without launching both in main
     disp_spi_init();

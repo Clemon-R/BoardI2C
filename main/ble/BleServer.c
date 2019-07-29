@@ -2,6 +2,7 @@
 #include "freertos/task.h"
 
 #include "../lcd/Sensors.h"
+#include "../sensors/SensorClient.h"
 
 static const char	*TAG = "\033[1;91mBleServer\033[0m";
 
@@ -25,7 +26,7 @@ struct gatts_profile_inst {
     uint16_t app_id;
     uint16_t conn_id;
     uint16_t service_handle;
-    esp_gatt_srvc_id_t service_id;
+    esp_gatt_srvc_id_t services[SERVICE_NUM];
     esp_gatt_perm_t perm;
     esp_gatt_char_prop_t property;
     uint16_t descr_handle;
@@ -215,14 +216,95 @@ static void exec_write_event_env(prepare_type_env_t *prepare_write_env, esp_ble_
     prepare_write_env->prepare_len = 0;
 }
 
+static void createSensorsService()
+{
+    esp_gatt_char_prop_t property = ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_WRITE;
+
+    gl_profile_tab.chars[SENSORS_CHAR_OFFSET].char_uuid.len = ESP_UUID_LEN_16;
+    gl_profile_tab.chars[SENSORS_CHAR_OFFSET + 1].char_uuid.len = ESP_UUID_LEN_16;
+    gl_profile_tab.chars[SENSORS_CHAR_OFFSET + 2].char_uuid.len = ESP_UUID_LEN_16;
+    gl_profile_tab.chars[SENSORS_CHAR_OFFSET + 3].char_uuid.len = ESP_UUID_LEN_16;
+    gl_profile_tab.chars[SENSORS_CHAR_OFFSET + 4].char_uuid.len = ESP_UUID_LEN_16;
+    gl_profile_tab.chars[SENSORS_CHAR_OFFSET + 5].char_uuid.len = ESP_UUID_LEN_16;
+    gl_profile_tab.chars[SENSORS_CHAR_OFFSET].char_uuid.uuid.uuid16 = SENSORS_CHAR_STATE;
+    gl_profile_tab.chars[SENSORS_CHAR_OFFSET + 1].char_uuid.uuid.uuid16 = SENSORS_CHAR_DELAI;
+    gl_profile_tab.chars[SENSORS_CHAR_OFFSET + 2].char_uuid.uuid.uuid16 = SENSORS_CHAR_TEMP;
+    gl_profile_tab.chars[SENSORS_CHAR_OFFSET + 3].char_uuid.uuid.uuid16 = SENSORS_CHAR_HUMIDITY;
+    gl_profile_tab.chars[SENSORS_CHAR_OFFSET + 4].char_uuid.uuid.uuid16 = SENSORS_CHAR_PRESSURE;
+    gl_profile_tab.chars[SENSORS_CHAR_OFFSET + 5].char_uuid.uuid.uuid16 = SENSORS_CHAR_COLOR;
+
+    for (int i = SENSORS_CHAR_OFFSET;i < SENSORS_CHAR_OFFSET + 6;i++){
+        esp_err_t add_char_ret = esp_ble_gatts_add_char(gl_profile_tab.service_handle, &gl_profile_tab.chars[i].char_uuid,
+                                                        ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED,
+                                                        property,
+                                                        NULL, NULL);
+        if (add_char_ret){
+            ESP_LOGE(TAG, "add char failed, error code =%x",add_char_ret);
+        }
+    }
+}
+
+static void createMqttService()
+{
+    esp_gatt_char_prop_t property = ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_WRITE;
+
+    gl_profile_tab.chars[MQTT_CHAR_OFFSET].char_uuid.len = ESP_UUID_LEN_16;
+    gl_profile_tab.chars[MQTT_CHAR_OFFSET + 1].char_uuid.len = ESP_UUID_LEN_16;
+    gl_profile_tab.chars[MQTT_CHAR_OFFSET + 2].char_uuid.len = ESP_UUID_LEN_16;
+    gl_profile_tab.chars[MQTT_CHAR_OFFSET].char_uuid.uuid.uuid16 = MQTT_CHAR_URL;
+    gl_profile_tab.chars[MQTT_CHAR_OFFSET + 1].char_uuid.uuid.uuid16 = MQTT_CHAR_PORT;
+    gl_profile_tab.chars[MQTT_CHAR_OFFSET + 22].char_uuid.uuid.uuid16 = MQTT_CHAR_ACTION;
+
+    for (int i = MQTT_CHAR_OFFSET;i < MQTT_CHAR_OFFSET + 3;i++){
+        esp_err_t add_char_ret = esp_ble_gatts_add_char(gl_profile_tab.service_handle, &gl_profile_tab.chars[i].char_uuid,
+                                                        ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED,
+                                                        property,
+                                                        NULL, NULL);
+        if (add_char_ret){
+            ESP_LOGE(TAG, "add char failed, error code =%x",add_char_ret);
+        }
+    }
+}
+
+static void createWifiService()
+{
+    gl_profile_tab.chars[WIFI_CHAR_OFFSET].char_uuid.len = ESP_UUID_LEN_16;
+    gl_profile_tab.chars[WIFI_CHAR_OFFSET + 1].char_uuid.len = ESP_UUID_LEN_16;
+    gl_profile_tab.chars[WIFI_CHAR_OFFSET + 2].char_uuid.len = ESP_UUID_LEN_16;
+    gl_profile_tab.chars[WIFI_CHAR_OFFSET].char_uuid.uuid.uuid16 = WIFI_CHAR_SSID;
+    gl_profile_tab.chars[WIFI_CHAR_OFFSET + 1].char_uuid.uuid.uuid16 = WIFI_CHAR_PASSWORD;
+    gl_profile_tab.chars[WIFI_CHAR_OFFSET + 2].char_uuid.uuid.uuid16 = WIFI_CHAR_ACTION;
+    esp_gatt_char_prop_t property = ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_WRITE;
+
+    for (int i = WIFI_CHAR_OFFSET;i < WIFI_CHAR_OFFSET + 3;i++){
+        esp_err_t add_char_ret = esp_ble_gatts_add_char(gl_profile_tab.service_handle, &gl_profile_tab.chars[i].char_uuid,
+                                                    ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED,
+                                                    property,
+                                                    NULL, NULL);
+        if (add_char_ret){
+            ESP_LOGE(TAG, "add char ssid failed, error code =%x",add_char_ret);
+        }
+    }
+}
+
 static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param) {
     switch (event) {
     case ESP_GATTS_REG_EVT:
         ESP_LOGI(TAG, "REGISTER_APP_EVT, status %d, app_id %d\n", param->reg.status, param->reg.app_id);
-        gl_profile_tab.service_id.is_primary = true;
-        gl_profile_tab.service_id.id.inst_id = 0x00;
-        gl_profile_tab.service_id.id.uuid.len = ESP_UUID_LEN_16;
-        gl_profile_tab.service_id.id.uuid.uuid.uuid16 = SERVICE_WIFI_CONFIGURATOR;
+        gl_profile_tab.services[0].is_primary = true;
+        gl_profile_tab.services[0].id.inst_id = 0x00;
+        gl_profile_tab.services[0].id.uuid.len = ESP_UUID_LEN_16;
+        gl_profile_tab.services[0].id.uuid.uuid.uuid16 = SERVICE_WIFI;
+
+        gl_profile_tab.services[1].is_primary = true;
+        gl_profile_tab.services[1].id.inst_id = 0x00;
+        gl_profile_tab.services[1].id.uuid.len = ESP_UUID_LEN_16;
+        gl_profile_tab.services[1].id.uuid.uuid.uuid16 = SERVICE_MQTT;
+
+        gl_profile_tab.services[2].is_primary = true;
+        gl_profile_tab.services[2].id.inst_id = 0x00;
+        gl_profile_tab.services[2].id.uuid.len = ESP_UUID_LEN_16;
+        gl_profile_tab.services[2].id.uuid.uuid.uuid16 = SERVICE_SENSORS;
 
         esp_ble_gap_config_local_privacy(true);
         esp_err_t set_dev_name_ret = esp_ble_gap_set_device_name(DEVICE_NAME);
@@ -241,7 +323,9 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
             ESP_LOGE(TAG, "config scan response data failed, error code = %x", ret);
         }
         adv_config_done |= scan_rsp_config_flag;
-        esp_ble_gatts_create_service(gatts_if, &gl_profile_tab.service_id, GATTS_NUM_HANDLE_TEST_A);
+        esp_ble_gatts_create_service(gatts_if, &gl_profile_tab.services[0], GATTS_NUM_HANDLE_TEST_A);
+        esp_ble_gatts_create_service(gatts_if, &gl_profile_tab.services[1], GATTS_NUM_HANDLE_TEST_A);
+        esp_ble_gatts_create_service(gatts_if, &gl_profile_tab.services[2], GATTS_NUM_HANDLE_TEST_A);
         break;
     case ESP_GATTS_READ_EVT: {
         ESP_LOGI(TAG, "GATT_READ_EVT, conn_id %d, trans_id %d, handle %d\n", param->read.conn_id, param->read.trans_id, param->read.handle);
@@ -253,16 +337,34 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
             if (gl_profile_tab.chars[i].char_handle != param->read.handle)
                 continue;
             switch (gl_profile_tab.chars[i].char_uuid.uuid.uuid16){
-                case CHAR_SSID:
+                case WIFI_CHAR_SSID:
                 rsp.attr_value.len = strlen((char *)_config->wifiConfig->ssid);
                 memcpy(rsp.attr_value.value, _config->wifiConfig->ssid, rsp.attr_value.len);
                 ESP_LOGI(TAG, "Read ssid: %s", rsp.attr_value.value);
                 break;
 
-                case CHAR_PASSWORD:
+                case WIFI_CHAR_PASSWORD:
                 rsp.attr_value.len = strlen((char *)_config->wifiConfig->password);
                 memcpy(rsp.attr_value.value, _config->wifiConfig->password, rsp.attr_value.len);
                 ESP_LOGI(TAG, "Read password: %s", rsp.attr_value.value);
+                break;
+
+                case MQTT_CHAR_URL:
+                rsp.attr_value.len = strlen((char *)_config->mqttConfig->url);
+                memcpy(rsp.attr_value.value, _config->mqttConfig->url, rsp.attr_value.len);
+                ESP_LOGI(TAG, "Read url: %s", rsp.attr_value.value);
+                break;
+
+                case MQTT_CHAR_PORT:
+                rsp.attr_value.len = sizeof(uint16_t);
+                memcpy(rsp.attr_value.value, (uint8_t *)&_config->mqttConfig->port, rsp.attr_value.len);
+                ESP_LOGI(TAG, "Read port: %d", *((uint16_t *)rsp.attr_value.value));
+                break;
+
+                case SENSORS_CHAR_STATE:
+                rsp.attr_value.len = sizeof(char);
+                rsp.attr_value.value[0] = isSensorRunning();
+                ESP_LOGI(TAG, "Read sensors state: %d", rsp.attr_value.value[0]);
                 break;
             }
         }
@@ -274,43 +376,59 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
         ESP_LOGI(TAG, "GATT_WRITE_EVT, conn_id %d, trans_id %d, handle %d", param->write.conn_id, param->write.trans_id, param->write.handle);
         for (int i = 0;i < CHAR_NUM;i++)
         {
-            if (gl_profile_tab.chars[i].char_handle != param->write.handle || !_config || !_config->wifiConfig)
+            if (gl_profile_tab.chars[i].char_handle != param->write.handle || !_config)
                 continue;
             switch (gl_profile_tab.chars[i].char_uuid.uuid.uuid16){
-                case CHAR_SSID:
+                case WIFI_CHAR_SSID:
                 ESP_LOGI(TAG, "Changing ssid: %s", param->write.value);
-                if (_config->wifiConfig->ssid)
+                if (_config->wifiConfig->ssid) {
                     free(_config->wifiConfig->ssid);
-                _config->wifiConfig->ssid = malloc(sizeof(char) * (param->write.len + 1));
-                _config->wifiConfig->ssid[param->write.len] = 0;
-                memcpy(_config->wifiConfig->ssid, param->write.value, param->write.len);
+                    _config->wifiConfig->ssid = (uint8_t *)malloc(sizeof(char) * BUFF_SIZE);
+                }
+                _config->wifiConfig->ssid[param->write.len + param->write.offset] = 0;
+                memcpy(_config->wifiConfig->ssid + param->write.offset, param->write.value, param->write.len);
                 break;
 
-                case CHAR_PASSWORD:
+                case WIFI_CHAR_PASSWORD:
                 ESP_LOGI(TAG, "Changing password: %s", param->write.value);
-                if (_config->wifiConfig->password)
+                if (param->write.offset == 0 && _config->wifiConfig->password){
                     free(_config->wifiConfig->password);
-                _config->wifiConfig->password = malloc(sizeof(char) * (param->write.len + 1));
-                _config->wifiConfig->password[param->write.len] = 0;
-                memcpy(_config->wifiConfig->password, param->write.value, param->write.len);
+                    _config->wifiConfig->password = (uint8_t *)malloc(sizeof(char) * BUFF_SIZE);
+                }
+                _config->wifiConfig->password[param->write.offset + param->write.len] = 0;
+                memcpy(_config->wifiConfig->password + param->write.offset, param->write.value, param->write.len);
                 break;
 
-                case CHAR_ACTION:
-                if (param->write.len == 1){
-                    ESP_LOGI(TAG, "Action: %d", param->write.value[0]);
-                    switch ((BleAction_t)param->write.value[0]){
-                        case RESTART_WIFI:
-                        ESP_LOGI(TAG, "Restart wifi");
-                        if (!wifiIsUsed()) {
-                            startWifiClient(_config->wifiConfig);
-                        } else {
-                            restartWifiClient(_config->wifiConfig);
-                        }
-                        break;
+                case WIFI_CHAR_ACTION:
+                ESP_LOGI(TAG, "Restart wifi");
+                if (!wifiIsUsed()) {
+                    startWifiClient(_config->wifiConfig);
+                } else {
+                    restartWifiClient(_config->wifiConfig);
+                }
+                break;
 
-                        default:
-                        break;
-                    }
+                case MQTT_CHAR_URL:
+                if (param->write.offset == 0 && _config->mqttConfig->url){
+                    free(_config->mqttConfig->url);
+                    _config->mqttConfig->url = (uint8_t *)malloc(sizeof(char) * BUFF_SIZE);
+                }
+                _config->mqttConfig->url[param->write.offset + param->write.len] = 0;
+                memcpy(_config->mqttConfig->url + param->write.offset, param->write.value, param->write.len);
+                ESP_LOGI(TAG, "Changing url: %s", _config->mqttConfig->url);
+                break;
+
+                case MQTT_CHAR_PORT:
+                ESP_LOGI(TAG, "Changing port: %d", *((uint16_t *)param->write.value));
+                _config->mqttConfig->port = *((uint16_t *)param->write.value);
+                break;
+
+                case MQTT_CHAR_ACTION:
+                ESP_LOGI(TAG, "Restart mqtt");
+                if (mqttIsRunning()) {
+                    restartMqttClient(_config->mqttConfig);
+                } else {
+                    startMqttClient(_config->mqttConfig);
                 }
                 break;
             }
@@ -328,48 +446,12 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
         gl_profile_tab.service_handle = param->create.service_handle;
         esp_ble_gatts_start_service(gl_profile_tab.service_handle);
 
-        gl_profile_tab.chars[0].char_uuid.len = ESP_UUID_LEN_16;
-        gl_profile_tab.chars[1].char_uuid.len = ESP_UUID_LEN_16;
-        gl_profile_tab.chars[2].char_uuid.len = ESP_UUID_LEN_16;
-        gl_profile_tab.chars[0].char_uuid.uuid.uuid16 = CHAR_SSID;
-        gl_profile_tab.chars[1].char_uuid.uuid.uuid16 = CHAR_PASSWORD;
-        gl_profile_tab.chars[2].char_uuid.uuid.uuid16 = CHAR_ACTION;
-        esp_gatt_char_prop_t property = ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
-        esp_attr_value_t ssid =
-        {
-            .attr_max_len = sizeof(char) * BUFF_SIZE,
-            .attr_len     = sizeof(_config->wifiConfig->ssid),
-            .attr_value   = _config->wifiConfig->ssid
-        };
-        esp_attr_value_t password =
-        {
-            .attr_max_len = sizeof(char) * BUFF_SIZE,
-            .attr_len     = sizeof(_config->wifiConfig->password),
-            .attr_value   = _config->wifiConfig->password
-        };
-        esp_err_t add_char_ret = esp_ble_gatts_add_char(gl_profile_tab.service_handle, &gl_profile_tab.chars[0].char_uuid,
-                                                        ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED,
-                                                        property,
-                                                        &ssid, NULL);
-        if (add_char_ret){
-            ESP_LOGE(TAG, "add char ssid failed, error code =%x",add_char_ret);
-        }
-        vTaskDelay(pdMS_TO_TICKS(30));
-        add_char_ret = esp_ble_gatts_add_char(gl_profile_tab.service_handle, &gl_profile_tab.chars[1].char_uuid,
-                                                        ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED,
-                                                        property,
-                                                        &password, NULL);
-        if (add_char_ret){
-            ESP_LOGE(TAG, "add char password failed, error code =%x",add_char_ret);
-        }
-        vTaskDelay(pdMS_TO_TICKS(30));
-        add_char_ret = esp_ble_gatts_add_char(gl_profile_tab.service_handle, &gl_profile_tab.chars[2].char_uuid,
-                                                        ESP_GATT_PERM_WRITE_ENCRYPTED,
-                                                        ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_NOTIFY,
-                                                        NULL, NULL);
-        if (add_char_ret){
-            ESP_LOGE(TAG, "add char action failed, error code =%x",add_char_ret);
-        }
+        if (param->create.service_id.id.uuid.uuid.uuid16 == SERVICE_WIFI)
+            createWifiService();
+        else if (param->create.service_id.id.uuid.uuid.uuid16 == SERVICE_MQTT)
+            createMqttService();
+        else if (param->create.service_id.id.uuid.uuid.uuid16 == SERVICE_SENSORS)
+            createSensorsService();
         break;
     case ESP_GATTS_ADD_CHAR_EVT: {
         ESP_LOGI(TAG, "ADD_CHAR_EVT, status %d,  attr_handle %d, service_handle %d\n",
@@ -390,6 +472,7 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
                  param->start.status, param->start.service_handle);
         break;
     case ESP_GATTS_CONNECT_EVT: {
+        heap_caps_print_heap_info(MALLOC_CAP_8BIT);
         esp_ble_conn_update_params_t conn_params = {0};
         memcpy(conn_params.bda, param->connect.remote_bda, sizeof(esp_bd_addr_t));
         /* For the IOS system, please reference the apple official documents about the ble connection parameters restrictions. */

@@ -18,17 +18,20 @@
 #define STACK_QUEUE 10
 
 #ifndef	BUFF_SIZE
-#define	BUFF_SIZE 1024
+#define	BUFF_SIZE 512
 #endif
 
 typedef struct MqttConfig_s {
-    char	*url;
+    uint8_t	*url;
+    uint16_t    port;
 }				MqttConfig_t;
 
 char	isMqttConnected();
 
 esp_err_t	startMqttClient(MqttConfig_t *config);
 esp_err_t	stopMqttClient();
+char    mqttIsRunning();
+void    restartMqttClient();
 
 QueueHandle_t	getQueueDatas();
 

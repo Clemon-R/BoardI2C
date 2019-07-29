@@ -14,8 +14,10 @@ static EventGroupHandle_t   _mqttEventGroup = NULL;
 static QueueHandle_t	_datas = NULL;
 static QueueHandle_t	_alerts = NULL;
 
+static MqttConfig_t	    *_config = NULL;
 static ClientState_t	_state = NONE;
 static char	_running = false;
+static char _restart = false;
 
 static const int WIFI_CONNECTED_BIT = BIT0;
 static const int CONNECTED_BIT = BIT0;
@@ -31,6 +33,7 @@ static void refreshState(ClientState_t state)
             xEventGroupSetBits(_mqttEventGroup, CONNECTED_BIT);
             break;
 
+        case DEINITIATIED:
         case DISCONNECTED:
             gpio_set_level(RGB_2_RED, 0);
             gpio_set_level(RGB_2_GREEN, 1);
@@ -57,9 +60,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
         ESP_LOGI(TAG, "Subscribing to all the required channels...");
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/status", 0);
-        vTaskDelay(10);
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/commands", 0);
-        vTaskDelay(10);
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/datas", 0);
         break;
     case MQTT_EVENT_DISCONNECTED:
@@ -99,12 +100,12 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
     return ESP_OK;
 }
 
-static esp_mqtt_client_handle_t	initMqttClient(const char *url)
+static esp_mqtt_client_handle_t	initMqttClient(const uint8_t *url, const uint16_t port)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
-        .uri = url,
+        .uri = (char *)url,
         .event_handle = mqtt_event_handler,
-        .port = 1883, //for mqtt default port is 1883
+        .port = port, //for mqtt default port is 1883
         .transport = MQTT_TRANSPORT_OVER_TCP //Using protocol tcp to connect
     };
 
@@ -150,29 +151,29 @@ char	isMqttConnected()
 static void	taskMqtt(void *arg)
 {
     esp_mqtt_client_handle_t client = NULL;
-    MqttConfig_t	*data = NULL;
     char    *buff = NULL;
     cJSON	*monitor = NULL;
 
     ESP_LOGI(TAG, "Initiating the task...");
     gpio_set_level(RGB_2_RED, 0);
     ESP_ERROR_CHECK(arg == NULL);
-    data = (MqttConfig_t *)arg;
+    _config = (MqttConfig_t *)arg;
 
     refreshState(NONE);
     while (_running) {
-        if (_state != CONNECTED) {
+        if (_restart || _state != CONNECTED) {
             if (_state <= DEINITIATIED && (xEventGroupWaitBits(_wifiEventGroup, WIFI_CONNECTED_BIT, false, true, 10) & WIFI_CONNECTED_BIT) == WIFI_CONNECTED_BIT) {
                 refreshState(INITIATING);
-                ESP_ERROR_CHECK((client = initMqttClient(data->url)) == NULL);
+                ESP_ERROR_CHECK((client = initMqttClient(_config->url, _config->port)) == NULL);
                 ESP_ERROR_CHECK(startMqtt(client));
                 refreshState(INITIATIED);
-            } else if(client && _state == DISCONNECTED) {
+            } else if(_restart || (client && _state == DISCONNECTED)) {
                 refreshState(DEINITIATING);
-                ESP_ERROR_CHECK(stopMqtt(client));
-                ESP_ERROR_CHECK(deinitMqttClient(client));
+                ESP_ERROR_CHECK(stopMqtt(client) && !_restart);
+                ESP_ERROR_CHECK(deinitMqttClient(client) && !_restart);
                 refreshState(DEINITIATIED);
             }
+            _restart = false;
         } else if (_state == CONNECTED) {
             if (xQueueReceive(_datas, (void *)&monitor, 10) == pdTRUE && monitor) {
                 buff = cJSON_Print(monitor);
@@ -185,10 +186,11 @@ static void	taskMqtt(void *arg)
                 monitor = NULL;
             }
         }
+        vTaskDelay(30);
     }
     stopMqtt(client);
     deinitMqttClient(client);
-    free(data);
+    free(_config);
     mqttTask = NULL;
     vTaskDelete(NULL);
 }
@@ -232,4 +234,15 @@ esp_err_t	stopMqttClient()
 QueueHandle_t	getQueueDatas()
 {
     return _datas;
+}
+
+char    mqttIsRunning()
+{
+    return _running;
+}
+
+void    restartMqttClient(MqttConfig_t *config)
+{
+    _config = config;
+    _restart = true;
 }

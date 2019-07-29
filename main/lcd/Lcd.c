@@ -344,7 +344,9 @@ static void taskLcd(void *args)
             break;
         }
         //getBatteryVoltage();
-        vTaskDelay(pdMS_TO_TICKS(200));
+        //vTaskDelay(pdMS_TO_TICKS(200));
+        vTaskDelay(pdMS_TO_TICKS(2000));
+        heap_caps_print_heap_info(MALLOC_CAP_8BIT);
     }
     deinitLcd();
     _working = false;
