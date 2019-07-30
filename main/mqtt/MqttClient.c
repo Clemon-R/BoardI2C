@@ -65,7 +65,7 @@ static void mqttClientHandler(esp_mqtt_event_handle_t event)
         refreshState(CONNECTED);
 
         ESP_LOGI(TAG, "Subscribing to all the required channels...");
-        esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/status", 0);
+        //esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/status", 0);
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/commands", 0);
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/datas", 0);
         break;

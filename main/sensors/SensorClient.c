@@ -15,7 +15,7 @@ static char _working = false;
 static QueueHandle_t	_datas;
 static SensorData_t		*_config = NULL;
 
-static TickType_t	refreshDelai = pdMS_TO_TICKS(500);
+static TickType_t	_refreshDelai = pdMS_TO_TICKS(500);
 static SensorValues_t   _values = {0,0,0,(color_rgb_t){0,0,0},0};
 static esp_adc_cal_characteristics_t    *_adc_chars = NULL;
 
@@ -99,7 +99,7 @@ static void	taskSensor(void *args)
     gpio_set_level(RGB_3_RED, 0);
     ESP_ERROR_CHECK(nordicI2CInit());
     while (_running) {
-        vTaskDelay(refreshDelai);
+        vTaskDelay(_refreshDelai);
         if (!_values.initiated) {
             if (setupAllSensors(&data) != ESP_OK) {
                 _config = NULL;
@@ -177,7 +177,12 @@ esp_err_t	stopSensorClient()
 
 void	setRefreshDelai(TickType_t value)
 {
-    refreshDelai = value;
+    _refreshDelai = value;
+}
+
+TickType_t  getRefreshDelai()
+{
+    return _refreshDelai;
 }
 
 char	isSensorRunning()

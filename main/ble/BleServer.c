@@ -288,6 +288,8 @@ static void createWifiService()
 }
 
 static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param) {
+    TickType_t  delai;
+
     switch (event) {
     case ESP_GATTS_REG_EVT:
         ESP_LOGI(TAG, "REGISTER_APP_EVT, status %d, app_id %d\n", param->reg.status, param->reg.app_id);
@@ -366,6 +368,13 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
                 rsp.attr_value.value[0] = isSensorRunning();
                 ESP_LOGI(TAG, "Read sensors state: %d", rsp.attr_value.value[0]);
                 break;
+
+                case SENSORS_CHAR_DELAI:
+                rsp.attr_value.len = sizeof(TickType_t);
+                delai = getRefreshDelai() * portTICK_PERIOD_MS;
+                memcpy(rsp.attr_value.value, (uint8_t *)&delai, rsp.attr_value.len);
+                ESP_LOGI(TAG, "Read sensors delai: %d", *((TickType_t *)rsp.attr_value.value));
+                break;
             }
         }
         esp_ble_gatts_send_response(gatts_if, param->read.conn_id, param->read.trans_id,
@@ -439,6 +448,12 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
                     startSensorClient();
                 else if (param->write.value[0] == 0)
                     stopSensorClient();                
+                break;
+
+                case SENSORS_CHAR_DELAI:
+                if (param->write.len != 4)
+                    break;
+                setRefreshDelai(pdMS_TO_TICKS(*((TickType_t *)param->write.value)));
                 break;
             }
             write_event_env(gatts_if, &a_prepare_write_env, param);

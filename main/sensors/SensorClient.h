@@ -39,6 +39,7 @@ char	isSensorRunning();
 char	isSensorWorking();
 
 void	setRefreshDelai(TickType_t value);
+TickType_t  getRefreshDelai();
 SensorData_t	*getSensorConfig();
 
 SensorValues_t  getSensorValues();
