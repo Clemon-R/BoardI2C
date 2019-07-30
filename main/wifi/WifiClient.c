@@ -9,6 +9,7 @@ static char         _running = false;
 static char         _restart = false;
 static WifiConfig_t *_config = NULL;
 static wifi_config_t    _wifi_config;
+static QueueHandle_t    _handler = NULL;
 
 static EventGroupHandle_t _wifiEventGroup = NULL;
 const static int CONNECTED_BIT = BIT0;
@@ -38,6 +39,12 @@ static void refreshState(ClientState_t state)
 
 static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
 {
+    xQueueSendFromISR(_handler, &event, pdTRUE);
+    return ESP_OK;
+}
+
+static void wifiClientHandler(system_event_t *event)
+{
     switch (event->event_id) {
     case SYSTEM_EVENT_STA_START:
         if (_running && !_restart)
@@ -60,7 +67,6 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
     default:
         break;
     }
-    return ESP_OK;
 }
 
 static void     setConfig(const uint8_t *ssid, const uint8_t *password)
@@ -123,6 +129,7 @@ static esp_err_t    stopWifi()
 static void    taskWifi(void *arg)
 {
     WifiConfig_t   *data;
+    system_event_t *event = NULL;
 
     ESP_LOGI(TAG, "Initiating the task...");
     gpio_set_level(RGB_1_RED, 0);
@@ -137,6 +144,8 @@ static void    taskWifi(void *arg)
 
     while (_running)
     {
+        if (xQueueReceive(_handler, &event, 10) == pdTRUE)
+            wifiClientHandler(event);
         if (_restart && _config){
             ESP_ERROR_CHECK(stopWifi());
             setConfig(_config->ssid, _config->password);
@@ -177,8 +186,10 @@ esp_err_t    startWifiClient(WifiConfig_t   *config)
     memcpy(tmp, config, sizeof(WifiConfig_t));
     if (!_wifiEventGroup)
         _wifiEventGroup = xEventGroupCreate();
+    if (!_handler)
+        _handler = xQueueCreate(STACK_QUEUE, sizeof(system_event_t *));
     _running = true;
-    return xTaskCreate(taskWifi, "wifiTask", 4096, tmp, tskIDLE_PRIORITY, &wifiTask);
+    return xTaskCreate(taskWifi, "wifiTask", 3072, tmp, tskIDLE_PRIORITY, &wifiTask);
 }
 
 esp_err_t   stopWifiClient()

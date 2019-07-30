@@ -13,6 +13,7 @@ static EventGroupHandle_t   _wifiEventGroup = NULL;
 static EventGroupHandle_t   _mqttEventGroup = NULL;
 static QueueHandle_t	_datas = NULL;
 static QueueHandle_t	_alerts = NULL;
+static QueueHandle_t    _handler = NULL;
 
 static MqttConfig_t	    *_config = NULL;
 static ClientState_t	_state = NONE;
@@ -47,11 +48,16 @@ static void refreshState(ClientState_t state)
 
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
+    xQueueSendFromISR(_handler, &event, pdTRUE);
+    return ESP_OK;
+}
+
+static void mqttClientHandler(esp_mqtt_event_handle_t event)
+{
     esp_mqtt_client_handle_t client = event->client;
     char	*pos;
     char	tmp;
     MqttClientCommand_t	command;
-    int   ret;
 
     switch (event->event_id) {
     case MQTT_EVENT_CONNECTED:
@@ -97,7 +103,6 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
     default:
         break;
     }
-    return ESP_OK;
 }
 
 static esp_mqtt_client_handle_t	initMqttClient(const uint8_t *url, const uint16_t port)
@@ -151,6 +156,7 @@ char	isMqttConnected()
 static void	taskMqtt(void *arg)
 {
     esp_mqtt_client_handle_t client = NULL;
+    esp_mqtt_event_handle_t event = NULL;
     char    *buff = NULL;
     cJSON	*monitor = NULL;
 
@@ -161,6 +167,8 @@ static void	taskMqtt(void *arg)
 
     refreshState(NONE);
     while (_running) {
+        if (xQueueReceive(_handler, &event, 10) == pdTRUE)
+            mqttClientHandler(event);
         if (_restart || _state != CONNECTED) {
             if (_state <= DEINITIATIED && (xEventGroupWaitBits(_wifiEventGroup, WIFI_CONNECTED_BIT, false, true, 10) & WIFI_CONNECTED_BIT) == WIFI_CONNECTED_BIT) {
                 refreshState(INITIATING);
@@ -214,7 +222,9 @@ esp_err_t	startMqttClient(MqttConfig_t *config)
         _datas = xQueueCreate(STACK_QUEUE, sizeof(cJSON *));
     if (!_alerts)
         _alerts = xQueueCreate(STACK_QUEUE, sizeof(cJSON *));
-    if (!_wifiEventGroup || !_mqttEventGroup || !_datas || !_alerts) {
+    if (!_handler)
+        _handler = xQueueCreate(STACK_QUEUE, sizeof(esp_mqtt_event_handle_t));
+    if (!_wifiEventGroup || !_mqttEventGroup || !_datas || !_alerts || !_handler) {
         ESP_LOGE(TAG, "Missing some parameters");
         return ESP_FAIL;
     }

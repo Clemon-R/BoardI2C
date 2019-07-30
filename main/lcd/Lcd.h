@@ -14,6 +14,7 @@
 #include "Sensors.h"
 #include "Log.h"
 #include "State.h"
+#include "../Constant.h"
 
 //LCD
 #define PIN_NUM_MISO (gpio_num_t)25
@@ -25,9 +26,6 @@
 #define PIN_NUM_RST  (gpio_num_t)18
 #define PIN_NUM_BCKL (gpio_num_t)5
 
-#ifndef	BUFF_SIZE
-#define	BUFF_SIZE 512
-#endif
 
 typedef enum	LcdPageIndex_e {
     SENSORS = 0,

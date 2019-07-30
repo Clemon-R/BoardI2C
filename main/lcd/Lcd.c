@@ -389,7 +389,7 @@ esp_err_t	startLcd()
     if (!_semaphore)
         _semaphore = xSemaphoreCreateMutex();
     _running = true;
-    return xTaskCreate(&taskLcd, "lcdTask", 15000, NULL, tskIDLE_PRIORITY, &lcdTask);
+    return xTaskCreate(&taskLcd, "lcdTask", 5012, NULL, tskIDLE_PRIORITY, &lcdTask);
 }
 
 esp_err_t	stopLcd()

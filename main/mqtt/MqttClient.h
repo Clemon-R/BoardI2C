@@ -14,12 +14,7 @@
 #include "esp_log.h"
 
 #include "../ClientState.h"
-
-#define STACK_QUEUE 10
-
-#ifndef	BUFF_SIZE
-#define	BUFF_SIZE 512
-#endif
+#include "../Constant.h"
 
 typedef struct MqttConfig_s {
     uint8_t	*url;

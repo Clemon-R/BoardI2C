@@ -4,6 +4,7 @@
 #include "Main.h"
 
 #include "lcd/Lcd.h"
+#include "Constant.h"
 
 typedef enum TypeClick_e {
     Simple = 1,

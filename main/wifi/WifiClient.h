@@ -23,6 +23,7 @@
 #include "esp_log.h"
 
 #include "../ClientState.h"
+#include "../Constant.h"
 
 typedef struct WifiConfig_s {
     uint8_t	*ssid;

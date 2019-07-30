@@ -153,6 +153,7 @@ static void	taskSensor(void *args)
     _config = NULL;
     _running = false;
     gpio_set_level(RGB_3_RED, 0);
+    gpio_set_level(RGB_3_GREEN, 1);
     vTaskDelete(sensorTask);
 }
 
@@ -163,7 +164,7 @@ esp_err_t	startSensorClient()
     _datas = getQueueDatas();
     _running = true;
     _working = false;
-    return xTaskCreate(taskSensor, "sensorTask", 4096, NULL, tskIDLE_PRIORITY, &sensorTask);;
+    return xTaskCreate(taskSensor, "sensorTask", 3072, NULL, tskIDLE_PRIORITY, &sensorTask);;
 }
 
 esp_err_t	stopSensorClient()

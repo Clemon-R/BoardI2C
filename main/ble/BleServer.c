@@ -431,6 +431,15 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
                     startMqttClient(_config->mqttConfig);
                 }
                 break;
+
+                case SENSORS_CHAR_STATE:
+                if (param->write.len != 1)
+                    break;
+                if (param->write.value[0] == 1)
+                    startSensorClient();
+                else if (param->write.value[0] == 0)
+                    stopSensorClient();                
+                break;
             }
             write_event_env(gatts_if, &a_prepare_write_env, param);
         }
