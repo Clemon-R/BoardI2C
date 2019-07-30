@@ -21,6 +21,13 @@ typedef struct MqttConfig_s {
     uint16_t    port;
 }				MqttConfig_t;
 
+typedef enum AlertType_e
+{
+    INFO = 0,
+    MINOR,
+    MAJOR
+}           AlertType_t;
+
 char	isMqttConnected();
 
 esp_err_t	startMqttClient(MqttConfig_t *config);
@@ -29,5 +36,7 @@ char    mqttIsRunning();
 void    restartMqttClient();
 
 QueueHandle_t	getQueueDatas();
+
+BaseType_t    createAlert(const char *description, const AlertType_t type, const char closed);
 
 #endif // !MQTTCLIENT_H_

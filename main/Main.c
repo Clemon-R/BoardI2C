@@ -117,6 +117,7 @@ void	app_main()
     //startLcd();
     startSensorClient();
     startBleServer(&bleConfig);
+    createAlert("Object is now running", INFO, true);
 
     lv_init(); //Not working without launching both in main
     disp_spi_init();

@@ -65,7 +65,7 @@ static void mqttClientHandler(esp_mqtt_event_handle_t event)
         refreshState(CONNECTED);
 
         ESP_LOGI(TAG, "Subscribing to all the required channels...");
-        //esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/status", 0);
+        esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/status", 0);
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/commands", 0);
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/datas", 0);
         break;
@@ -193,6 +193,16 @@ static void	taskMqtt(void *arg)
                 free(buff);
                 monitor = NULL;
             }
+            if (xQueueReceive(_alerts, &monitor, 10) == pdTRUE) {
+                buff = cJSON_Print(monitor);
+
+                if (buff) {
+                    esp_mqtt_client_publish(client, "/demo/rtone/esp32/status", buff, strlen(buff), 0, 0);
+                }
+                cJSON_Delete(monitor);
+                free(buff);
+                monitor = NULL;
+            }
         }
         vTaskDelay(30);
     }
@@ -255,4 +265,44 @@ void    restartMqttClient(MqttConfig_t *config)
 {
     _config = config;
     _restart = true;
+}
+
+static char *getStringOfEnum(const AlertType_t type)
+{
+    switch (type)
+    {
+        case INFO:
+        return "INFO";
+        case MINOR:
+        return "MINOR";
+        case MAJOR:
+        return "MAJOR";
+    }
+    return NULL;
+}
+
+BaseType_t    createAlert(const char *description, const AlertType_t type, const char closed)
+{
+    cJSON   *json = cJSON_CreateObject();
+
+    if (!json)
+        return pdFALSE;
+    cJSON   *jDescription = cJSON_CreateString((char *)description);
+    cJSON   *jType = cJSON_CreateString(getStringOfEnum(type));
+    cJSON   *jClosed = cJSON_CreateBool(closed);
+    if (!jDescription || !jType || !jClosed){
+        if (jDescription)
+            cJSON_Delete(jDescription);
+        if (jType)
+            cJSON_Delete(jType);
+        if (jClosed)
+            cJSON_Delete(jClosed);
+
+        return pdFALSE;
+    }
+
+    cJSON_AddItemToObject(json, "description", jDescription);
+    cJSON_AddItemToObject(json, "type", jType);
+    cJSON_AddItemToObject(json, "closed", jClosed);
+    return xQueueSend(_alerts, &json, 10);
 }
