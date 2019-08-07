@@ -254,7 +254,7 @@ static void createMqttService()
     gl_profile_tab.chars[MQTT_CHAR_OFFSET + 2].char_uuid.len = ESP_UUID_LEN_16;
     gl_profile_tab.chars[MQTT_CHAR_OFFSET].char_uuid.uuid.uuid16 = MQTT_CHAR_URL;
     gl_profile_tab.chars[MQTT_CHAR_OFFSET + 1].char_uuid.uuid.uuid16 = MQTT_CHAR_PORT;
-    gl_profile_tab.chars[MQTT_CHAR_OFFSET + 22].char_uuid.uuid.uuid16 = MQTT_CHAR_ACTION;
+    gl_profile_tab.chars[MQTT_CHAR_OFFSET + 2].char_uuid.uuid.uuid16 = MQTT_CHAR_ACTION;
 
     for (int i = MQTT_CHAR_OFFSET;i < MQTT_CHAR_OFFSET + 3;i++){
         esp_err_t add_char_ret = esp_ble_gatts_add_char(gl_profile_tab.service_handle, &gl_profile_tab.chars[i].char_uuid,
@@ -416,6 +416,7 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
                 } else {
                     restartWifiClient(_config->wifiConfig);
                 }
+                saveWifiConfig(_config->wifiConfig);
                 break;
 
                 case MQTT_CHAR_URL:
@@ -520,7 +521,6 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
     case ESP_GATTS_DISCONNECT_EVT:
         ESP_LOGI(TAG, "ESP_GATTS_DISCONNECT_EVT, disconnect reason 0x%x", param->disconnect.reason);
         esp_ble_gap_start_advertising(&adv_params);
-        stopLcd();
         break;
     case ESP_GATTS_CONF_EVT:
         ESP_LOGI(TAG, "ESP_GATTS_CONF_EVT, status %d attr_handle %d", param->conf.status, param->conf.handle);

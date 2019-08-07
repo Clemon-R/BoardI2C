@@ -200,14 +200,11 @@ static void createSensorsTemperatureView(void *tab)
 	data.chartSerTemperature = lv_chart_add_series(data.chartTemperature, LV_COLOR_RED);
 	lv_chart_set_type(data.chartTemperature, LV_CHART_TYPE_LINE);
 	lv_chart_set_point_count(data.chartTemperature, 10);
-	lv_chart_set_range(data.chartTemperature, -100, 100);
+	lv_chart_set_range(data.chartTemperature, -50, 50);
 	lv_chart_set_div_line_count(data.chartTemperature, 5, 8);
 	lv_obj_set_width(data.chartTemperature, lv_obj_get_width(parent) - 100);
 	lv_obj_align(data.chartTemperature, parent, LV_ALIGN_IN_BOTTOM_RIGHT, -3, -5);
 	lv_chart_init_points(data.chartTemperature, data.chartSerTemperature, 1);
-    lv_obj_t    *init = lv_label_create(parent, NULL);
-    lv_label_set_text(init, "0°C");
-    lv_obj_align(init, data.chartTemperature, LV_ALIGN_OUT_LEFT_MID, 0, 0);
 
     data.meterTemperature = lv_gauge_create(parent, NULL);
     static lv_style_t   styleMeter;
@@ -218,7 +215,7 @@ static void createSensorsTemperatureView(void *tab)
     lv_gauge_set_style(data.meterTemperature, &styleMeter);
     lv_gauge_set_critical_value(data.meterTemperature, 45);
     lv_gauge_set_scale(data.meterTemperature, 180, 31, 5);
-    lv_gauge_set_range(data.meterTemperature, -100, 100);
+    lv_gauge_set_range(data.meterTemperature, -50, 50);
     lv_gauge_set_needle_count(data.meterTemperature, 1, &LV_COLOR_BLACK);
     lv_gauge_set_value(data.meterTemperature, 0, 0);
     lv_obj_set_width(data.meterTemperature, (lv_obj_get_width(parent) - 100) * 0.80);

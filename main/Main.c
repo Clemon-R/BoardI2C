@@ -109,6 +109,9 @@ void	app_main()
     ESP_ERROR_CHECK(ret);
     srand(time(NULL));
 
+    //Changing config by the saved one
+    getSaveWifiConfig(&dataWifi);
+
     //Buttons
     setButtonCallback(&btnHandler);    
     startButtonClient();

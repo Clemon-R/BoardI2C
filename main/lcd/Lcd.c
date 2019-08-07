@@ -208,6 +208,8 @@ static void refreshSensors(SensorValues_t *values)
                 xSemaphoreGive(_semaphore);
             }
         }
+        sprintf(_buffer, "%d", values->battery);
+        lv_label_set_text(sensorsData->battery->value, _buffer);
         break;
 
         case TEMPERATURE:
@@ -344,11 +346,7 @@ static void taskLcd(void *args)
             refreshState(&values);
             break;
         }
-        sprintf(_buffer, "%d", values.battery);
-        lv_label_set_text(sensorsData->battery->value, _buffer);
-        //vTaskDelay(pdMS_TO_TICKS(200));
         vTaskDelay(pdMS_TO_TICKS(2000));
-        //heap_caps_print_heap_info(MALLOC_CAP_8BIT);
     }
     deinitLcd();
     _working = false;
@@ -391,7 +389,7 @@ esp_err_t	startLcd()
     if (!_semaphore)
         _semaphore = xSemaphoreCreateMutex();
     _running = true;
-    return xTaskCreate(&taskLcd, "lcdTask", 5012, NULL, tskIDLE_PRIORITY, &lcdTask);
+    return xTaskCreate(&taskLcd, "lcdTask", 6122, NULL, tskIDLE_PRIORITY, &lcdTask);
 }
 
 esp_err_t	stopLcd()

@@ -39,4 +39,7 @@ EventGroupHandle_t  getWifiEventGroup();
 char	wifiIsUsed();
 esp_err_t    restartWifiClient(WifiConfig_t *config);
 
+esp_err_t   getSaveWifiConfig(WifiConfig_t *config);
+esp_err_t   saveWifiConfig(WifiConfig_t *config);
+
 #endif // !WIFICLIENT_H_

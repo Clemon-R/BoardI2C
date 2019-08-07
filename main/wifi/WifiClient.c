@@ -1,4 +1,6 @@
 #include "WifiClient.h"
+#include "nvs_flash.h"
+#include "nvs.h"
 
 #include "../Main.h"
 #include "driver/gpio.h"
@@ -246,4 +248,64 @@ esp_err_t    restartWifiClient(WifiConfig_t *config)
     }
     _restart = true;
     return ESP_OK;
+}
+
+esp_err_t   getSaveWifiConfig(WifiConfig_t *config)
+{
+    nvs_handle  my_handle;
+    esp_err_t   ret;
+
+    if (!config)
+        return ESP_FAIL;
+    ret = nvs_open("wifi_config", NVS_READWRITE, &my_handle);
+    if (ret == ESP_OK) {
+        char    tmp[BUFF_SIZE];
+        size_t  len;
+
+        ret = nvs_get_str(my_handle, "ssid", tmp, &len);
+        tmp[len] = 0;
+        if (ret == ESP_OK) {
+            ESP_LOGI(TAG, "Changing wifi ssid by the flash one...");
+            free(config->ssid);
+            config->ssid = (uint8_t *)strdup(tmp);
+        }
+
+        ret = nvs_get_str(my_handle, "password", tmp, &len);
+        tmp[len] = 0;
+        if (ret == ESP_OK) {
+            ESP_LOGI(TAG, "Changing wifi password by the flash one...");
+            free(config->password);
+            config->password = (uint8_t *)strdup(tmp);
+        }
+
+        nvs_close(my_handle);
+        return ESP_OK;
+    }
+    return ESP_FAIL;
+}
+
+
+esp_err_t   saveWifiConfig(WifiConfig_t *config)
+{
+    nvs_handle  my_handle;
+    esp_err_t   ret;
+
+    if (!config)
+        return ESP_FAIL;
+    ret = nvs_open("wifi_config", NVS_READWRITE, &my_handle);
+    if (ret == ESP_OK) {
+        ret = nvs_set_str(my_handle, "ssid", (char *)config->ssid);
+        if (ret == ESP_OK) {
+            ESP_LOGI(TAG, "Changing wifi ssid in flash...");
+        }
+
+        ret = nvs_set_str(my_handle, "password", (char *)config->password);
+        if (ret == ESP_OK) {
+            ESP_LOGI(TAG, "Changing wifi password in flash...");
+        }
+
+        nvs_close(my_handle);
+        return ESP_OK;
+    }
+    return ESP_FAIL;
 }

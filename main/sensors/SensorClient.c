@@ -164,6 +164,7 @@ static void	taskSensor(void *args)
             if (setupAllSensors(&data) != ESP_OK) {
                 _config = NULL;
                 ESP_LOGE(TAG, "Impossible to notify and callibrate sensors");
+                continue;
             } else {
                 _config = &data;
             }
