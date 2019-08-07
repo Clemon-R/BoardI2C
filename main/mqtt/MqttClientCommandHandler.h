@@ -17,7 +17,8 @@ typedef enum	MqttClientCommandType_e {
     SENSOR,
     REBOOT,
     LCD,
-    WIFI
+    WIFI,
+    UPDATE
 }				MqttClientCommandType;
 
 typedef struct MqttClientCommand_s {

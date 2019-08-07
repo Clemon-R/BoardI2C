@@ -3,6 +3,7 @@
 
 #include "../lcd/Sensors.h"
 #include "../sensors/SensorClient.h"
+#include "../wifi/Ota.h"
 
 static const char	*TAG = "\033[1;91mBleServer\033[0m";
 
@@ -410,6 +411,8 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
 
                 case WIFI_CHAR_ACTION:
                 ESP_LOGI(TAG, "Restart wifi");
+                launchUpdate();
+                break;
                 if (!wifiIsUsed()) {
                     startWifiClient(_config->wifiConfig);
                 } else {
@@ -512,11 +515,14 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
         //start sent the update connection parameters to the peer device.
         esp_ble_gap_update_conn_params(&conn_params);
         esp_ble_set_encryption(param->connect.remote_bda, ESP_BLE_SEC_ENCRYPT_MITM);
+        createAlert("Someone connected to BLE", INFO, true);
+        startLcd();
         break;
     }
     case ESP_GATTS_DISCONNECT_EVT:
         ESP_LOGI(TAG, "ESP_GATTS_DISCONNECT_EVT, disconnect reason 0x%x", param->disconnect.reason);
         esp_ble_gap_start_advertising(&adv_params);
+        stopLcd();
         break;
     case ESP_GATTS_CONF_EVT:
         ESP_LOGI(TAG, "ESP_GATTS_CONF_EVT, status %d attr_handle %d", param->conf.status, param->conf.handle);

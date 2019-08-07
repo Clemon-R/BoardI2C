@@ -20,8 +20,14 @@
 #include "ble/BleServer.h"
 
 static const char	TAG[] = "\033[1;39;100mMain\033[0m";
+static const char   _currentVersion[] = "1.0";
 
-static void setupLeds()
+const char  *getCurrentVersion()
+{
+    return _currentVersion;
+}
+
+static void initLedsGpio()
 {
     gpio_config_t	gpio_conf;
 
@@ -39,35 +45,32 @@ static void setupLeds()
     gpio_set_level(RGB_3_BLUE, 1);
 }
 
-static void btnClicked(uint32_t io_num, TypeClick type)
+static void btnHandler(uint32_t io_num, TypeClick type)
 {
     if (type == Simple && !lcdIsRunning()){
         startLcd();
+        return;
     }
     switch (io_num) {
     case BTN_LEFT:
-        ESP_LOGI(TAG, "Left");
         if (type == Simple || type == Double) {
             previousPage();
         }
         break;
 
     case BTN_RIGHT:
-        ESP_LOGI(TAG, "Right");
         if (type == Simple || type == Double) {
             nextPage();
         }
         break;
 
     case BTN_TOP:
-        ESP_LOGI(TAG, "Top");
         if (getCurrentPage() == 0 && (type == Simple || type == Double)){
             nextSensorsPage();
         }
         break;
 
     case BTN_BOTTOM:
-        ESP_LOGI(TAG, "Bottom");
         if (getCurrentPage() == 0 && (type == Simple || type == Double)){
             previousSensorsPage();
         }
@@ -85,8 +88,6 @@ static void btnClicked(uint32_t io_num, TypeClick type)
 void	app_main()
 {
     WifiConfig_t	dataWifi = {
-        //.ssid = "1234-6789-12345",
-        //.password = "12345678"
         .ssid = (uint8_t *)strdup("Honor Raphael"), //If changed
         .password = (uint8_t *)strdup("clemon69")
     };
@@ -105,20 +106,28 @@ void	app_main()
         ESP_ERROR_CHECK(nvs_flash_erase());
         ret = nvs_flash_init();
     }
-    srand(time(NULL));
     ESP_ERROR_CHECK(ret);
-    setButtonCallback(&btnClicked);
-    
+    srand(time(NULL));
+
+    //Buttons
+    setButtonCallback(&btnHandler);    
     startButtonClient();
 
-    setupLeds();
+    //Leds
+    initLedsGpio();
+
+    //Cloud
     startWifiClient(&dataWifi);
     startMqttClient(&dataMqtt);
-    //startLcd();
-    startSensorClient();
-    startBleServer(&bleConfig);
-    createAlert("Object is now running", INFO, true);
 
+    //Data
+    startSensorClient();
+    
+    //Manager/Tools
+    startBleServer(&bleConfig);
+    createAlert("Demonstrator is now running", INFO, true);
+
+    //Lcd required functions
     lv_init(); //Not working without launching both in main
     disp_spi_init();
     while (1) {

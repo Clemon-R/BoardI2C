@@ -48,7 +48,9 @@ static void refreshState(ClientState_t state)
 
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
-    xQueueSendFromISR(_handler, &event, pdTRUE);
+    BaseType_t  type = pdTRUE;
+
+    xQueueSendFromISR(_handler, &event, &type);
     return ESP_OK;
 }
 
@@ -65,7 +67,7 @@ static void mqttClientHandler(esp_mqtt_event_handle_t event)
         refreshState(CONNECTED);
 
         ESP_LOGI(TAG, "Subscribing to all the required channels...");
-        esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/status", 0);
+        //esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/status", 0);
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/commands", 0);
         esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/datas", 0);
         break;

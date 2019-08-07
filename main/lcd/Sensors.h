@@ -24,6 +24,7 @@ typedef struct	LcdSensors_s
 	ValueContainer_t	*temperature;
 	ValueContainer_t	*humidity;
 	ValueContainer_t	*pressure;
+	ValueContainer_t	*battery;
 
 	lv_obj_t *meterTemperature;
 	lv_obj_t *meterHumidity;

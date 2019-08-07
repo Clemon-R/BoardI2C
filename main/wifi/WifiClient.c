@@ -25,7 +25,6 @@ static void refreshState(ClientState_t state)
             gpio_set_level(RGB_1_RED, 1);
             gpio_set_level(RGB_1_GREEN, 0);
             break;
-
         case DISCONNECTED:
             xEventGroupClearBits(_wifiEventGroup, CONNECTED_BIT);
             gpio_set_level(RGB_1_GREEN, 1);
@@ -148,6 +147,7 @@ static void    taskWifi(void *arg)
             wifiClientHandler(event);
         if (_restart && _config){
             ESP_ERROR_CHECK(stopWifi());
+            refreshState(DISCONNECTED);
             setConfig(_config->ssid, _config->password);
             ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &_wifi_config));
             _restart = false;

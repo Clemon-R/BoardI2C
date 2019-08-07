@@ -5,6 +5,7 @@ static const char   *TAG = "LcdSensors";
 static ValueContainer_t temperature = {.value = NULL, .decimale = NULL};
 static ValueContainer_t humidity = {.value = NULL, .decimale = NULL};
 static ValueContainer_t pressure = {.value = NULL, .decimale = NULL};
+static ValueContainer_t battery = {.value = NULL, .decimale = NULL};
 
 static LcdSensors_t data;
 
@@ -165,6 +166,19 @@ static void createSensorsAllView(void *tab)
     lv_label_set_text(data.pressure->decimale, ",00°C");
     lv_obj_set_style(data.pressure->value, &valueStyle);
     lv_obj_set_style(data.pressure->decimale, &decimaleStyle);
+
+    static lv_style_t	styleBattery;
+    lv_style_copy(&styleBattery, &lv_style_plain);
+    styleBattery.line.color = LV_COLOR_GRAY;
+
+    static lv_style_t	styleBatteryBubble;
+    lv_style_copy(&styleBatteryBubble, &lv_style_plain);
+    styleBatteryBubble.line.color = LV_COLOR_GRAY;
+    drawDisplayer(parent, "Battery", 0, 90, &styleBattery, &styleBatteryBubble, &data.battery->value, &data.battery->decimale);
+    lv_label_set_text(data.battery->value, "100");
+    lv_label_set_text(data.battery->decimale, "%");
+    lv_obj_set_style(data.battery->value, &valueStyle);
+    lv_obj_set_style(data.battery->decimale, &decimaleStyle);
 }
 
 static void createSensorsTemperatureView(void *tab)
@@ -402,6 +416,7 @@ void	createSensorsView(void *tab)
     data.temperature = &temperature;
     data.humidity = &humidity;
     data.pressure = &pressure;
+    data.battery = &battery;
 
     //Menu
     data.nav = lv_tabview_create(parent, NULL);    

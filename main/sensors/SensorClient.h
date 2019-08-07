@@ -15,9 +15,18 @@
 #define I2C_MASTER_FREQ_HZ	10000
 
 #define DEFAULT_VREF    1100
-#define NO_OF_SAMPLES   64
+#define NO_OF_SAMPLES   128
 #define ADC_CHANNEL     ADC_CHANNEL_0
-#define ADC_ATTEN       ADC_ATTEN_DB_0   
+#define ADC_ATTEN       ADC_ATTEN_DB_0 
+
+#define BATTERIE_MAX_VOLTAGE 4200 //In mV
+#define DOWNGRADE_VOLTAGE 4500 //In mV
+#define NBR_TENSION_SAMPLE 13
+#define ADC_VOLTAGE 1100 //In mV /*WARNING*\ Do not change
+
+#define PERCENTAGE_REAL (BATTERIE_MAX_VOLTAGE / (double)DOWNGRADE_VOLTAGE)
+#define MAX_ADC_VOLTAGE (ADC_VOLTAGE * PERCENTAGE_REAL)
+#define REAL_VOLTAGE(fakeV) (BATTERIE_MAX_VOLTAGE / (double)MAX_ADC_VOLTAGE * fakeV)
 
 typedef struct SensorData_s {
     humidity_temp_sensor_t	humidityData;
@@ -28,6 +37,7 @@ typedef struct  SensorValues_s {
     float     temperature;
     float     humidity;
     float     pressure;
+    int8_t    battery;  
     color_rgb_t color;
     char        initiated:1;
 }               SensorValues_t;
@@ -43,6 +53,5 @@ TickType_t  getRefreshDelai();
 SensorData_t	*getSensorConfig();
 
 SensorValues_t  getSensorValues();
-void    getBatteryVoltage();
 
 #endif // !SENSORCLIENT_H_

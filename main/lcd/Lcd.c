@@ -146,6 +146,7 @@ static void	setupUI()
         createSensorsView(tab1);
         createLogsView(tab2);
         createStatesView(tab3);
+
         _tv = tv;
         _first = false;
         xSemaphoreGive(_semaphore);
@@ -343,10 +344,11 @@ static void taskLcd(void *args)
             refreshState(&values);
             break;
         }
-        //getBatteryVoltage();
+        sprintf(_buffer, "%d", values.battery);
+        lv_label_set_text(sensorsData->battery->value, _buffer);
         //vTaskDelay(pdMS_TO_TICKS(200));
         vTaskDelay(pdMS_TO_TICKS(2000));
-        heap_caps_print_heap_info(MALLOC_CAP_8BIT);
+        //heap_caps_print_heap_info(MALLOC_CAP_8BIT);
     }
     deinitLcd();
     _working = false;

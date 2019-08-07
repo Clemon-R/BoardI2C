@@ -6,6 +6,7 @@
 #include "../Main.h"
 
 #include "../wifi/WifiClient.h"
+#include "../wifi/Ota.h"
 #include "../sensors/SensorClient.h"
 #include "../lcd/Lcd.h"
 
@@ -53,6 +54,14 @@ static void	taskCommandHandler(void *args)
             if (param && cJSON_IsBool(param)) {
                 if (cJSON_IsTrue(param)) {
                     restartWifiClient(NULL);
+                }
+            }
+            break;
+        case UPDATE:
+            param = cJSON_GetObjectItem(command->data, "version");
+            if (param && cJSON_IsString(param)){
+                if (strcmp(getCurrentVersion(), cJSON_GetStringValue(param)) != 0){
+                    launchUpdate();
                 }
             }
             break;

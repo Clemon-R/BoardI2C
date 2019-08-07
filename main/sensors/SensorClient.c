@@ -16,8 +16,52 @@ static QueueHandle_t	_datas;
 static SensorData_t		*_config = NULL;
 
 static TickType_t	_refreshDelai = pdMS_TO_TICKS(500);
-static SensorValues_t   _values = {0,0,0,(color_rgb_t){0,0,0},0};
+static SensorValues_t   _values = {0,0,0,100,(color_rgb_t){0,0,0,0},0};
 static esp_adc_cal_characteristics_t    *_adc_chars = NULL;
+
+struct Tension_s
+{
+    uint32_t   value;
+    uint8_t percentage;
+};
+DRAM_ATTR static struct Tension_s    _tensionSamples[] = {
+    {0, 0}, 
+    {3000, 0}, 
+    {3300, 5}, 
+    {3600, 10}, 
+    {3700, 20}, 
+    {3750, 30},
+    {3790, 40},
+    {3830, 50},
+    {3870, 60},
+    {3920, 70},
+    {3970, 80},
+    {4100, 90},
+    {4200, 100}
+    };
+
+static int8_t    getBatteryVoltage()
+{
+    uint32_t    adc_reading = 0;
+
+    for (int i = 0; i < NO_OF_SAMPLES; i++) {
+        adc_reading += adc1_get_raw((adc1_channel_t)ADC_CHANNEL);
+    }
+    adc_reading /= NO_OF_SAMPLES;
+
+    uint32_t    voltage = esp_adc_cal_raw_to_voltage(adc_reading, _adc_chars);
+    uint32_t    realVoltage = REAL_VOLTAGE(voltage);
+    //printf("Voltage: %dmV, RealVolateg: %dmV\n", voltage, realVoltage);
+    for (int i = 1;i < NBR_TENSION_SAMPLE;i++) //index from 1 because we need min and max, if index 0 we don't forcefully
+    {
+        uint32_t min = _tensionSamples[i - 1].value;
+        uint32_t max = _tensionSamples[i].value;
+        if (realVoltage >= min && realVoltage <= max){
+            return _tensionSamples[i].percentage;
+        }
+    }
+    return -1; //Not in the scope
+}
 
 static esp_err_t	nordicI2CInit()
 {
@@ -73,7 +117,15 @@ static esp_err_t	setupAllSensors(SensorData_t *data)
     if (ret != ESP_OK)
         return ret;
     ret = setupColorSensor(I2C_MASTER_NUM);
-    if ((ret = esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP)) != ESP_OK) {
+   
+    return ret;
+}
+
+static esp_err_t    setupAdc()
+{
+    esp_err_t   ret;
+
+     if ((ret = esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP)) != ESP_OK) {
         ESP_LOGE(TAG, "eFuse Two Point: NOT supported");
         return ret;
     }
@@ -98,8 +150,10 @@ static void	taskSensor(void *args)
     ESP_LOGI(TAG, "Initiating the task...");
     gpio_set_level(RGB_3_RED, 0);
     ESP_ERROR_CHECK(nordicI2CInit());
+    ESP_ERROR_CHECK(setupAdc());
     while (_running) {
         vTaskDelay(_refreshDelai);
+        _values.battery = getBatteryVoltage();
         if (!_values.initiated) {
             if (setupAllSensors(&data) != ESP_OK) {
                 _config = NULL;
@@ -203,18 +257,4 @@ SensorData_t	*getSensorConfig()
 SensorValues_t  getSensorValues()
 {
     return _values;
-}
-
-void    getBatteryVoltage()
-{
-    uint32_t    adc_reading = 0;
-
-    //Multisampling
-    for (int i = 0; i < NO_OF_SAMPLES; i++) {
-        adc_reading += adc1_get_raw((adc1_channel_t)ADC_CHANNEL);
-    }
-    adc_reading /= NO_OF_SAMPLES;
-    //Convert adc_reading to voltage in mV
-    uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, _adc_chars);
-    printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
 }
