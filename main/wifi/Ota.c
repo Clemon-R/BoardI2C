@@ -7,6 +7,7 @@ static const char *TAG = "Ota";
 
 static char	_running = false;
 
+//Http handler
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
     switch(evt->event_id) {
@@ -41,6 +42,7 @@ static void http_cleanup(esp_http_client_handle_t client)
     esp_http_client_cleanup(client);
 }
 
+//Steps of updating
 static esp_err_t	launchOta(const esp_http_client_config_t *config)
 {
     if (!config) {
@@ -142,6 +144,7 @@ static esp_err_t	launchOta(const esp_http_client_config_t *config)
     return ESP_OK;
 }
 
+//Process
 static void	taskOta(void * pvParameter)
 {
     char    buff[BUFF_SIZE];

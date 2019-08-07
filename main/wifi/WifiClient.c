@@ -15,6 +15,7 @@ static EventGroupHandle_t _wifiEventGroup = NULL;
 const static int CONNECTED_BIT = BIT0;
 static ClientState_t    _state = NONE;
 
+//Managing the state of wifi
 static void refreshState(ClientState_t state)
 {
     _state = state;
@@ -36,12 +37,15 @@ static void refreshState(ClientState_t state)
     }
 }
 
+//Wifi handler
 static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
 {
-    xQueueSendFromISR(_handler, &event, pdTRUE);
+    BaseType_t  type = pdTRUE;
+    xQueueSendFromISR(_handler, &event, &type);
     return ESP_OK;
 }
 
+//Event handler by the process
 static void wifiClientHandler(system_event_t *event)
 {
     switch (event->event_id) {
@@ -68,6 +72,7 @@ static void wifiClientHandler(system_event_t *event)
     }
 }
 
+//Changing the wifi config and removing old one
 static void     setConfig(const uint8_t *ssid, const uint8_t *password)
 {
     ESP_LOGI(TAG, "Setting information for the connection...");
@@ -76,6 +81,7 @@ static void     setConfig(const uint8_t *ssid, const uint8_t *password)
     memcpy(_wifi_config.sta.password, password, strlen((char *)password) + 1);
 }
 
+//Initiating the wifi
 static esp_err_t    initWifiClient(const uint8_t *ssid, const uint8_t *password)
 {
     esp_err_t   ret;
@@ -102,6 +108,7 @@ static esp_err_t    initWifiClient(const uint8_t *ssid, const uint8_t *password)
     return ret;
 }
 
+//Deinitiating the wifi
 static esp_err_t    deinitWifiClient()
 {
     ESP_LOGI(TAG, "Deinitiating the wifi...");
@@ -109,6 +116,7 @@ static esp_err_t    deinitWifiClient()
     return esp_wifi_deinit();
 }
 
+//Starting the wifi
 static esp_err_t    startWifi()
 {
     ESP_LOGW(TAG, "Starting the wifi...");
@@ -116,6 +124,7 @@ static esp_err_t    startWifi()
     return esp_wifi_start();
 }
 
+//Stoping the wifi and disconnecting
 static esp_err_t    stopWifi()
 {
     ESP_LOGI(TAG, "Stopping the wifi...");
@@ -125,6 +134,7 @@ static esp_err_t    stopWifi()
     return esp_wifi_stop();
 }
 
+//Process
 static void    taskWifi(void *arg)
 {
     WifiConfig_t   *data;
@@ -168,11 +178,13 @@ static void    taskWifi(void *arg)
  * Public function
  **/
 
+//Double check of the wifi state
 char	isWifiConnected()
 {
     return _state == CONNECTED && (xEventGroupWaitBits(_wifiEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT;
 }
 
+//Launching the task with required data
 esp_err_t    startWifiClient(WifiConfig_t   *config)
 {
     WifiConfig_t    *tmp;
@@ -192,6 +204,7 @@ esp_err_t    startWifiClient(WifiConfig_t   *config)
     return xTaskCreate(taskWifi, "wifiTask", 3072, tmp, tskIDLE_PRIORITY, &wifiTask);
 }
 
+//Changing state of the process to go to the end of the process
 esp_err_t   stopWifiClient()
 {
     ESP_LOGI(TAG, "Stopping the %s task...", TAG);
@@ -202,16 +215,19 @@ esp_err_t   stopWifiClient()
     return ESP_OK;
 }
 
+//Wifi real state and notification
 EventGroupHandle_t  getWifiEventGroup()
 {
     return _wifiEventGroup;
 }
 
+//Wifi process if running ?
 char	wifiIsUsed()
 {
     return wifiTask != NULL;
 }
 
+//Asking the process to restart with optional config
 esp_err_t    restartWifiClient(WifiConfig_t *config)
 {
     WifiConfig_t    *tmp;

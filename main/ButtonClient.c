@@ -9,12 +9,14 @@ static xQueueHandle gpio_evt_queue = NULL;
 static char	_running = false;
 static void	(*_callback)(uint32_t io_num, TypeClick type) = NULL;
 
+//Gpio interup handler
 static void IRAM_ATTR   gpio_isr_handler(void* arg) //Recepteur du trigger
 {
     uint32_t gpio_num = (uint32_t) arg;
     xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL); //Reception l'event et sera receptionné dans une task
 }
 
+//Init gpio to handle input variation with interup on any variation
 static esp_err_t	initButtonGpio()
 {
     gpio_config_t	gpio_conf;
@@ -54,6 +56,7 @@ static esp_err_t	initButtonGpio()
     return ret;
 }
 
+//Deinit all gpio
 static esp_err_t	deinitButtonGpio()
 {
     gpio_config_t	gpio_conf;
@@ -82,6 +85,7 @@ static esp_err_t	deinitButtonGpio()
     return ret;
 }
 
+//The process to handler input
 static void taskHandler(void* arg) //Tache de traitement des trigger
 {
     uint32_t    io_num;
@@ -125,6 +129,7 @@ static void taskHandler(void* arg) //Tache de traitement des trigger
     vTaskDelete(NULL);
 }
 
+//Launching task with required data
 esp_err_t	startButtonClient()
 {
     ESP_LOGI(TAG, "Starting the %s task...", TAG);
@@ -134,6 +139,7 @@ esp_err_t	startButtonClient()
     return xTaskCreate(taskHandler, "buttonTask", 2048, NULL, tskIDLE_PRIORITY, NULL);
 }
 
+//Changing state to go to the end of the process
 esp_err_t	stopButtonClient()
 {
     ESP_LOGI(TAG, "Stopping the %s task...", TAG);
@@ -143,6 +149,7 @@ esp_err_t	stopButtonClient()
     return ESP_OK;
 }
 
+//Changing the callback with the special event create for button
 void	setButtonCallback(void	(*callback)(uint32_t io_num, TypeClick type))
 {
     _callback = callback;
