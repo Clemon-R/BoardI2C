@@ -12,7 +12,6 @@ static TaskHandle_t	mqttTask = NULL;
 static EventGroupHandle_t   _wifiEventGroup = NULL;
 static EventGroupHandle_t   _mqttEventGroup = NULL;
 static QueueHandle_t	_datas = NULL;
-static QueueHandle_t	_alerts = NULL;
 static QueueHandle_t    _handler = NULL;
 
 static MqttConfig_t	    *_config = NULL;
@@ -23,6 +22,7 @@ static char _restart = false;
 static const int WIFI_CONNECTED_BIT = BIT0;
 static const int CONNECTED_BIT = BIT0;
 
+//Managing the state of the mqtt
 static void refreshState(ClientState_t state)
 {
     _state = state;
@@ -46,6 +46,7 @@ static void refreshState(ClientState_t state)
     }
 }
 
+//Callback mqtt event
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
     BaseType_t  type = pdTRUE;
@@ -54,6 +55,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
     return ESP_OK;
 }
 
+//Mqtt event handler in the process
 static void mqttClientHandler(esp_mqtt_event_handle_t event)
 {
     esp_mqtt_client_handle_t client = event->client;
@@ -67,9 +69,9 @@ static void mqttClientHandler(esp_mqtt_event_handle_t event)
         refreshState(CONNECTED);
 
         ESP_LOGI(TAG, "Subscribing to all the required channels...");
-        //esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/status", 0);
-        esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/commands", 0);
-        esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/datas", 0);
+        //Too much channels on the server test mqtt, come with crashs
+        esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/commands", 0); //Receiver
+        esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/datas", 0); //Sender
         break;
     case MQTT_EVENT_DISCONNECTED:
         if (_state == CONNECTED){
@@ -107,6 +109,7 @@ static void mqttClientHandler(esp_mqtt_event_handle_t event)
     }
 }
 
+//Init the client with the required data
 static esp_mqtt_client_handle_t	initMqttClient(const uint8_t *url, const uint16_t port)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
@@ -120,6 +123,7 @@ static esp_mqtt_client_handle_t	initMqttClient(const uint8_t *url, const uint16_
     return esp_mqtt_client_init(&mqtt_cfg);
 }
 
+//Destroying client and all allocated data
 static esp_err_t	deinitMqttClient(esp_mqtt_client_handle_t client)
 {
     ESP_LOGI(TAG, "Deinitiating the mqtt...");
@@ -128,6 +132,7 @@ static esp_err_t	deinitMqttClient(esp_mqtt_client_handle_t client)
     return esp_mqtt_client_destroy(client);
 }
 
+//Starting the connection
 static esp_err_t	startMqtt(esp_mqtt_client_handle_t client)
 {
     ESP_LOGI(TAG, "Starting the mqtt...");
@@ -137,6 +142,7 @@ static esp_err_t	startMqtt(esp_mqtt_client_handle_t client)
     return esp_mqtt_client_start(client);
 }
 
+//Change only the state of the running process, to go to the end of the process
 static esp_err_t	stopMqtt(esp_mqtt_client_handle_t client)
 {
     ESP_LOGI(TAG, "Stopping the mqtt...");
@@ -146,15 +152,7 @@ static esp_err_t	stopMqtt(esp_mqtt_client_handle_t client)
     return esp_mqtt_client_stop(client);
 }
 
-/**
- * Public function
- **/
-
-char	isMqttConnected()
-{
-    return _state == CONNECTED && (xEventGroupWaitBits(_mqttEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT;
-}
-
+//The process
 static void	taskMqtt(void *arg)
 {
     esp_mqtt_client_handle_t client = NULL;
@@ -185,21 +183,12 @@ static void	taskMqtt(void *arg)
             }
             _restart = false;
         } else if (_state == CONNECTED) {
-            if (xQueueReceive(_datas, (void *)&monitor, 10) == pdTRUE && monitor) {
+            if (xQueueReceive(_datas, (void *)&monitor, 10) == pdTRUE && 
+                monitor) {
                 buff = cJSON_Print(monitor);
 
                 if (buff) {
                     esp_mqtt_client_publish(client, "/demo/rtone/esp32/datas", buff, strlen(buff), 0, 0);
-                }
-                cJSON_Delete(monitor);
-                free(buff);
-                monitor = NULL;
-            }
-            if (xQueueReceive(_alerts, &monitor, 10) == pdTRUE) {
-                buff = cJSON_Print(monitor);
-
-                if (buff) {
-                    esp_mqtt_client_publish(client, "/demo/rtone/esp32/status", buff, strlen(buff), 0, 0);
                 }
                 cJSON_Delete(monitor);
                 free(buff);
@@ -213,6 +202,30 @@ static void	taskMqtt(void *arg)
     free(_config);
     mqttTask = NULL;
     vTaskDelete(NULL);
+}
+
+//Convert enum to string
+static char *getStringOfEnum(const AlertType_t type)
+{
+    switch (type)
+    {
+        case INFO:
+        return "INFO";
+        case MINOR:
+        return "MINOR";
+        case MAJOR:
+        return "MAJOR";
+    }
+    return NULL;
+}
+
+/**
+ * Public function
+ **/
+
+char	isMqttConnected()
+{
+    return _state == CONNECTED && (xEventGroupWaitBits(_mqttEventGroup, CONNECTED_BIT, false, false, 0) & CONNECTED_BIT) == CONNECTED_BIT;
 }
 
 esp_err_t	startMqttClient(MqttConfig_t *config)
@@ -232,11 +245,9 @@ esp_err_t	startMqttClient(MqttConfig_t *config)
         _wifiEventGroup = getWifiEventGroup();
     if (!_datas)
         _datas = xQueueCreate(STACK_QUEUE, sizeof(cJSON *));
-    if (!_alerts)
-        _alerts = xQueueCreate(STACK_QUEUE, sizeof(cJSON *));
     if (!_handler)
         _handler = xQueueCreate(STACK_QUEUE, sizeof(esp_mqtt_event_handle_t));
-    if (!_wifiEventGroup || !_mqttEventGroup || !_datas || !_alerts || !_handler) {
+    if (!_wifiEventGroup || !_mqttEventGroup || !_datas || !_handler) {
         ESP_LOGE(TAG, "Missing some parameters");
         return ESP_FAIL;
     }
@@ -269,20 +280,6 @@ void    restartMqttClient(MqttConfig_t *config)
     _restart = true;
 }
 
-static char *getStringOfEnum(const AlertType_t type)
-{
-    switch (type)
-    {
-        case INFO:
-        return "INFO";
-        case MINOR:
-        return "MINOR";
-        case MAJOR:
-        return "MAJOR";
-    }
-    return NULL;
-}
-
 BaseType_t    createAlert(const char *description, const AlertType_t type, const char closed)
 {
     cJSON   *json = cJSON_CreateObject();
@@ -303,8 +300,20 @@ BaseType_t    createAlert(const char *description, const AlertType_t type, const
         return pdFALSE;
     }
 
+    cJSON_AddStringToObject(json, "data", "alert");
     cJSON_AddItemToObject(json, "description", jDescription);
     cJSON_AddItemToObject(json, "type", jType);
     cJSON_AddItemToObject(json, "closed", jClosed);
-    return xQueueSend(_alerts, &json, 10);
+    return xQueueSend(_datas, &json, 10);
+}
+
+BaseType_t    createStatus()
+{
+    cJSON   *json = cJSON_CreateObject();
+
+    if (!json)
+        return pdFALSE;
+
+    cJSON_AddStringToObject(json, "data", "status");
+    return xQueueSend(_datas, &json, 10);
 }

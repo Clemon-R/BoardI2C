@@ -12,6 +12,6 @@
 #define BIN_URL	"http://testbin.alwaysdata.net/board-%s.bin" //%s needed and replaced by current version X.X
 
 
-esp_err_t	launchUpdate();
+esp_err_t	launchUpdate(char *version);
 
 #endif

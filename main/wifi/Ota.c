@@ -145,33 +145,43 @@ static esp_err_t	launchOta(const esp_http_client_config_t *config)
 static void	taskOta(void * pvParameter)
 {
     char    buff[BUFF_SIZE];
+    char    *version = (char *)pvParameter;
     esp_http_client_config_t config = {
         .url = NULL,
         .cert_pem = "",
         .event_handler = _http_event_handler,
     };
 
-    sprintf(buff, BIN_URL, getCurrentVersion());
-    config.url = buff;
-    ESP_LOGI(TAG, "Starting OTA ...");
-	if (!isWifiConnected()){
-        ESP_LOGE(TAG, "Wifi not connected");
-		return;
-	}
-    esp_err_t ret = launchOta(&config);
-    if (ret == ESP_OK) {
-        esp_restart();
-    } else {
-        ESP_LOGE(TAG, "Firmware Upgrades Failed");
+    if (version){
+        sprintf(buff, BIN_URL, version);
+        config.url = buff;
+        ESP_LOGI(TAG, "Starting OTA ...");
+        if (!isWifiConnected()){
+            ESP_LOGE(TAG, "Wifi not connected");
+            return;
+        }
+        esp_err_t ret = launchOta(&config);
+        if (ret == ESP_OK) {
+            esp_restart();
+        } else {
+            ESP_LOGE(TAG, "Firmware Upgrades Failed");
+        }
+        free(version);
     }
 	_running = false;
 	vTaskDelete(NULL);
 }
 
-esp_err_t	launchUpdate()
+//Launching task to download and do the change of firmware
+esp_err_t	launchUpdate(char *version)
 {
-	if (_running)
+    char *tmp = NULL;
+
+	if (_running || !version)
 		return ESP_FAIL;
-	_running = true;
-	return xTaskCreate(taskOta, "Task OTA", 4096, NULL, tskIDLE_PRIORITY, NULL);
+	tmp = strdup(version);
+    if (!tmp)
+        return ESP_FAIL;
+    _running = true;
+	return xTaskCreate(taskOta, "Task OTA", 4096, tmp, tskIDLE_PRIORITY, NULL);
 }

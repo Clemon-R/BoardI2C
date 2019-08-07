@@ -12,6 +12,7 @@
 
 static const char	*TAG = "\033[1;36mMqttClientCommandHandler\033[0m";
 
+//One process/One command
 static void	taskCommandHandler(void *args)
 {
     MqttClientCommand_t	*command = (MqttClientCommand_t *)args;
@@ -60,8 +61,9 @@ static void	taskCommandHandler(void *args)
         case UPDATE:
             param = cJSON_GetObjectItem(command->data, "version");
             if (param && cJSON_IsString(param)){
-                if (strcmp(getCurrentVersion(), cJSON_GetStringValue(param)) != 0){
-                    launchUpdate();
+                char *tmp = cJSON_GetStringValue(param);
+                if (tmp && strcmp(getCurrentVersion(), tmp) != 0){
+                    launchUpdate(tmp);
                 }
             }
             break;
@@ -72,6 +74,7 @@ static void	taskCommandHandler(void *args)
     vTaskDelete(NULL);
 }
 
+//Launching a tempory task to handle the command
 esp_err_t	launchCommand(MqttClientCommand_t *command)
 {
     MqttClientCommand_t	*tmp = NULL;

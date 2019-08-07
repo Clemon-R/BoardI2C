@@ -38,5 +38,6 @@ void    restartMqttClient();
 QueueHandle_t	getQueueDatas();
 
 BaseType_t    createAlert(const char *description, const AlertType_t type, const char closed);
+BaseType_t    createStatus();
 
 #endif // !MQTTCLIENT_H_

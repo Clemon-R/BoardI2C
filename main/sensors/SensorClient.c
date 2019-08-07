@@ -40,7 +40,8 @@ DRAM_ATTR static struct Tension_s    _tensionSamples[] = {
     {4200, 100}
     };
 
-static int8_t    getBatteryVoltage()
+//With the table and calcul getting the current percentage of battery
+static int8_t    getBatteryPercentage()
 {
     uint32_t    adc_reading = 0;
 
@@ -63,6 +64,7 @@ static int8_t    getBatteryVoltage()
     return -1; //Not in the scope
 }
 
+//Init the BUS I2C for the sensors
 static esp_err_t	nordicI2CInit()
 {
     i2c_port_t i2c_master_port = I2C_MASTER_NUM;
@@ -85,6 +87,7 @@ static esp_err_t	nordicI2CInit()
     return ESP_OK;
 }
 
+//Removing the BUS I2C for sensors
 static esp_err_t	nordicI2CDeinit()
 {
     i2c_port_t i2c_master_port = I2C_MASTER_NUM;
@@ -94,6 +97,7 @@ static esp_err_t	nordicI2CDeinit()
     return i2c_driver_delete(i2c_master_port);
 }
 
+//Calibrating all the sensors and checking WHOIAM
 static esp_err_t	setupAllSensors(SensorData_t *data)
 {
     esp_err_t	ret;
@@ -121,6 +125,7 @@ static esp_err_t	setupAllSensors(SensorData_t *data)
     return ret;
 }
 
+//Setting up the GPIO ADC to handle battery
 static esp_err_t    setupAdc()
 {
     esp_err_t   ret;
@@ -142,6 +147,7 @@ static esp_err_t    setupAdc()
     return ret;
 }
 
+//Process
 static void	taskSensor(void *args)
 {
     SensorData_t	data;
@@ -153,7 +159,7 @@ static void	taskSensor(void *args)
     ESP_ERROR_CHECK(setupAdc());
     while (_running) {
         vTaskDelay(_refreshDelai);
-        _values.battery = getBatteryVoltage();
+        _values.battery = getBatteryPercentage();
         if (!_values.initiated) {
             if (setupAllSensors(&data) != ESP_OK) {
                 _config = NULL;
@@ -199,6 +205,7 @@ static void	taskSensor(void *args)
         raw = cJSON_CreateString(buffer);
         cJSON_AddItemToObject(sensors, "color", raw);
 
+        cJSON_AddStringToObject(monitor, "data", "sensors");
         cJSON_AddItemToObject(monitor, "sensors", sensors);
 
         xQueueSend(_datas, &monitor, 10);
@@ -211,6 +218,7 @@ static void	taskSensor(void *args)
     vTaskDelete(sensorTask);
 }
 
+//Launching the task with required data
 esp_err_t	startSensorClient()
 {
     if (_running)
@@ -221,6 +229,7 @@ esp_err_t	startSensorClient()
     return xTaskCreate(taskSensor, "sensorTask", 3072, NULL, tskIDLE_PRIORITY, &sensorTask);;
 }
 
+//Changing state of the process to go to the end of the process
 esp_err_t	stopSensorClient()
 {
     if (!_running)
@@ -229,31 +238,37 @@ esp_err_t	stopSensorClient()
     return ESP_OK;
 }
 
+//Changing tick of refresh data sensors
 void	setRefreshDelai(TickType_t value)
 {
     _refreshDelai = value;
 }
 
+//Getting the current tick of refresh data sensors
 TickType_t  getRefreshDelai()
 {
     return _refreshDelai;
 }
 
+//Checking the state of the process
 char	isSensorRunning()
 {
     return _running;
 }
 
+//Checking the state of the sensors (false also when not init)
 char	isSensorWorking()
 {
     return _working;
 }
 
+//Getting all the sensors config
 SensorData_t	*getSensorConfig()
 {
     return _config;
 }
 
+//Getting the current values of all sensors
 SensorValues_t  getSensorValues()
 {
     return _values;
