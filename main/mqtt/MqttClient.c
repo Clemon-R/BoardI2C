@@ -5,6 +5,8 @@
 
 #include "../Main.h"
 #include "driver/gpio.h"
+#include "nvs_flash.h"
+#include "nvs.h"
 
 static const char *TAG = "\033[1;36mMqttClient\033[0m";
 static TaskHandle_t	mqttTask = NULL;
@@ -29,15 +31,15 @@ static void refreshState(ClientState_t state)
     switch (state)
     {
         case CONNECTED:
-            gpio_set_level(RGB_2_RED, 1);
-            gpio_set_level(RGB_2_GREEN, 0);
+            gpio_set_level(RGB_2_RED, RGB_OFF);
+            gpio_set_level(RGB_2_GREEN, RGB_ON);
             xEventGroupSetBits(_mqttEventGroup, CONNECTED_BIT);
             break;
 
         case DEINITIATIED:
         case DISCONNECTED:
-            gpio_set_level(RGB_2_RED, 0);
-            gpio_set_level(RGB_2_GREEN, 1);
+            gpio_set_level(RGB_2_RED, RGB_ON);
+            gpio_set_level(RGB_2_GREEN, RGB_OFF);
             xEventGroupClearBits(_mqttEventGroup, CONNECTED_BIT);
             break;    
 
@@ -161,7 +163,7 @@ static void	taskMqtt(void *arg)
     cJSON	*monitor = NULL;
 
     ESP_LOGI(TAG, "Initiating the task...");
-    gpio_set_level(RGB_2_RED, 0);
+    gpio_set_level(RGB_2_RED, RGB_ON);
     ESP_ERROR_CHECK(arg == NULL);
     _config = (MqttConfig_t *)arg;
 
@@ -316,4 +318,63 @@ BaseType_t    createStatus()
 
     cJSON_AddStringToObject(json, "data", "status");
     return xQueueSend(_datas, &json, 10);
+}
+
+
+esp_err_t   getSaveMqttConfig(MqttConfig_t *config)
+{
+    nvs_handle  my_handle;
+    esp_err_t   ret;
+
+    if (!config)
+        return ESP_FAIL;
+    ret = nvs_open(MQTT_STORAGE, NVS_READWRITE, &my_handle);
+    if (ret == ESP_OK) {
+        char    tmp[BUFF_SIZE];
+        size_t  len = BUFF_SIZE;
+
+        ret = nvs_get_str(my_handle, STORAGE_URL, tmp, &len);
+        tmp[len] = 0;
+        if (ret == ESP_OK) {
+            ESP_LOGI(TAG, "Changing mqtt url by the flash one...");
+            free(config->url);
+            config->url = (uint8_t *)strdup(tmp);
+        }
+
+        ret = nvs_get_i16(my_handle, STORAGE_PORT, &len);
+        if (ret == ESP_OK) {
+            ESP_LOGI(TAG, "Changing mqtt port by the flash one...");
+            config->port = len;
+        }
+
+        nvs_close(my_handle);
+        return ESP_OK;
+    }
+    return ESP_FAIL;
+}
+
+
+esp_err_t   saveMqttConfig(MqttConfig_t *config)
+{
+    nvs_handle  my_handle;
+    esp_err_t   ret;
+
+    if (!config)
+        return ESP_FAIL;
+    ret = nvs_open(MQTT_STORAGE, NVS_READWRITE, &my_handle);
+    if (ret == ESP_OK) {
+        ret = nvs_set_str(my_handle, STORAGE_URL, (char *)config->url);
+        if (ret == ESP_OK) {
+            ESP_LOGI(TAG, "Changing mqtt url in flash...");
+        }
+
+        ret = nvs_set_i16(my_handle, STORAGE_PORT, config->port);
+        if (ret == ESP_OK) {
+            ESP_LOGI(TAG, "Changing mqtt port in flash...");
+        }
+
+        nvs_close(my_handle);
+        return ESP_OK;
+    }
+    return ESP_FAIL;
 }

@@ -1,6 +1,8 @@
 #ifndef WIFICLIENT_H_
 #define WIFICLIENT_H_
 
+#include "../../demo_conf.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -23,7 +25,6 @@
 #include "esp_log.h"
 
 #include "../ClientState.h"
-#include "../Constant.h"
 
 typedef struct WifiConfig_s {
     uint8_t	*ssid;

@@ -1,6 +1,8 @@
 #ifndef	LCD_H_
 #define	LCD_H_
 
+#include "../../demo_conf.h"
+
 #include <stdio.h>
 #include <string.h>
 #include "esp_log.h"
@@ -14,17 +16,6 @@
 #include "Sensors.h"
 #include "Log.h"
 #include "State.h"
-#include "../Constant.h"
-
-//LCD
-#define PIN_NUM_MISO (gpio_num_t)25
-#define PIN_NUM_MOSI (gpio_num_t)23
-#define PIN_NUM_CLK  (gpio_num_t)19
-#define PIN_NUM_CS   (gpio_num_t)22
-
-#define PIN_NUM_DC   (gpio_num_t)21
-#define PIN_NUM_RST  (gpio_num_t)18
-#define PIN_NUM_BCKL (gpio_num_t)5
 
 
 typedef enum	LcdPageIndex_e {

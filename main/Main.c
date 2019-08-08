@@ -36,13 +36,13 @@ static void initLedsGpio()
     gpio_conf.pin_bit_mask = RGB_MASK;
     gpio_conf.mode = GPIO_MODE_OUTPUT;
     gpio_config(&gpio_conf);
-    gpio_set_level(RGB_1_RED, 1);
-    gpio_set_level(RGB_1_GREEN, 1);
-    gpio_set_level(RGB_2_RED, 1);
-    gpio_set_level(RGB_2_GREEN, 1);
-    gpio_set_level(RGB_3_GREEN, 1);
-    gpio_set_level(RGB_3_RED, 1);
-    gpio_set_level(RGB_3_BLUE, 1);
+    gpio_set_level(RGB_1_RED, RGB_OFF);
+    gpio_set_level(RGB_1_GREEN, RGB_OFF);
+    gpio_set_level(RGB_2_RED, RGB_OFF);
+    gpio_set_level(RGB_2_GREEN, RGB_OFF);
+    gpio_set_level(RGB_3_GREEN, RGB_OFF);
+    gpio_set_level(RGB_3_RED, RGB_OFF);
+    gpio_set_level(RGB_3_BLUE, RGB_OFF);
 }
 
 static void btnHandler(uint32_t io_num, TypeClick type)
@@ -111,6 +111,8 @@ void	app_main()
 
     //Changing config by the saved one
     getSaveWifiConfig(&dataWifi);
+    getSaveMqttConfig(&dataMqtt);
+    //vTaskGetRunTimeStats()
 
     //Buttons
     setButtonCallback(&btnHandler);    
@@ -131,11 +133,12 @@ void	app_main()
     createAlert("Demonstrator is now running", INFO, true);
 
     //Lcd required functions
-    lv_init(); //Not working without launching both in main
+    //Not working without launching both in main
+    lv_init(); 
     disp_spi_init();
     while (1) {
         if (lcdGetSemaphore() == NULL || xSemaphoreTake(lcdGetSemaphore(), 10) == pdTRUE) {
-            lv_task_handler();
+            lv_task_handler(); //LittlevGL special task
             if (lcdGetSemaphore() != NULL)
                 xSemaphoreGive(lcdGetSemaphore());
         }

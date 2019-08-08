@@ -25,13 +25,13 @@ static void refreshState(ClientState_t state)
     {
         case CONNECTED:
             xEventGroupSetBits(_wifiEventGroup, CONNECTED_BIT);
-            gpio_set_level(RGB_1_RED, 1);
-            gpio_set_level(RGB_1_GREEN, 0);
+            gpio_set_level(RGB_1_RED, RGB_OFF);
+            gpio_set_level(RGB_1_GREEN, RGB_ON);
             break;
         case DISCONNECTED:
             xEventGroupClearBits(_wifiEventGroup, CONNECTED_BIT);
-            gpio_set_level(RGB_1_GREEN, 1);
-            gpio_set_level(RGB_1_RED, 0);
+            gpio_set_level(RGB_1_GREEN, RGB_OFF);
+            gpio_set_level(RGB_1_RED, RGB_ON);
             break;
 
         default:
@@ -143,7 +143,7 @@ static void    taskWifi(void *arg)
     system_event_t *event = NULL;
 
     ESP_LOGI(TAG, "Initiating the task...");
-    gpio_set_level(RGB_1_RED, 0);
+    gpio_set_level(RGB_1_RED, RGB_ON);
     ESP_ERROR_CHECK(arg == NULL);
     data = (WifiConfig_t *)arg;
     _config = data;
@@ -172,7 +172,7 @@ static void    taskWifi(void *arg)
     free(_config);
     _config = NULL;
     wifiTask = NULL;
-    gpio_set_level(RGB_1_RED, 1);
+    gpio_set_level(RGB_1_RED, RGB_OFF);
     vTaskDelete(NULL);
 }
 
@@ -260,7 +260,7 @@ esp_err_t   getSaveWifiConfig(WifiConfig_t *config)
     ret = nvs_open("wifi_config", NVS_READWRITE, &my_handle);
     if (ret == ESP_OK) {
         char    tmp[BUFF_SIZE];
-        size_t  len;
+        size_t  len = BUFF_SIZE;
 
         ret = nvs_get_str(my_handle, "ssid", tmp, &len);
         tmp[len] = 0;
@@ -270,6 +270,7 @@ esp_err_t   getSaveWifiConfig(WifiConfig_t *config)
             config->ssid = (uint8_t *)strdup(tmp);
         }
 
+        len = BUFF_SIZE;
         ret = nvs_get_str(my_handle, "password", tmp, &len);
         tmp[len] = 0;
         if (ret == ESP_OK) {

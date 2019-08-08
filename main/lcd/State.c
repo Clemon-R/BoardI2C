@@ -1,4 +1,5 @@
 #include "State.h"
+#include "../Main.h"
 
 static LcdState_t	data;
 
@@ -88,6 +89,12 @@ void	createStatesView(void *tab)
     data.lblColor = lv_label_create(parent, NULL);
     lv_label_set_text(data.lblColor, "Color "SYMBOL_CLOSE);
     lv_obj_align(data.lblColor, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2 + 25);
+
+    lv_obj_t    *version = lv_label_create(parent, NULL);
+    char    buff[6];
+    sprintf(buff, "V%s", getCurrentVersion());
+    lv_label_set_text(version, buff);
+    lv_obj_align(version, parent, LV_ALIGN_IN_BOTTOM_RIGHT, -2, 0);
 }
 
 LcdState_t	*getStateData()

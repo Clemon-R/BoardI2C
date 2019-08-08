@@ -154,7 +154,7 @@ static void	taskSensor(void *args)
     char	buffer[BUFF_SIZE];
 
     ESP_LOGI(TAG, "Initiating the task...");
-    gpio_set_level(RGB_3_RED, 0);
+    gpio_set_level(RGB_3_RED, RGB_ON);
     ESP_ERROR_CHECK(nordicI2CInit());
     ESP_ERROR_CHECK(setupAdc());
     while (_running) {
@@ -178,7 +178,7 @@ static void	taskSensor(void *args)
         else
             _values.initiated = true;
         _working = _values.initiated;
-        gpio_set_level(RGB_3_RED, 1);
+        gpio_set_level(RGB_3_RED, RGB_OFF);
         gpio_set_level(RGB_3_GREEN, !_values.initiated);
         gpio_set_level(RGB_3_BLUE, _values.initiated);
         if (xQueueIsQueueFullFromISR(_datas) == pdTRUE)
@@ -214,8 +214,8 @@ static void	taskSensor(void *args)
     nordicI2CDeinit();
     _config = NULL;
     _running = false;
-    gpio_set_level(RGB_3_RED, 0);
-    gpio_set_level(RGB_3_GREEN, 1);
+    gpio_set_level(RGB_3_RED, RGB_ON);
+    gpio_set_level(RGB_3_GREEN, RGB_OFF);
     vTaskDelete(sensorTask);
 }
 
@@ -225,6 +225,8 @@ esp_err_t	startSensorClient()
     if (_running)
         return ESP_FAIL;
     _datas = getQueueDatas();
+    if (!_datas)
+        return ESP_FAIL;
     _running = true;
     _working = false;
     return xTaskCreate(taskSensor, "sensorTask", 3072, NULL, tskIDLE_PRIORITY, &sensorTask);;

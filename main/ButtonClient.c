@@ -1,5 +1,6 @@
 #include "ButtonClient.h"
 #include "freertos/queue.h"
+#include "freertos/task.h"
 
 #define BTN_CLICKED 1
 
@@ -33,7 +34,7 @@ static esp_err_t	initButtonGpio()
         return ret;
 
     gpio_install_isr_service(0);
-    gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
+    gpio_evt_queue = xQueueCreate(STACK_QUEUE, sizeof(uint32_t));
     if (gpio_evt_queue == NULL)
         return ESP_FAIL;
     ret = gpio_isr_handler_add(BTN_LEFT, gpio_isr_handler, (void*) BTN_LEFT);
@@ -97,7 +98,7 @@ static void taskHandler(void* arg) //Tache de traitement des trigger
     while(_running && _callback) {
         uint32_t current;
 
-        if(xQueueReceive(gpio_evt_queue, &io_num, 200 / portTICK_PERIOD_MS) == pdTRUE) {
+        if(xQueueReceive(gpio_evt_queue, &io_num, 10) == pdTRUE) {
             TickType_t tick = xTaskGetTickCount();
             current = (tick - last_click)  * portTICK_PERIOD_MS;
             uint32_t state = gpio_get_level((gpio_num_t)io_num);

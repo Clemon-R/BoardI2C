@@ -1,10 +1,9 @@
 #ifndef BUTTONCLIENT_H_
 #define BUTTONCLIENT_H_
 
-#include "Main.h"
+#include "../demo_conf.h"
 
 #include "lcd/Lcd.h"
-#include "Constant.h"
 
 typedef enum TypeClick_e {
     Simple = 1,

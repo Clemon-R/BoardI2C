@@ -1,6 +1,8 @@
 #ifndef MQTTCLIENT_H_
 #define MQTTCLIENT_H_
 
+#include "../../demo_conf.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -14,7 +16,7 @@
 #include "esp_log.h"
 
 #include "../ClientState.h"
-#include "../Constant.h"
+
 
 typedef struct MqttConfig_s {
     uint8_t	*url;
@@ -39,5 +41,8 @@ QueueHandle_t	getQueueDatas();
 
 BaseType_t    createAlert(const char *description, const AlertType_t type, const char closed);
 BaseType_t    createStatus();
+
+esp_err_t   getSaveMqttConfig(MqttConfig_t *config);
+esp_err_t   saveMqttConfig(MqttConfig_t *config);
 
 #endif // !MQTTCLIENT_H_
