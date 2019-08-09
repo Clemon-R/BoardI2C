@@ -426,8 +426,13 @@ void    updateToNewFirmware(uint8_t value, const char *version, const char show)
     static lv_obj_t    *contentUpdate = NULL;
     static lv_obj_t    *pbUpdate = NULL;
     static lv_obj_t    *txtUpdate = NULL;
+    static const char  *oldVersion = NULL;
     static uint8_t      oldValue = 0;
     
+    if (version)
+        oldVersion = version;
+    if (!_running)
+        return;
     if (xSemaphoreTake(_semaphore, 10) != pdTRUE)
         return;
     if (show && !contentUpdate) {
@@ -445,7 +450,7 @@ void    updateToNewFirmware(uint8_t value, const char *version, const char show)
         txtUpdate = lv_label_create(pbUpdate, NULL);
         lv_obj_align(txtUpdate, pbUpdate, LV_ALIGN_CENTER, 0, 0);
         lv_label_set_text(txtUpdate, "0%");
-        if (version){
+        if (oldVersion){
             lv_obj_t    *txtFirmware = lv_label_create(contentUpdate, NULL);
             static lv_style_t   txtStyle;
             lv_style_copy(&txtStyle, lv_obj_get_style(txtFirmware));

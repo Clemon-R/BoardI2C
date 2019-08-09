@@ -1,11 +1,17 @@
 #ifndef DEMO_CONF_H_
 #define DEMO_CONF_H_
 
-#define	CURRENT_VERSION	"1.0"
+#define	CURRENT_VERSION	"1.1"
+
+#define DEFAULT_WIFI_SSID "Honor Raphael"
+#define DEFAULT_WIFI_PASSWORD "clemon69"
+
+#define DEFAULT_MQTT_URL "tcp://iot.eclipse.org"
+#define DEFAULT_MQTT_PORT 1883
 
 #ifdef BLESERVER_H_
 	#define	SERVICE_NUM 		3
-	#define SERVICE_WIFI   		0x00FF
+	#define SERVICE_WIFI   		0x00FF //Uuid
 	#define SERVICE_MQTT   		0x00FE
 	#define SERVICE_SENSORS   	0x00FD
 
@@ -56,7 +62,7 @@
 	#define DEFAULT_VREF    1100
 	#define NO_OF_SAMPLES   128
 	#define ADC_CHANNEL     ADC_CHANNEL_0
-	#define ADC_ATTEN       ADC_ATTEN_DB_0 
+	#define ADC_ATTEN       ADC_ATTEN_DB_0
 
 	#define BATTERIE_MAX_VOLTAGE 4200 //In mV
 	#define DOWNGRADE_VOLTAGE 4500 //In mV
@@ -65,7 +71,7 @@
 #endif
 
 #ifdef OTA_H_
-	#define OTA_BUF_SIZE 1024
+	#define OTA_BUF_SIZE 1024 //Bytes
 	#define BIN_URL	"http://testbin.alwaysdata.net/board-%s.bin" //%s needed and replaced by current version X.X
 #endif
 
@@ -89,11 +95,11 @@
 #define RGB_OFF	1
 
 #ifndef	STACK_QUEUE
-	#define STACK_QUEUE 10
+	#define STACK_QUEUE 10 //Pointer
 #endif
 
 #ifndef	BUFF_SIZE
-	#define	BUFF_SIZE 512
+	#define	BUFF_SIZE 512 //Bytes
 #endif
 
 #endif

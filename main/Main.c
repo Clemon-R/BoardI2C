@@ -72,7 +72,6 @@ static void btnHandler(uint32_t io_num, TypeClick type)
         break;
 
     case BTN_CLICK:
-        ESP_LOGI(TAG, "Click");
         break;    
     }
     if (type == VeryLong && lcdIsRunning()){
@@ -83,12 +82,12 @@ static void btnHandler(uint32_t io_num, TypeClick type)
 void	app_main()
 {
     WifiConfig_t	dataWifi = {
-        .ssid = (uint8_t *)strdup("Honor Raphael"), //If changed
-        .password = (uint8_t *)strdup("clemon69")
+        .ssid = (uint8_t *)strdup(DEFAULT_WIFI_SSID), //If changed
+        .password = (uint8_t *)strdup(DEFAULT_WIFI_PASSWORD)
     };
     MqttConfig_t	dataMqtt = {
-        .url = (uint8_t *)strdup("tcp://iot.eclipse.org"),
-        .port = 1883
+        .url = (uint8_t *)strdup(DEFAULT_MQTT_URL),
+        .port = DEFAULT_MQTT_PORT
     };
     BleServerConfig_t   bleConfig = {
         .wifiConfig = &dataWifi,
