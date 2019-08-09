@@ -24,6 +24,13 @@ static char _restart = false;
 static const int WIFI_CONNECTED_BIT = BIT0;
 static const int CONNECTED_BIT = BIT0;
 
+static const uint8_t    CHANNEL_NUM = 2;
+static const char   *CHANNELS[] = {
+    "/demo/rtone/esp32/commands",
+    "/demo/rtone/esp32/datas"
+};
+static uint8_t    _channels = 0;
+
 //Managing the state of the mqtt
 static void refreshState(ClientState_t state)
 {
@@ -71,9 +78,16 @@ static void mqttClientHandler(esp_mqtt_event_handle_t event)
         refreshState(CONNECTED);
 
         ESP_LOGI(TAG, "Subscribing to all the required channels...");
-        //Too much channels on the server test mqtt, come with crashs
-        esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/commands", 0); //Receiver
-        esp_mqtt_client_subscribe(client, "/demo/rtone/esp32/datas", 0); //Sender
+        _channels = 0;
+        ESP_LOGI(TAG, "Subscribing to %s", CHANNELS[_channels]);
+        esp_mqtt_client_subscribe(client, CHANNELS[_channels], 0);
+        break;
+    case MQTT_EVENT_SUBSCRIBED: //One by one to prevent crash
+        _channels++;
+        if (_channels< CHANNEL_NUM) {
+            ESP_LOGI(TAG, "Subscribing to %s", CHANNELS[_channels]);
+            esp_mqtt_client_subscribe(client, CHANNELS[_channels], 0);
+        }
         break;
     case MQTT_EVENT_DISCONNECTED:
         if (_state == CONNECTED){
@@ -185,7 +199,7 @@ static void	taskMqtt(void *arg)
             }
             _restart = false;
         } else if (_state == CONNECTED) {
-            if (xQueueReceive(_datas, (void *)&monitor, 10) == pdTRUE && 
+            if (_channels >= 2 && xQueueReceive(_datas, (void *)&monitor, 10) == pdTRUE && 
                 monitor) {
                 buff = cJSON_Print(monitor);
 

@@ -62,7 +62,7 @@ static void	taskCommandHandler(void *args)
             param = cJSON_GetObjectItem(command->data, "version");
             if (param && cJSON_IsString(param)){
                 char *tmp = cJSON_GetStringValue(param);
-                if (tmp && strcmp(getCurrentVersion(), tmp) != 0){
+                if (tmp && strcmp(CURRENT_VERSION, tmp) != 0){
                     launchUpdate(tmp);
                 }
             }

@@ -1,6 +1,8 @@
 #ifndef DEMO_CONF_H_
 #define DEMO_CONF_H_
 
+#define	CURRENT_VERSION	"1.0"
+
 #ifdef BLESERVER_H_
 	#define	SERVICE_NUM 		3
 	#define SERVICE_WIFI   		0x00FF

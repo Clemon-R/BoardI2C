@@ -33,12 +33,12 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
         case HTTP_EVENT_ON_DATA:
             ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             if (_binLen > 0){
-                updateProgress((_binWritten * 2 + evt->data_len) / 2 * 100 / _binLen, true);
+                updateToNewFirmware((_binWritten * 2 + evt->data_len) / 2 * 100 / _binLen, NULL, true);
             }
             break;
         case HTTP_EVENT_ON_FINISH:
             ESP_LOGD(TAG, "HTTP_EVENT_ON_FINISH");
-            updateProgress(50, true);
+            updateToNewFirmware(50, NULL, true);
             break;
         case HTTP_EVENT_DISCONNECTED:
             ESP_LOGD(TAG, "HTTP_EVENT_DISCONNECTED");
@@ -54,7 +54,7 @@ static void http_cleanup(esp_http_client_handle_t client)
 }
 
 //Steps of updating
-static esp_err_t	launchOta(const esp_http_client_config_t *config)
+static esp_err_t	launchOta(const esp_http_client_config_t *config, const char *targetVersion)
 {
     if (!config) {
         ESP_LOGE(TAG, "esp_http_client config not found");
@@ -88,7 +88,7 @@ static esp_err_t	launchOta(const esp_http_client_config_t *config)
     esp_ota_handle_t update_handle = 0;
     const esp_partition_t *update_partition = NULL;
     ESP_LOGI(TAG, "Starting OTA...");
-    updateProgress(0, true);
+    updateToNewFirmware(0, targetVersion, true); //Popup
     update_partition = esp_ota_get_next_update_partition(NULL);
     if (update_partition == NULL) {
         ESP_LOGE(TAG, "Passive OTA partition not found");
@@ -129,7 +129,7 @@ static esp_err_t	launchOta(const esp_http_client_config_t *config)
                 break;
             }
             _binWritten += data_read;
-            updateProgress(_binWritten * 100 / _binLen, true);
+            updateToNewFirmware(_binWritten * 100 / _binLen, NULL, true);
             ESP_LOGD(TAG, "Written image length %d", _binWritten);
         }
     }
@@ -171,12 +171,15 @@ static void	taskOta(void * pvParameter)
         sprintf(buff, BIN_URL, version);
         config.url = buff;
         ESP_LOGI(TAG, "Starting OTA ...");
-        esp_err_t ret = launchOta(&config);
+        esp_err_t ret = launchOta(&config, version);
         if (ret == ESP_OK) {
+            stopLcd();
+            while (lcdIsWorking())
+                vTaskDelay(pdMS_TO_TICKS(100));
             esp_restart();
         } else {
             ESP_LOGE(TAG, "Firmware Upgrades Failed");
-            updateProgress(0, false);
+            updateToNewFirmware(0, NULL, false);
         }
         free(version);
     }

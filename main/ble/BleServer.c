@@ -436,8 +436,6 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
 
                 case MQTT_CHAR_ACTION:
                 ESP_LOGI(TAG, "Restart mqtt");
-                launchUpdate("1.0");
-                break;
                 if (mqttIsRunning()) {
                     restartMqttClient(_config->mqttConfig);
                 } else {

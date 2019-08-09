@@ -15,6 +15,4 @@ typedef struct main_data_s {
     pressure_temp_sensor_t	pressureData;
 }				main_data_t;
 
-const char  *getCurrentVersion();
-
 #endif // !APPMAIN_H_

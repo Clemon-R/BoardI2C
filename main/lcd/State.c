@@ -92,7 +92,7 @@ void	createStatesView(void *tab)
 
     lv_obj_t    *version = lv_label_create(parent, NULL);
     char    buff[6];
-    sprintf(buff, "V%s", getCurrentVersion());
+    sprintf(buff, "V%s", CURRENT_VERSION);
     lv_label_set_text(version, buff);
     lv_obj_align(version, parent, LV_ALIGN_IN_BOTTOM_RIGHT, -2, 0);
 }

@@ -40,6 +40,6 @@ char	lcdIsRunning();
 char	lcdIsWorking();
 
 SemaphoreHandle_t	lcdGetSemaphore();
-void    updateProgress(uint8_t value, const char show);
+void    updateToNewFirmware(uint8_t value, const char *version, const char show);
 
 #endif

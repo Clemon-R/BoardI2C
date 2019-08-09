@@ -127,7 +127,11 @@ static void	setupUI()
     if (_first){
         if (xSemaphoreTake(_semaphore, 10) != pdTRUE)
             return;
+        #if USE_LV_THEME_DEFAULT == 1
+        lv_theme_t	*th = lv_theme_default_init(0, NULL);
+        #else
         lv_theme_t	*th = lv_theme_material_init(0, NULL);
+        #endif
         lv_theme_set_current(th);
 
         lv_obj_t * tv = lv_tabview_create(lv_scr_act(), NULL);                               /*Create a slider*/
@@ -161,7 +165,7 @@ static void refreshSensors(SensorValues_t *values)
     {
         case ALL:
         if (values->temperature != -1) {
-            if (sensorsData->temperature->value && sensorsData->temperature->decimale && xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+            if (sensorsData->temperature->value && sensorsData->temperature->decimale && xSemaphoreTake(_semaphore, 10) == pdTRUE) {
                 sprintf(_buffer, "%d", (int)values->temperature);
                 lv_label_set_text(sensorsData->temperature->value, _buffer);
                 sprintf(_buffer, ",%d°C", (int)(values->temperature * 100) % 100);
@@ -170,7 +174,7 @@ static void refreshSensors(SensorValues_t *values)
             }
         }
         if (values->humidity != -1) {
-            if (sensorsData->humidity->value && sensorsData->humidity->decimale && xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+            if (sensorsData->humidity->value && sensorsData->humidity->decimale && xSemaphoreTake(_semaphore, 10) == pdTRUE) {
                 sprintf(_buffer, "%d", (int)values->humidity);
                 lv_label_set_text(sensorsData->humidity->value, _buffer);
                 sprintf(_buffer, ",%d%c", (int)(values->humidity * 100) % 100, '%');
@@ -179,7 +183,7 @@ static void refreshSensors(SensorValues_t *values)
             }
         }
         if (values->pressure != -1) {
-            if (sensorsData->pressure->value && sensorsData->pressure->decimale && xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+            if (sensorsData->pressure->value && sensorsData->pressure->decimale && xSemaphoreTake(_semaphore, 10) == pdTRUE) {
                 sprintf(_buffer, "%d", (int)values->pressure);
                 lv_label_set_text(sensorsData->pressure->value, _buffer);
                 sprintf(_buffer, ",%dhPa", (int)(values->pressure * 100) % 100);
@@ -191,7 +195,7 @@ static void refreshSensors(SensorValues_t *values)
         uint32_t	total = values->color.r + values->color.g + values->color.b;
         uint32_t	last = 270, tmp = 0;
         if (values->color.available) {
-            if (xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+            if (xSemaphoreTake(_semaphore, 10) == pdTRUE) {
                 if (sensorsData->red) {
                     lv_arc_set_angles(sensorsData->red, (tmp = last - (90 * (values->color.r / (float)total))), last);
                     last = tmp;
@@ -218,7 +222,7 @@ static void refreshSensors(SensorValues_t *values)
             sensorsData->meterTemperature && 
             sensorsData->chartSerTemperature && 
             sensorsData->chartTemperature && 
-            xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+            xSemaphoreTake(_semaphore, 10) == pdTRUE) {
             lv_gauge_set_value(sensorsData->meterTemperature, 0, (int)values->temperature);
             sprintf(_buffer, "%d,%d°C", (int)values->temperature, (int)(values->temperature * 100) % 100);
             lv_label_set_text(sensorsData->meterLblTemperature, _buffer);
@@ -237,7 +241,7 @@ static void refreshSensors(SensorValues_t *values)
             sensorsData->meterHumidity && 
             sensorsData->chartSerHumidity && 
             sensorsData->chartHumidity && 
-            xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+            xSemaphoreTake(_semaphore, 10) == pdTRUE) {
                 lv_gauge_set_value(sensorsData->meterHumidity, 0, (int)values->humidity);
                 sprintf(_buffer, "%d,%d%c", (int)values->humidity, (int)(values->humidity * 100) % 100, '%');
                 lv_label_set_text(sensorsData->meterLblHumidity, _buffer);
@@ -256,7 +260,7 @@ static void refreshSensors(SensorValues_t *values)
             if (sensorsData->meterLblPressure && 
             sensorsData->chartSerPressure && 
             sensorsData->chartPressure && 
-            xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+            xSemaphoreTake(_semaphore, 10) == pdTRUE) {
                 sprintf(_buffer, "%d,%dhPa", (int)values->pressure, (int)(values->pressure * 100) % 100);
                 lv_label_set_text(sensorsData->meterLblPressure, _buffer);
                 for (int i = 0;i < 29;i++){
@@ -276,7 +280,7 @@ static void refreshSensors(SensorValues_t *values)
 
 static void refreshState(SensorValues_t *values)
 {
-    if (xSemaphoreTake(_semaphore, 0) == pdTRUE) {
+    if (xSemaphoreTake(_semaphore, 10) == pdTRUE) {
         ESP_LOGI(TAG, "temperature: %f, humidity: %f, pressure: %f, color: %d, state: %d", values->temperature, values->humidity, values->pressure, values->color.available, values->initiated);
         if (values->temperature != -1)
             lv_label_set_text(stateData->lblTemperature, "Temperature "SYMBOL_OK);
@@ -330,11 +334,11 @@ static void taskLcd(void *args)
     setupUI();
     while(_running) {
         _working = true;
-        if (lv_tabview_get_tab_act(_tv) != _index) {
-            if (_tv != NULL && xSemaphoreTake(_semaphore, pdMS_TO_TICKS(100)) == pdTRUE) {
-                lv_tabview_set_tab_act(_tv, _index, true);
-                xSemaphoreGive(_semaphore);
+        if (_tv != NULL && xSemaphoreTake(_semaphore, 10) == pdTRUE) {
+            if (lv_tabview_get_tab_act(_tv) != _index) {
+                    lv_tabview_set_tab_act(_tv, _index, true);
             }
+            xSemaphoreGive(_semaphore);
         }
         values = getSensorValues();
         if (!values.initiated && _index == 0)
@@ -417,13 +421,15 @@ SemaphoreHandle_t	lcdGetSemaphore()
     return _semaphore;
 }
 
-void    updateProgress(uint8_t value, const char show)
+void    updateToNewFirmware(uint8_t value, const char *version, const char show)
 {
     static lv_obj_t    *contentUpdate = NULL;
     static lv_obj_t    *pbUpdate = NULL;
     static lv_obj_t    *txtUpdate = NULL;
     static uint8_t      oldValue = 0;
     
+    if (xSemaphoreTake(_semaphore, 10) != pdTRUE)
+        return;
     if (show && !contentUpdate) {
         contentUpdate = lv_cont_create(lv_scr_act(), NULL);
         lv_obj_align(contentUpdate, lv_scr_act(), LV_ALIGN_CENTER, 0, 0);
@@ -439,11 +445,22 @@ void    updateProgress(uint8_t value, const char show)
         txtUpdate = lv_label_create(pbUpdate, NULL);
         lv_obj_align(txtUpdate, pbUpdate, LV_ALIGN_CENTER, 0, 0);
         lv_label_set_text(txtUpdate, "0%");
+        if (version){
+            lv_obj_t    *txtFirmware = lv_label_create(contentUpdate, NULL);
+            static lv_style_t   txtStyle;
+            lv_style_copy(&txtStyle, lv_obj_get_style(txtFirmware));
+            txtStyle.text.font = &lv_font_dejavu_10;
+            lv_obj_align(txtUpdating, contentUpdate, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
+            lv_obj_set_style(txtFirmware, &txtStyle);
+            sprintf(_buffer, "%s -> %s", CURRENT_VERSION, version);
+            lv_label_set_text(txtFirmware, _buffer);
+        }
         oldValue = 0;
     } else if (!show && contentUpdate) {
         lv_obj_del(contentUpdate);
         contentUpdate = NULL;
         pbUpdate = NULL;
+        txtUpdate = NULL;
     }
     if (pbUpdate && oldValue != value) {
         lv_bar_set_value(pbUpdate, value);
@@ -451,4 +468,5 @@ void    updateProgress(uint8_t value, const char show)
         lv_label_set_text(txtUpdate, _buffer);
         oldValue = value;
     }
+    xSemaphoreGive(_semaphore);
 }

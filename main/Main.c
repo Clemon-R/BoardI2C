@@ -21,12 +21,6 @@
 #include "ble/BleServer.h"
 
 static const char	TAG[] = "\033[1;39;100mMain\033[0m";
-static const char   _currentVersion[] = "1.0";
-
-const char  *getCurrentVersion()
-{
-    return _currentVersion;
-}
 
 static void initLedsGpio()
 {
@@ -109,7 +103,6 @@ void	app_main()
     }
     ESP_ERROR_CHECK(ret);
     srand(time(NULL));
-    ili9341_deinit(); //Case of update and the screen still on
 
     //Changing config by the saved one
     getSaveWifiConfig(&dataWifi);
@@ -132,7 +125,7 @@ void	app_main()
     
     //Manager/Tools
     startBleServer(&bleConfig);
-    createAlert("Demonstrator is now running", INFO, true);
+    createStatus();
 
     //Lcd required functions
     //Not working without launching both in main
