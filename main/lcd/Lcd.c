@@ -147,6 +147,7 @@ static void	setupUI()
         createLogsView(tab2);
         createStatesView(tab3);
 
+
         _tv = tv;
         _first = false;
         xSemaphoreGive(_semaphore);
@@ -414,4 +415,40 @@ char	lcdIsWorking()
 SemaphoreHandle_t	lcdGetSemaphore()
 {
     return _semaphore;
+}
+
+void    updateProgress(uint8_t value, const char show)
+{
+    static lv_obj_t    *contentUpdate = NULL;
+    static lv_obj_t    *pbUpdate = NULL;
+    static lv_obj_t    *txtUpdate = NULL;
+    static uint8_t      oldValue = 0;
+    
+    if (show && !contentUpdate) {
+        contentUpdate = lv_cont_create(lv_scr_act(), NULL);
+        lv_obj_align(contentUpdate, lv_scr_act(), LV_ALIGN_CENTER, 0, 0);
+        lv_cont_set_fit(contentUpdate, true, true);
+        lv_cont_set_layout(contentUpdate, LV_LAYOUT_CENTER);
+        lv_obj_t    *txtUpdating = lv_label_create(contentUpdate, NULL);
+        lv_obj_align(txtUpdating, contentUpdate, LV_ALIGN_IN_TOP_MID, 0, 0);
+        lv_label_set_text(txtUpdating, "Updating firmware...");
+        pbUpdate = lv_bar_create(contentUpdate, NULL);
+        lv_obj_align(pbUpdate, contentUpdate, LV_ALIGN_IN_TOP_MID, 0, 0);
+        lv_bar_set_range(pbUpdate, 0, 100);
+        lv_bar_set_value(pbUpdate, 0);
+        txtUpdate = lv_label_create(pbUpdate, NULL);
+        lv_obj_align(txtUpdate, pbUpdate, LV_ALIGN_CENTER, 0, 0);
+        lv_label_set_text(txtUpdate, "0%");
+        oldValue = 0;
+    } else if (!show && contentUpdate) {
+        lv_obj_del(contentUpdate);
+        contentUpdate = NULL;
+        pbUpdate = NULL;
+    }
+    if (pbUpdate && oldValue != value) {
+        lv_bar_set_value(pbUpdate, value);
+        sprintf(_buffer, "%d%c", value, '%');
+        lv_label_set_text(txtUpdate, _buffer);
+        oldValue = value;
+    }
 }

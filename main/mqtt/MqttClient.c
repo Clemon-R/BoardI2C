@@ -172,7 +172,7 @@ static void	taskMqtt(void *arg)
         if (xQueueReceive(_handler, &event, 10) == pdTRUE)
             mqttClientHandler(event);
         if (_restart || _state != CONNECTED) {
-            if (_state <= DEINITIATIED && (xEventGroupWaitBits(_wifiEventGroup, WIFI_CONNECTED_BIT, false, true, 10) & WIFI_CONNECTED_BIT) == WIFI_CONNECTED_BIT) {
+            if (_state <= DEINITIATIED && (xEventGroupWaitBits(_wifiEventGroup, WIFI_CONNECTED_BIT, false, true, portMAX_DELAY) & WIFI_CONNECTED_BIT) == WIFI_CONNECTED_BIT) {
                 refreshState(INITIATING);
                 ESP_ERROR_CHECK((client = initMqttClient(_config->url, _config->port)) == NULL);
                 ESP_ERROR_CHECK(startMqtt(client));

@@ -16,6 +16,7 @@
 #include "ButtonClient.h"
 #include "../../lvgl/lvgl.h"
 #include "esp_freertos_hooks.h"
+#include <esp_ota_ops.h>
 
 #include "ble/BleServer.h"
 
@@ -108,6 +109,7 @@ void	app_main()
     }
     ESP_ERROR_CHECK(ret);
     srand(time(NULL));
+    ili9341_deinit(); //Case of update and the screen still on
 
     //Changing config by the saved one
     getSaveWifiConfig(&dataWifi);
@@ -137,7 +139,7 @@ void	app_main()
     lv_init(); 
     disp_spi_init();
     while (1) {
-        if (lcdGetSemaphore() == NULL || xSemaphoreTake(lcdGetSemaphore(), 10) == pdTRUE) {
+        if (lcdGetSemaphore() == NULL || xSemaphoreTake(lcdGetSemaphore(), 15) == pdTRUE) {
             lv_task_handler(); //LittlevGL special task
             if (lcdGetSemaphore() != NULL)
                 xSemaphoreGive(lcdGetSemaphore());

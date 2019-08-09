@@ -2,10 +2,13 @@
 #include "freertos/task.h"
 #include "WifiClient.h"
 #include "../Main.h"
+#include "../lcd/Lcd.h"
 
 static const char *TAG = "Ota";
 
 static char	_running = false;
+static uint32_t   _binLen = 0;
+static uint32_t   _binWritten = 0;
 
 //Http handler
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
@@ -21,13 +24,21 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
             ESP_LOGD(TAG, "HTTP_EVENT_HEADER_SENT");
             break;
         case HTTP_EVENT_ON_HEADER:
-            ESP_LOGD(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
+            ESP_LOGD(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s, diff=%d", evt->header_key, evt->header_value, strcmp(evt->header_key, "Content-Length"));
+            if (strcmp(evt->header_key, "Content-Length") == 0){
+                ESP_LOGI(TAG, "Size saved");
+                _binLen = atoi(evt->header_value);
+            }
             break;
         case HTTP_EVENT_ON_DATA:
             ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
+            if (_binLen > 0){
+                updateProgress((_binWritten * 2 + evt->data_len) / 2 * 100 / _binLen, true);
+            }
             break;
         case HTTP_EVENT_ON_FINISH:
             ESP_LOGD(TAG, "HTTP_EVENT_ON_FINISH");
+            updateProgress(50, true);
             break;
         case HTTP_EVENT_DISCONNECTED:
             ESP_LOGD(TAG, "HTTP_EVENT_DISCONNECTED");
@@ -77,6 +88,7 @@ static esp_err_t	launchOta(const esp_http_client_config_t *config)
     esp_ota_handle_t update_handle = 0;
     const esp_partition_t *update_partition = NULL;
     ESP_LOGI(TAG, "Starting OTA...");
+    updateProgress(0, true);
     update_partition = esp_ota_get_next_update_partition(NULL);
     if (update_partition == NULL) {
         ESP_LOGE(TAG, "Passive OTA partition not found");
@@ -101,7 +113,6 @@ static esp_err_t	launchOta(const esp_http_client_config_t *config)
         ESP_LOGE(TAG, "Couldn't allocate memory to upgrade data buffer");
         return ESP_ERR_NO_MEM;
     }
-    int binary_file_len = 0;
     while (1) {
         int data_read = esp_http_client_read(client, upgrade_data_buf, OTA_BUF_SIZE);
         if (data_read == 0) {
@@ -117,13 +128,14 @@ static esp_err_t	launchOta(const esp_http_client_config_t *config)
             if (ota_write_err != ESP_OK) {
                 break;
             }
-            binary_file_len += data_read;
-            ESP_LOGD(TAG, "Written image length %d", binary_file_len);
+            _binWritten += data_read;
+            updateProgress(_binWritten * 100 / _binLen, true);
+            ESP_LOGD(TAG, "Written image length %d", _binWritten);
         }
     }
     free(upgrade_data_buf);
     http_cleanup(client); 
-    ESP_LOGD(TAG, "Total binary data length writen: %d", binary_file_len);
+    ESP_LOGI(TAG, "Total binary data length writen: %d", _binWritten);
     
     esp_err_t ota_end_err = esp_ota_end(update_handle);
     if (ota_write_err != ESP_OK) {
@@ -155,19 +167,16 @@ static void	taskOta(void * pvParameter)
         .event_handler = _http_event_handler,
     };
 
-    if (version){
+    if (version && isWifiConnected()){
         sprintf(buff, BIN_URL, version);
         config.url = buff;
         ESP_LOGI(TAG, "Starting OTA ...");
-        if (!isWifiConnected()){
-            ESP_LOGE(TAG, "Wifi not connected");
-            return;
-        }
         esp_err_t ret = launchOta(&config);
         if (ret == ESP_OK) {
             esp_restart();
         } else {
             ESP_LOGE(TAG, "Firmware Upgrades Failed");
+            updateProgress(0, false);
         }
         free(version);
     }

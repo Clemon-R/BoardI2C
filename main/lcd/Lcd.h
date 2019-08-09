@@ -40,5 +40,6 @@ char	lcdIsRunning();
 char	lcdIsWorking();
 
 SemaphoreHandle_t	lcdGetSemaphore();
+void    updateProgress(uint8_t value, const char show);
 
 #endif

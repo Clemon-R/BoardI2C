@@ -139,6 +139,7 @@ void ili9341_init(void)
     ///Enable backlight
     ESP_LOGI(TAG, "Enable backlight");
     gpio_set_level(ILI9341_BCKL, 0);
+    vTaskDelay(pdMS_TO_TICKS(500));
 }
 
 void ili9341_deinit(void)

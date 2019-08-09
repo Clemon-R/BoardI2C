@@ -63,7 +63,7 @@
 #endif
 
 #ifdef OTA_H_
-	#define OTA_BUF_SIZE 256
+	#define OTA_BUF_SIZE 1024
 	#define BIN_URL	"http://testbin.alwaysdata.net/board-%s.bin" //%s needed and replaced by current version X.X
 #endif
 
