@@ -39,16 +39,11 @@ static char	_buffer[BUFF_SIZE];
 
 static int	customVPrintF(const char *str, va_list arg)
 {
-    static char	**logs = NULL;
-    static char	**next = NULL;
+    static char	*logs[15];
+    static char	**next = logs;
     static uint8_t	index = 0;
     lv_obj_t    *log = getLogTa();
 
-    if (!logs) {
-        logs = (char **)malloc(sizeof(char *) * 15);
-        memset(logs, 0, sizeof(char *) * 15);
-        next = logs;
-    }
     if (log) {
         vsprintf(_buffer, str, arg);
         if (!*next) {

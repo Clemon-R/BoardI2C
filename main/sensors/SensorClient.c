@@ -159,6 +159,7 @@ static void	taskSensor(void *args)
     ESP_ERROR_CHECK(setupAdc());
     while (_running) {
         vTaskDelay(_refreshDelai);
+        heap_caps_print_heap_info(MALLOC_CAP_8BIT);
         _values.battery = getBatteryPercentage();
         if (!_values.initiated) {
             if (setupAllSensors(&data) != ESP_OK) {

@@ -109,8 +109,7 @@ void	app_main()
     //vTaskGetRunTimeStats()
 
     //Buttons
-    setButtonCallback(&btnHandler);    
-    startButtonClient();
+    setButtonCallback(&btnHandler);   
 
     //Leds
     initLedsGpio();
@@ -129,7 +128,8 @@ void	app_main()
     //Lcd required functions
     //Not working without launching both in main
     lv_init(); 
-    disp_spi_init();
+    disp_spi_init(); 
+    startButtonClient(); //Starting button here to avoid crash when starting LCD
     while (1) {
         if (lcdGetSemaphore() == NULL || xSemaphoreTake(lcdGetSemaphore(), 15) == pdTRUE) {
             lv_task_handler(); //LittlevGL special task
