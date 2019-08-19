@@ -381,7 +381,7 @@ SensorsPage_t getSensorsCurrentPage()
 
 void    nextSensorsPage()
 {
-    if (xSemaphoreTake(lcdGetSemaphore(), pdMS_TO_TICKS(100)) == pdTRUE) {
+    if (data.navMenu && data.oldBtn && xSemaphoreTake(lcdGetSemaphore(), pdMS_TO_TICKS(100)) == pdTRUE) {
         lv_obj_t *btn = lv_list_get_prev_btn(data.navMenu, data.oldBtn);
         
         clickOnBtn(btn);
@@ -391,7 +391,7 @@ void    nextSensorsPage()
 
 void    previousSensorsPage()
 {
-    if (xSemaphoreTake(lcdGetSemaphore(), pdMS_TO_TICKS(100)) == pdTRUE) {
+    if (data.navMenu && data.oldBtn && xSemaphoreTake(lcdGetSemaphore(), pdMS_TO_TICKS(100)) == pdTRUE) {
         lv_obj_t *btn = lv_list_get_next_btn(data.navMenu, data.oldBtn);
         
         clickOnBtn(btn);

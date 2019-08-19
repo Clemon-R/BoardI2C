@@ -130,14 +130,6 @@ static esp_err_t    setupAdc()
 {
     esp_err_t   ret;
 
-     if ((ret = esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP)) != ESP_OK) {
-        ESP_LOGE(TAG, "eFuse Two Point: NOT supported");
-        return ret;
-    }
-    if ((ret = esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_VREF)) != ESP_OK) {
-        ESP_LOGE(TAG, "eFuse Vref: NOT supported");
-        return ret;
-    }
     ret = adc1_config_width(ADC_WIDTH_BIT_12);
     if (ret != ESP_OK)
         return ret;
@@ -159,12 +151,14 @@ static void	taskSensor(void *args)
     ESP_ERROR_CHECK(setupAdc());
     while (_running) {
         vTaskDelay(_refreshDelai);
-        heap_caps_print_heap_info(MALLOC_CAP_8BIT);
         _values.battery = getBatteryPercentage();
         if (!_values.initiated) {
             if (setupAllSensors(&data) != ESP_OK) {
                 _config = NULL;
                 ESP_LOGE(TAG, "Impossible to notify and callibrate sensors");
+                gpio_set_level(RGB_3_RED, RGB_OFF);
+                gpio_set_level(RGB_3_GREEN, !_values.initiated);
+                gpio_set_level(RGB_3_BLUE, _values.initiated);
                 continue;
             } else {
                 _config = &data;

@@ -44,30 +44,28 @@ static int	customVPrintF(const char *str, va_list arg)
     static uint8_t	index = 0;
     lv_obj_t    *log = getLogTa();
 
-    if (log) {
-        vsprintf(_buffer, str, arg);
-        if (!*next) {
-            *next = strdup(_buffer);
-            if (index < 13) {
-                index++;
-                next = logs + index;
-            }
-        } else {
-            for (int i = 0; i < index; i++) {
-                if (i == 0) {
-                    free(logs[i]);
-                }
-                logs[i] = logs[i + 1];
-            }
-            *next = strdup(_buffer);
+    vsprintf(_buffer, str, arg);
+    if (!*next) {
+        *next = strdup(_buffer);
+        if (index < 13) {
+            index++;
+            next = logs + index;
         }
-        if (xSemaphoreTake(_semaphore, pdMS_TO_TICKS(1000)) == pdTRUE) {
-            lv_ta_set_text(log, "");
-            for (int i = 0; logs && logs[i]; i++) {
-                lv_ta_add_text(log, logs[i]);
+    } else {
+        for (int i = 0; i < index; i++) {
+            if (i == 0) {
+                free(logs[i]);
             }
-            xSemaphoreGive(_semaphore);
+            logs[i] = logs[i + 1];
         }
+        *next = strdup(_buffer);
+    }
+    if (log && xSemaphoreTake(_semaphore, pdMS_TO_TICKS(1000)) == pdTRUE) {
+        lv_ta_set_text(log, "");
+        for (int i = 0; logs[i]; i++) {
+            lv_ta_add_text(log, logs[i]);
+        }
+        xSemaphoreGive(_semaphore);
     }
     return vprintf(str, arg);
 }
