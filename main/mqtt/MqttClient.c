@@ -13,6 +13,7 @@ static TaskHandle_t	mqttTask = NULL;
 
 static EventGroupHandle_t   _wifiEventGroup = NULL;
 static EventGroupHandle_t   _mqttEventGroup = NULL;
+static QueueHandle_t	_events = NULL;
 static QueueHandle_t	_datas = NULL;
 static QueueHandle_t    _handler = NULL;
 
@@ -182,7 +183,7 @@ static void	taskMqtt(void *arg)
 {
     esp_mqtt_client_handle_t client = NULL;
     esp_mqtt_event_handle_t event = NULL;
-    char    *buff = NULL;
+    char    *buff = NULL, topic[BUFF_SIZE];
     cJSON	*monitor = NULL;
     uint8_t *chipid = getMacAddress();
 
@@ -209,13 +210,25 @@ static void	taskMqtt(void *arg)
             }
             _restart = false;
         } else if (_state == CONNECTED) {
-            if (_channels >= 2 && xQueueReceive(_datas, (void *)&monitor, 10) == pdTRUE && 
+            if (_channels >= 1 && xQueueReceive(_datas, (void *)&monitor, 10) == pdTRUE && 
                 monitor) {
                 buff = cJSON_Print(monitor);
-
                 if (buff) {
-                    sprintf(_buffer, CHANNELS[0], chipid[0], chipid[1], chipid[2], chipid[3], chipid[4], chipid[5]);
-                    esp_mqtt_client_publish(client, _buffer, buff, strlen(buff), 0, 0);
+                    sprintf(topic, CHANNELS[0], chipid[0], chipid[1], chipid[2], chipid[3], chipid[4], chipid[5]);
+                    ESP_LOGI(TAG, "Date(%s) send:\n%s", topic, buff);
+                    esp_mqtt_client_publish(client, topic, buff, strlen(buff), 0, 0);
+                }
+                cJSON_Delete(monitor);
+                free(buff);
+                monitor = NULL;
+            }
+            if (_channels >= 2 && xQueueReceive(_events, (void *)&monitor, 10) == pdTRUE && 
+                monitor) {
+                buff = cJSON_Print(monitor);
+                if (buff) {
+                    sprintf(topic, CHANNELS[1], chipid[0], chipid[1], chipid[2], chipid[3], chipid[4], chipid[5]);
+                    ESP_LOGI(TAG, "Date(%s) send:\n%s", topic, buff);
+                    esp_mqtt_client_publish(client, topic, buff, strlen(buff), 0, 0);
                 }
                 cJSON_Delete(monitor);
                 free(buff);
@@ -272,9 +285,11 @@ esp_err_t	startMqttClient(MqttConfig_t *config)
         _wifiEventGroup = getWifiEventGroup();
     if (!_datas)
         _datas = xQueueCreate(STACK_QUEUE, sizeof(cJSON *));
+    if (!_events)
+        _events = xQueueCreate(STACK_QUEUE, sizeof(cJSON *));
     if (!_handler)
         _handler = xQueueCreate(STACK_QUEUE, sizeof(esp_mqtt_event_handle_t));
-    if (!_wifiEventGroup || !_mqttEventGroup || !_datas || !_handler) {
+    if (!_wifiEventGroup || !_mqttEventGroup || !_datas || !_events || !_handler) {
         ESP_LOGE(TAG, "Missing some parameters");
         return ESP_FAIL;
     }
@@ -323,7 +338,7 @@ BaseType_t    createAlert(const char *code, const char *description, const Alert
     cJSON_AddStringToObject(json, "level", getStringOfEnum(type));
     cJSON_AddStringToObject(json, "description", description);
     cJSON_AddItemToObject(json, "closed", jClosed);
-    return xQueueSend(_datas, &json, 10);
+    return xQueueSend(_events, &json, 10);
 }
 
 BaseType_t    createStatus()

@@ -274,7 +274,6 @@ static void refreshSensors(SensorValues_t *values)
 static void refreshState(SensorValues_t *values)
 {
     if (xSemaphoreTake(_semaphore, 10) == pdTRUE) {
-        ESP_LOGI(TAG, "temperature: %f, humidity: %f, pressure: %f, color: %d, state: %d", values->temperature, values->humidity, values->pressure, values->color.available, values->initiated);
         if (values->temperature != -1)
             lv_label_set_text(stateData->lblTemperature, "Temperature "SYMBOL_OK);
         else
@@ -339,12 +338,13 @@ static void taskLcd(void *args)
         switch (_index) {
         case 0:
             refreshSensors(&values);
+            vTaskDelay(pdMS_TO_TICKS(2000));
             break;
         case 2:
             refreshState(&values);
+            vTaskDelay(pdMS_TO_TICKS(100));
             break;
         }
-        vTaskDelay(pdMS_TO_TICKS(2000));
     }
     deinitLcd();
     _working = false;

@@ -15,7 +15,7 @@ static char _working = false;
 static QueueHandle_t	_datas;
 static SensorData_t		*_config = NULL;
 
-static TickType_t	_refreshDelai = pdMS_TO_TICKS(500);
+static TickType_t	_refreshDelai = pdMS_TO_TICKS(5000);
 static SensorValues_t   _values = {0,0,0,100,(color_rgb_t){0,0,0,0},0};
 static esp_adc_cal_characteristics_t    *_adc_chars = NULL;
 
