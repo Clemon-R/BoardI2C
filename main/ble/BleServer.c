@@ -290,6 +290,7 @@ static void createWifiService()
 
 static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param) {
     TickType_t  delai;
+    static int16_t  readTruncated = -1;
 
     switch (event) {
     case ESP_GATTS_REG_EVT:
@@ -378,6 +379,14 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
                 break;
             }
         }
+        if (rsp.attr_value.len > 22){
+            if (readTruncated < 0)
+                readTruncated = 0;
+            rsp.attr_value.len -= readTruncated;
+            memcpy(rsp.attr_value.value, rsp.attr_value.value + readTruncated, rsp.attr_value.len);
+            readTruncated += 22;
+        } else 
+            readTruncated = -1;
         esp_ble_gatts_send_response(gatts_if, param->read.conn_id, param->read.trans_id,
                                     ESP_GATT_OK, &rsp);
         break;
