@@ -13,6 +13,14 @@ And finally, capable of updating by requesting with Mqtt, to download and changi
 
 ##
 
+### Remaining problems
+
+* If LCD is launched before the code in the while in the main, we got a white screen
+* Plugging SDA and SCL without power supply in the Nordic, the ESP32 don't start(typically removing the jack)
+
+
+##
+
 ### How does it work ?
 
 When already uploaded on your ESP32 with all the required components and settings,

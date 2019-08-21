@@ -5,4 +5,4 @@ if [[ $? != 0 ]];
 then
   sudo apt-get install mosquitto-clients
 fi
-mosquitto_sub -h iot.eclipse.org -d -t /demo/rtone/esp32/datas
+mosquitto_sub -h test.mosquitto.org -d -t /demo/rtone/esp32/datas
