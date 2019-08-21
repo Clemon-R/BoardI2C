@@ -22,6 +22,13 @@
 
 static const char	TAG[] = "\033[1;39;100mMain\033[0m";
 
+static uint8_t  _chipid[6];
+
+uint8_t *getMacAddress()
+{
+    return _chipid;
+}
+
 static void initLedsGpio()
 {
     gpio_config_t	gpio_conf;
@@ -102,6 +109,7 @@ void	app_main()
     }
     ESP_ERROR_CHECK(ret);
     srand(time(NULL));
+    ESP_ERROR_CHECK(esp_efuse_mac_get_default(_chipid));
 
     //Changing config by the saved one
     getSaveWifiConfig(&dataWifi);
@@ -124,7 +132,8 @@ void	app_main()
     
     //Manager/Tools
     startBleServer(&bleConfig);
-    createStatus();
+    createAlert("demo_start", "The demonstrator is starting", INFO, true);
+    //createStatus();
 
     //Lcd required functions
     //Not working without launching both in main

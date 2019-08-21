@@ -144,6 +144,7 @@ static void	taskSensor(void *args)
 {
     SensorData_t	data;
     char	buffer[BUFF_SIZE];
+    char    batteryLow = false, alertSensors = false;
 
     ESP_LOGI(TAG, "Initiating the task...");
     gpio_set_level(RGB_3_RED, RGB_ON);
@@ -152,6 +153,13 @@ static void	taskSensor(void *args)
     while (_running) {
         vTaskDelay(_refreshDelai);
         _values.battery = getBatteryPercentage();
+        if (_values.battery <= 20 && !batteryLow){
+            createAlert("battery_low", "The battery is under 20%", MAJOR, false);
+            batteryLow = true;
+        } else if (_values.battery > 20 && batteryLow){
+            createAlert("battery_low", "The battery is under 20%", MAJOR, true);
+            batteryLow = false;
+        }
         if (!_values.initiated) {
             if (setupAllSensors(&data) != ESP_OK) {
                 _config = NULL;
@@ -159,9 +167,15 @@ static void	taskSensor(void *args)
                 gpio_set_level(RGB_3_RED, RGB_OFF);
                 gpio_set_level(RGB_3_GREEN, !_values.initiated);
                 gpio_set_level(RGB_3_BLUE, _values.initiated);
+                createAlert("sensors_error", "Impossible to callibrate or not valid sensors", MAJOR, false);
+                alertSensors = true;
                 continue;
             } else {
                 _config = &data;
+                if (alertSensors){
+                    createAlert("sensors_error", "Impossible to callibrate or not valid sensors", MAJOR, true);
+                    alertSensors = false;
+                }
             }
         }
         _values.color = getColorRGB(I2C_MASTER_NUM);
@@ -201,8 +215,8 @@ static void	taskSensor(void *args)
         raw = cJSON_CreateString(buffer);
         cJSON_AddItemToObject(sensors, "color", raw);
 
-        cJSON_AddStringToObject(monitor, "data", "sensors");
-        cJSON_AddItemToObject(monitor, "sensors", sensors);
+        cJSON_AddStringToObject(monitor, "type", "sensor_data");
+        cJSON_AddItemToObject(monitor, "value", sensors);
 
         xQueueSend(_datas, &monitor, 10);
     }

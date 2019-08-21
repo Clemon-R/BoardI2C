@@ -91,10 +91,16 @@ void	createStatesView(void *tab)
     lv_obj_align(data.lblColor, parent, LV_ALIGN_IN_TOP_LEFT, lv_obj_get_width(parent) / 2 + 3, lv_obj_get_height(parent) / 2 + 25);
 
     lv_obj_t    *version = lv_label_create(parent, NULL);
-    char    buff[6];
+    char    buff[BUFF_SIZE];
     sprintf(buff, "V%s", CURRENT_VERSION);
     lv_label_set_text(version, buff);
     lv_obj_align(version, parent, LV_ALIGN_IN_BOTTOM_RIGHT, -2, 0);
+
+    lv_obj_t    *mac = lv_label_create(parent, NULL);
+    uint8_t *chipid = getMacAddress();
+    sprintf(buff, "%02x:%02x:%02x:%02x:%02x:%02x", chipid[0], chipid[1], chipid[2], chipid[3], chipid[4], chipid[5]);
+    lv_label_set_text(mac, buff);
+    lv_obj_align(mac, parent, LV_ALIGN_IN_BOTTOM_LEFT, 2, 0);
 }
 
 LcdState_t	*getStateData()

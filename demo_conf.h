@@ -3,10 +3,10 @@
 
 #define	CURRENT_VERSION	"1.1"
 
-#define DEFAULT_WIFI_SSID "Honor Raphael"
-#define DEFAULT_WIFI_PASSWORD "clemon69"
+#define DEFAULT_WIFI_SSID "Rtone 2.4GHz"
+#define DEFAULT_WIFI_PASSWORD "w?u=<|95i.SvG=c"
 
-#define DEFAULT_MQTT_URL "tcp://iot.eclipse.org"
+#define DEFAULT_MQTT_URL "tcp://demo1.rtower.io"
 #define DEFAULT_MQTT_PORT 1883
 
 #ifdef BLESERVER_H_

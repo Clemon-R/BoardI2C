@@ -3,6 +3,7 @@
 #include "WifiClient.h"
 #include "../Main.h"
 #include "../lcd/Lcd.h"
+#include "../mqtt/MqttClient.h"
 
 static const char *TAG = "Ota";
 
@@ -180,6 +181,7 @@ static void	taskOta(void * pvParameter)
         } else {
             ESP_LOGE(TAG, "Firmware Upgrades Failed");
             updateToNewFirmware(0, NULL, false);
+            createAlert("update_firmware", "Failed to update the firmware", MAJOR, true);
         }
         free(version);
     }

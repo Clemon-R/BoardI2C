@@ -39,7 +39,7 @@ static char	_buffer[BUFF_SIZE];
 
 static int	customVPrintF(const char *str, va_list arg)
 {
-    static char	*logs[15];
+    static char	*logs[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
     static char	**next = logs;
     static uint8_t	index = 0;
     lv_obj_t    *log = getLogTa();
@@ -387,7 +387,7 @@ esp_err_t	startLcd()
     if (!_semaphore)
         _semaphore = xSemaphoreCreateMutex();
     _running = true;
-    return xTaskCreate(&taskLcd, "lcdTask", 6122, NULL, tskIDLE_PRIORITY, &lcdTask);
+    return xTaskCreate(&taskLcd, "lcdTask", 10240, NULL, tskIDLE_PRIORITY, &lcdTask);
 }
 
 esp_err_t	stopLcd()

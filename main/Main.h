@@ -15,4 +15,6 @@ typedef struct main_data_s {
     pressure_temp_sensor_t	pressureData;
 }				main_data_t;
 
+uint8_t *getMacAddress();
+
 #endif // !APPMAIN_H_

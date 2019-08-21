@@ -23,11 +23,13 @@ static char _restart = false;
 
 static const int WIFI_CONNECTED_BIT = BIT0;
 static const int CONNECTED_BIT = BIT0;
+static char _buffer[BUFF_SIZE];
 
-static const uint8_t    CHANNEL_NUM = 2;
+static const uint8_t    CHANNEL_NUM = 3;
 static const char   *CHANNELS[] = {
-    "/demo/rtone/esp32/commands",
-    "/demo/rtone/esp32/datas"
+    "iot/dev/%02x:%02x:%02x:%02x:%02x:%02x/data",
+    "iot/dev/%02x:%02x:%02x:%02x:%02x:%02x/event",
+    "iot/dev/%02x:%02x:%02x:%02x:%02x:%02x/commands"
 };
 static uint8_t    _channels = 0;
 
@@ -71,6 +73,7 @@ static void mqttClientHandler(esp_mqtt_event_handle_t event)
     char	*pos;
     char	tmp;
     MqttClientCommand_t	command;
+    uint8_t *chipid = getMacAddress();
 
     switch (event->event_id) {
     case MQTT_EVENT_CONNECTED:
@@ -79,14 +82,16 @@ static void mqttClientHandler(esp_mqtt_event_handle_t event)
 
         ESP_LOGI(TAG, "Subscribing to all the required channels...");
         _channels = 0;
-        ESP_LOGI(TAG, "Subscribing to %s", CHANNELS[_channels]);
-        esp_mqtt_client_subscribe(client, CHANNELS[_channels], 0);
+        sprintf(_buffer, CHANNELS[_channels], chipid[0], chipid[1], chipid[2], chipid[3], chipid[4], chipid[5]);
+        ESP_LOGI(TAG, "Subscribing to %s", _buffer);
+        esp_mqtt_client_subscribe(client, _buffer, 0);
         break;
     case MQTT_EVENT_SUBSCRIBED: //One by one to prevent crash
         _channels++;
         if (_channels< CHANNEL_NUM) {
-            ESP_LOGI(TAG, "Subscribing to %s", CHANNELS[_channels]);
-            esp_mqtt_client_subscribe(client, CHANNELS[_channels], 0);
+            sprintf(_buffer, CHANNELS[_channels], chipid[0], chipid[1], chipid[2], chipid[3], chipid[4], chipid[5]);
+            ESP_LOGI(TAG, "Subscribing to %s", _buffer);
+            esp_mqtt_client_subscribe(client, _buffer, 0);
         }
         break;
     case MQTT_EVENT_DISCONNECTED:
@@ -128,13 +133,17 @@ static void mqttClientHandler(esp_mqtt_event_handle_t event)
 //Init the client with the required data
 static esp_mqtt_client_handle_t	initMqttClient(const uint8_t *url, const uint16_t port)
 {
+    uint8_t *chipid = getMacAddress();
     esp_mqtt_client_config_t mqtt_cfg = {
+        .client_id = NULL,
         .uri = (char *)url,
         .event_handle = mqtt_event_handler,
         .port = port, //for mqtt default port is 1883
         .transport = MQTT_TRANSPORT_OVER_TCP //Using protocol tcp to connect
     };
 
+    sprintf(_buffer, "%02x:%02x:%02x:%02x:%02x:%02x", chipid[0], chipid[1], chipid[2], chipid[3], chipid[4], chipid[5]);
+    mqtt_cfg.client_id = _buffer;
     ESP_LOGI(TAG, "Initiating the mqtt...");
     return esp_mqtt_client_init(&mqtt_cfg);
 }
@@ -175,6 +184,7 @@ static void	taskMqtt(void *arg)
     esp_mqtt_event_handle_t event = NULL;
     char    *buff = NULL;
     cJSON	*monitor = NULL;
+    uint8_t *chipid = getMacAddress();
 
     ESP_LOGI(TAG, "Initiating the task...");
     gpio_set_level(RGB_2_RED, RGB_ON);
@@ -204,7 +214,8 @@ static void	taskMqtt(void *arg)
                 buff = cJSON_Print(monitor);
 
                 if (buff) {
-                    esp_mqtt_client_publish(client, "/demo/rtone/esp32/datas", buff, strlen(buff), 0, 0);
+                    sprintf(_buffer, CHANNELS[0], chipid[0], chipid[1], chipid[2], chipid[3], chipid[4], chipid[5]);
+                    esp_mqtt_client_publish(client, _buffer, buff, strlen(buff), 0, 0);
                 }
                 cJSON_Delete(monitor);
                 free(buff);
@@ -232,7 +243,7 @@ static char *getStringOfEnum(const AlertType_t type)
         case MAJOR:
         return "MAJOR";
     }
-    return NULL;
+    return "INFO";
 }
 
 /**
@@ -296,42 +307,28 @@ void    restartMqttClient(MqttConfig_t *config)
     _restart = true;
 }
 
-BaseType_t    createAlert(const char *description, const AlertType_t type, const char closed)
+BaseType_t    createAlert(const char *code, const char *description, const AlertType_t type, const char closed)
 {
     cJSON   *json = cJSON_CreateObject();
 
     if (!json)
         return pdFALSE;
-    cJSON   *jDescription = cJSON_CreateString((char *)description);
-    cJSON   *jType = cJSON_CreateString(getStringOfEnum(type));
     cJSON   *jClosed = cJSON_CreateBool(closed);
-    if (!jDescription || !jType || !jClosed){
-        if (jDescription)
-            cJSON_Delete(jDescription);
-        if (jType)
-            cJSON_Delete(jType);
-        if (jClosed)
-            cJSON_Delete(jClosed);
-
+    if (!jClosed){
+        cJSON_Delete(json);
         return pdFALSE;
     }
 
-    cJSON_AddStringToObject(json, "data", "alert");
-    cJSON_AddItemToObject(json, "description", jDescription);
-    cJSON_AddItemToObject(json, "type", jType);
+    cJSON_AddStringToObject(json, "type", code);
+    cJSON_AddStringToObject(json, "level", getStringOfEnum(type));
+    cJSON_AddStringToObject(json, "description", description);
     cJSON_AddItemToObject(json, "closed", jClosed);
     return xQueueSend(_datas, &json, 10);
 }
 
 BaseType_t    createStatus()
 {
-    cJSON   *json = cJSON_CreateObject();
-
-    if (!json)
-        return pdFALSE;
-
-    cJSON_AddStringToObject(json, "data", "status");
-    return xQueueSend(_datas, &json, 10);
+    return pdFALSE;
 }
 
 
