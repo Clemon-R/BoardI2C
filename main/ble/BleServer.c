@@ -379,12 +379,12 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
                 break;
             }
         }
-        if (rsp.attr_value.len > 22){
+        if (rsp.attr_value.len >= ESP_GATT_DEF_BLE_MTU_SIZE){
             if (readTruncated < 0)
                 readTruncated = 0;
             rsp.attr_value.len -= readTruncated;
             memcpy(rsp.attr_value.value, rsp.attr_value.value + readTruncated, rsp.attr_value.len);
-            readTruncated += 22;
+            readTruncated += ESP_GATT_DEF_BLE_MTU_SIZE - 1;
         } else 
             readTruncated = -1;
         esp_ble_gatts_send_response(gatts_if, param->read.conn_id, param->read.trans_id,
